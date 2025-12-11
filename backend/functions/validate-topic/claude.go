@@ -1,48 +1,40 @@
 package validatetopic
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strings"
-	"time"
-)
 
-const (
-	claudeAPIURL = "https://api.anthropic.com/v1/messages"
-	apiVersion   = "2023-06-01"
+	"github.com/anthropics/anthropic-sdk-go"
+	"github.com/anthropics/anthropic-sdk-go/option"
+	"github.com/anthropics/anthropic-sdk-go/packages/ssestream"
 )
 
 // ClaudeClient handles communication with the Anthropic Claude API
 type ClaudeClient struct {
-	apiKey     string
-	model      string
-	httpClient *http.Client
+	client anthropic.Client
 }
 
 // NewClaudeClient creates a new Claude API client
 func NewClaudeClient() (*ClaudeClient, error) {
 	apiKey := os.Getenv("ANTHROPIC_API_KEY")
 	if apiKey == "" {
-		return nil, errors.New("ANTHROPIC_API_KEY environment variable not set")
+		return nil, fmt.Errorf("ANTHROPIC_API_KEY environment variable not set")
 	}
 
 	return &ClaudeClient{
-		apiKey: apiKey,
-		model:  "claude-haiku-4-5", // Latest Claude model
-		httpClient: &http.Client{
-			Timeout: 90 * time.Second, // Increased for panelist generation (8-20 detailed profiles)
-		},
+		client: anthropic.NewClient(
+			option.WithAPIKey(apiKey),
+		),
 	}, nil
 }
 
-// ValidateTopicAndSuggestPanelists validates topic relevance and suggests panelists in one API call
-func (c *ClaudeClient) ValidateTopicAndSuggestPanelists(ctx context.Context, topic string, suggestedNames []string) (bool, string, []Panelist, error) {
+// ValidateTopicAndSuggestPanelists validates topic and streams panelist suggestions
+func (c *ClaudeClient) ValidateTopicAndSuggestPanelists(ctx context.Context, topic string, suggestedNames []string, writer io.Writer) error {
 	// Build user-suggested names section
 	namesSection := ""
 	if len(suggestedNames) > 0 {
@@ -96,154 +88,99 @@ Respond with a JSON object:
 If not relevant, set panelists to an empty array.
 Format your response as valid JSON only, no other text.`, topic, namesSection)
 
-	// Create the request body with higher token limit for panelist suggestions
-	requestBody := map[string]interface{}{
-		"model":      c.model,
-		"max_tokens": 4096, // Increased for 8-20 detailed panelist profiles
-		"messages": []map[string]string{
-			{
-				"role":    "user",
-				"content": prompt,
-			},
+	// Create streaming request
+	stream := c.client.Messages.NewStreaming(ctx, anthropic.MessageNewParams{
+		Model:     anthropic.ModelClaudeHaiku4_5,
+		MaxTokens: 4096,
+		Messages: []anthropic.MessageParam{
+			anthropic.NewUserMessage(anthropic.NewTextBlock(prompt)),
 		},
-	}
+	})
 
-	requestJSON, err := json.Marshal(requestBody)
-	if err != nil {
-		return false, "", nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	// Call Claude API
-	response, err := c.callClaudeAPI(ctx, requestJSON)
-	if err != nil {
-		return false, "", nil, err
-	}
-
-	// Parse the response
-	return c.parseValidationAndPanelistResponse(response)
+	// Stream the response
+	return c.streamPanelistResponse(stream, writer)
 }
 
-// ClaudeResponse represents the response from Claude API
-type ClaudeResponse struct {
-	ID      string `json:"id"`
-	Type    string `json:"type"`
-	Role    string `json:"role"`
-	Content []struct {
-		Type string `json:"type"`
-		Text string `json:"text"`
-	} `json:"content"`
-	Model        string `json:"model"`
-	StopReason   string `json:"stop_reason"`
-	StopSequence string `json:"stop_sequence"`
-	Usage        struct {
-		InputTokens  int `json:"input_tokens"`
-		OutputTokens int `json:"output_tokens"`
-	} `json:"usage"`
-}
+// streamPanelistResponse processes the stream and emits validation + panelists incrementally
+func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic.MessageStreamEventUnion], writer io.Writer) error {
+	var buffer strings.Builder
+	flusher, _ := writer.(http.Flusher)
 
-// callClaudeAPI makes the HTTP request to Claude API
-func (c *ClaudeClient) callClaudeAPI(ctx context.Context, requestBody []byte) (string, error) {
-	// Create HTTP request
-	req, err := http.NewRequestWithContext(ctx, "POST", claudeAPIURL, bytes.NewBuffer(requestBody))
-	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
+	sendChunk := func(chunkType, data string) {
+		chunk := map[string]string{
+			"type": chunkType,
+			"data": data,
+		}
+		json.NewEncoder(writer).Encode(chunk)
+		if flusher != nil {
+			flusher.Flush()
+		}
 	}
 
-	// Set headers
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("x-api-key", c.apiKey)
-	req.Header.Set("anthropic-version", apiVersion)
-
-	// Make the request
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("failed to call Claude API: %w", err)
-	}
-	defer resp.Body.Close()
-
-	// Read response body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("failed to read response body: %w", err)
+	// Accumulate the full response
+	for stream.Next() {
+		event := stream.Current()
+		if event.Delta.Text != "" {
+			buffer.WriteString(event.Delta.Text)
+		}
 	}
 
-	// Check status code
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("Claude API returned status %d: %s", resp.StatusCode, string(body))
+	// Check for stream errors
+	if err := stream.Err(); err != nil {
+		return fmt.Errorf("stream error: %w", err)
 	}
 
-	// Parse Claude response
-	var claudeResp ClaudeResponse
-	if err := json.Unmarshal(body, &claudeResp); err != nil {
-		return "", fmt.Errorf("failed to parse Claude response: %w (body: %s)", err, string(body))
+	// Parse the complete JSON response
+	response := buffer.String()
+	
+	// Extract JSON from response
+	startIdx := strings.Index(response, "{")
+	endIdx := strings.LastIndex(response, "}")
+	if startIdx == -1 || endIdx == -1 {
+		return fmt.Errorf("no JSON found in response")
 	}
 
-	// Extract text content
-	if len(claudeResp.Content) == 0 {
-		return "", fmt.Errorf("no content in Claude response (body: %s)", string(body))
-	}
-
-	return claudeResp.Content[0].Text, nil
-}
-
-// parseValidationAndPanelistResponse parses Claude's JSON response with panelists
-func (c *ClaudeClient) parseValidationAndPanelistResponse(response string) (bool, string, []Panelist, error) {
-	// Log the response for debugging
-	fmt.Printf("Claude response text: %s\n", response)
-
-	// Extract JSON from response (Claude might include it in content)
+	jsonStr := response[startIdx : endIdx+1]
+	
 	var result struct {
 		IsRelevant bool       `json:"isRelevant"`
 		Message    string     `json:"message"`
 		Panelists  []Panelist `json:"panelists"`
 	}
 
-	// Try to find JSON in the response
-	startIdx := strings.Index(response, "{")
-	endIdx := strings.LastIndex(response, "}")
-
-	if startIdx == -1 || endIdx == -1 {
-		return false, "", nil, fmt.Errorf("no JSON found in Claude response: %s", response)
-	}
-
-	jsonStr := response[startIdx : endIdx+1]
-	fmt.Printf("Extracted JSON: %s\n", jsonStr)
-
 	if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
-		return false, "", nil, fmt.Errorf("failed to parse Claude response: %w (json: %s)", err, jsonStr)
+		return fmt.Errorf("failed to parse response: %w", err)
 	}
 
-	// Limit message length to 200 characters
-	if len(result.Message) > 200 {
-		result.Message = result.Message[:197] + "..."
-	}
+	// Send validation result first
+	validationData, _ := json.Marshal(map[string]interface{}{
+		"isRelevant": result.IsRelevant,
+		"message":    result.Message,
+	})
+	sendChunk("validation", string(validationData))
 
-	// If not relevant, panelists should be empty
-	if !result.IsRelevant {
-		return false, result.Message, []Panelist{}, nil
-	}
-
-	// Validate and sanitize panelist data
-	validPanelists := make([]Panelist, 0, len(result.Panelists))
-	for _, p := range result.Panelists {
-		// Basic validation
-		if p.Name == "" || p.ID == "" {
+	// Stream panelists one by one
+	for _, panelist := range result.Panelists {
+		// Validate and sanitize
+		if panelist.Name == "" || panelist.ID == "" {
 			continue
 		}
-
-		// Limit field lengths
-		if len(p.Tagline) > 60 {
-			p.Tagline = p.Tagline[:57] + "..."
+		if len(panelist.Tagline) > 60 {
+			panelist.Tagline = panelist.Tagline[:57] + "..."
 		}
-		if len(p.Bio) > 300 {
-			p.Bio = p.Bio[:297] + "..."
+		if len(panelist.Bio) > 300 {
+			panelist.Bio = panelist.Bio[:297] + "..."
 		}
-		if len(p.Position) > 100 {
-			p.Position = p.Position[:97] + "..."
+		if len(panelist.Position) > 100 {
+			panelist.Position = panelist.Position[:97] + "..."
 		}
 
-		validPanelists = append(validPanelists, p)
+		panelistData, _ := json.Marshal(panelist)
+		sendChunk("panelist", string(panelistData))
 	}
 
-	return result.IsRelevant, result.Message, validPanelists, nil
+	// Send done signal
+	sendChunk("done", "")
+
+	return nil
 }

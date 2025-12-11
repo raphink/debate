@@ -12,7 +12,11 @@ func handleValidateTopicImpl(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-API-Key")
-	w.Header().Set("Content-Type", "application/json")
+	
+	// Set SSE headers for streaming
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
 
 	// Handle preflight OPTIONS request
 	if r.Method == "OPTIONS" {
@@ -78,31 +82,15 @@ func handleValidateTopicImpl(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate topic and get panelist suggestions from Claude in one call
-	isRelevant, message, panelists, err := claudeClient.ValidateTopicAndSuggestPanelists(r.Context(), sanitizedTopic, suggestedNames)
-	if err != nil {
+	// Validate topic and stream panelist suggestions from Claude
+	if err := claudeClient.ValidateTopicAndSuggestPanelists(r.Context(), sanitizedTopic, suggestedNames, w); err != nil {
 		log.Printf("Error validating topic with Claude: %v", err)
-		w.WriteHeader(http.StatusServiceUnavailable)
-		retryAfter := 30
-		json.NewEncoder(w).Encode(ErrorResponse{
-			Error:      "The AI service is temporarily unavailable. Please try again in a few moments.",
-			Code:       ErrServiceUnavailable,
-			Retryable:  true,
-			RetryAfter: &retryAfter,
-		})
+		// Send error chunk
+		errorChunk := map[string]string{
+			"type":  "error",
+			"error": "The AI service is temporarily unavailable. Please try again in a few moments.",
+		}
+		json.NewEncoder(w).Encode(errorChunk)
 		return
-	}
-
-	// Return successful response with panelists
-	response := TopicValidationResponse{
-		IsRelevant:         isRelevant,
-		Message:            message,
-		Topic:              sanitizedTopic,
-		SuggestedPanelists: panelists, // Included when isRelevant=true
-	}
-
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Printf("Error encoding response: %v", err)
 	}
 }

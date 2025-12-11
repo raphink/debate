@@ -12,7 +12,7 @@ import styles from './Home.module.css';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { isValidating, validationResult, error, validate, reset } = useTopicValidation();
+  const { isValidating, validationResult, panelists, error, validate, reset } = useTopicValidation();
   const {
     selectedPanelists,
     toggleSelection,
@@ -84,7 +84,7 @@ const Home = () => {
           />
         )}
 
-        {validationResult && validationResult.isRelevant && validationResult.suggestedPanelists && (
+        {validationResult && validationResult.isRelevant && (
           <div className={styles.panelistSection}>
             <div className={styles.topicDisplay}>
               <h2 className={styles.sectionTitle}>Select Debate Panelists</h2>
@@ -93,30 +93,39 @@ const Home = () => {
               </p>
             </div>
 
-            {validationResult.suggestedPanelists.length < 5 && (
+            {isValidating && panelists.length === 0 && (
+              <div className={styles.loadingContainer}>
+                <LoadingSpinner />
+                <p className={styles.loadingText}>Looking for panelists...</p>
+              </div>
+            )}
+
+            {!isValidating && panelists.length < 5 && (
               <ErrorMessage
-                message={`Only ${validationResult.suggestedPanelists.length} panelists were suggested for this topic. You may want to refine your topic to get more diverse perspectives.`}
+                message={`Only ${panelists.length} panelists were suggested for this topic. You may want to refine your topic to get more diverse perspectives.`}
                 type="warning"
               />
             )}
 
-            <div className={styles.panelistContent}>
-              <div className={styles.gridSection}>
-                <PanelistGrid
-                  panelists={validationResult.suggestedPanelists}
-                  selectedPanelists={selectedPanelists}
-                  onToggleSelection={toggleSelection}
-                />
-              </div>
+            {panelists.length > 0 && (
+              <div className={styles.panelistContent}>
+                <div className={styles.gridSection}>
+                  <PanelistGrid
+                    panelists={panelists}
+                    selectedPanelists={selectedPanelists}
+                    onToggleSelection={toggleSelection}
+                  />
+                </div>
 
-              <aside className={styles.selectorSection}>
-                <PanelistSelector
-                  selectedPanelists={selectedPanelists}
-                  onClear={clearSelection}
-                  onProceed={handleProceedToDebate}
-                />
-              </aside>
-            </div>
+                <aside className={styles.selectorSection}>
+                  <PanelistSelector
+                    selectedPanelists={selectedPanelists}
+                    onClear={clearSelection}
+                    onProceed={handleProceedToDebate}
+                  />
+                </aside>
+              </div>
+            )}
           </div>
         )}
       </main>

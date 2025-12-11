@@ -2,16 +2,17 @@ import { useState, useCallback } from 'react';
 import { validateTopic } from '../services/topicService';
 
 /**
- * Custom hook for topic validation
- * Manages state for topic validation including loading, error, and result
+ * Custom hook for topic validation with streaming panelist results
+ * Manages state for topic validation including loading, error, result, and progressive panelist loading
  */
 const useTopicValidation = () => {
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
+  const [panelists, setPanelists] = useState([]);
   const [error, setError] = useState(null);
 
   /**
-   * Validates a topic with the backend API
+   * Validates a topic with the backend API using streaming
    * @param {string} topic - The topic to validate
    * @param {string[]} suggestedNames - Optional array of suggested panelist names
    */
@@ -19,16 +20,38 @@ const useTopicValidation = () => {
     setIsValidating(true);
     setError(null);
     setValidationResult(null);
+    setPanelists([]);
 
     try {
-      const result = await validateTopic(topic, suggestedNames);
-      setValidationResult(result);
-      return result;
+      await validateTopic(
+        topic,
+        suggestedNames,
+        // onValidation callback
+        (data) => {
+          setValidationResult({
+            isRelevant: data.isRelevant,
+            message: data.message,
+            topic: topic,
+          });
+        },
+        // onPanelist callback
+        (panelist) => {
+          setPanelists(prev => [...prev, panelist]);
+        },
+        // onError callback
+        (err) => {
+          setError(err);
+          setIsValidating(false);
+        },
+        // onComplete callback
+        () => {
+          setIsValidating(false);
+        }
+      );
     } catch (err) {
       setError(err);
-      throw err;
-    } finally {
       setIsValidating(false);
+      throw err;
     }
   }, []);
 
@@ -38,12 +61,14 @@ const useTopicValidation = () => {
   const reset = useCallback(() => {
     setIsValidating(false);
     setValidationResult(null);
+    setPanelists([]);
     setError(null);
   }, []);
 
   return {
     isValidating,
     validationResult,
+    panelists,
     error,
     validate,
     reset,
