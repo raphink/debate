@@ -68,7 +68,7 @@ const DebateView = ({ messages, panelists, isStreaming, currentPanelistId }) => 
           );
         })}
 
-        {isStreaming && <TypingIndicator panelistName={currentPanelist?.name} />}
+        {isStreaming && <TypingIndicator />}
 
         <div ref={messagesEndRef} />
       </div>
