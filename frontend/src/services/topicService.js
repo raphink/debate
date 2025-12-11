@@ -56,17 +56,22 @@ export const validateTopic = async (
       for (const line of lines) {
         if (line.trim()) {
           try {
+            console.log('Raw line received:', line);
             const chunk = JSON.parse(line);
+            console.log('Parsed chunk:', chunk);
             
             if (chunk.type === 'validation') {
               const data = JSON.parse(chunk.data);
+              console.log('Validation data:', data);
               if (onValidation) onValidation(data);
             } else if (chunk.type === 'panelist') {
               const panelist = JSON.parse(chunk.data);
+              console.log('Panelist received:', panelist);
               if (onPanelist) onPanelist(panelist);
             } else if (chunk.type === 'error') {
               if (onError) onError(new Error(chunk.error));
             } else if (chunk.type === 'done') {
+              console.log('Stream done');
               if (onComplete) onComplete();
             }
           } catch (err) {
