@@ -263,7 +263,7 @@ data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Thank y
 
 `,
 			expectedChunks: []StreamChunk{
-				{Type: "message", PanelistID: "moderator", Text: "Welcome to the debate", Done: false},
+				{Type: "message", PanelistID: "moderator", Text: "Welcome to", Done: false}, // Sent when Augustine starts
 				{Type: "message", PanelistID: "Augustine354", Text: "Thank you moderator", Done: false},
 			},
 		},

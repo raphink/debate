@@ -224,35 +224,29 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 						// This handles cases where Claude sends multiple messages in one chunk
 						for {
 							msgText := currentMessage.String()
-							if nextID, nextText := c.parseMessage(msgText); nextID != "" && nextID != currentPanelistID {
-								// Found another panelist in the accumulated message!
-								// Extract everything before the new pattern
-								idx := strings.Index(msgText, "[" + nextID + "]:")
-								if idx == -1 {
-									idx = strings.Index(msgText, "[" + nextID + "]: ")
+
+							// Look for a NEXT pattern (not the one at the start)
+							pos, nextID, nextText := c.findNextPattern(msgText, 0)
+
+							if pos > 0 && nextID != "" {
+								// Found another pattern! Send current message up to that point
+								chunk := StreamChunk{
+									Type:       "message",
+									PanelistID: currentPanelistID,
+									Text:       strings.TrimSpace(msgText[:pos]),
+									Done:       false,
 								}
-								
-								if idx > 0 {
-									// Send current message up to the new pattern
-									chunk := StreamChunk{
-										Type:       "message",
-										PanelistID: currentPanelistID,
-										Text:       strings.TrimSpace(msgText[:idx]),
-										Done:       false,
-									}
-									json.NewEncoder(writer).Encode(chunk)
-									if flusher != nil {
-										flusher.Flush()
-									}
-									
-									// Start new message with the next panelist
-									currentPanelistID = nextID
-									currentMessage.Reset()
-									currentMessage.WriteString(nextText)
-								} else {
-									break
+								json.NewEncoder(writer).Encode(chunk)
+								if flusher != nil {
+									flusher.Flush()
 								}
+
+								// Start new message with the next panelist
+								currentPanelistID = nextID
+								currentMessage.Reset()
+								currentMessage.WriteString(nextText)
 							} else {
+								// No more patterns found
 								break
 							}
 						}
@@ -277,7 +271,40 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 		return fmt.Errorf("error reading stream: %w", err)
 	}
 
+	// Send any remaining message when stream ends
+	if currentPanelistID != "" && currentMessage.Len() > 0 {
+		chunk := StreamChunk{
+			Type:       "message",
+			PanelistID: currentPanelistID,
+			Text:       strings.TrimSpace(currentMessage.String()),
+			Done:       false,
+		}
+		json.NewEncoder(writer).Encode(chunk)
+		if flusher != nil {
+			flusher.Flush()
+		}
+	}
+
 	return nil
+}
+
+// findNextPattern searches for a [ID]: pattern starting from position start+1
+// Returns the position of '[', the panelist ID, and the message text after the pattern
+func (c *ClaudeClient) findNextPattern(text string, start int) (pos int, panelistID, messageText string) {
+	searchText := text[start:]
+	
+	// Look for '[' character
+	for i := 1; i < len(searchText); i++ {
+		if searchText[i] == '[' {
+			// Try to parse from this position
+			testText := searchText[i:]
+			if id, msg := c.parseMessage(testText); id != "" {
+				return start + i, id, msg
+			}
+		}
+	}
+	
+	return -1, "", ""
 }
 
 // parseMessage extracts panelist ID and message text from formatted response
