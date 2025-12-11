@@ -120,6 +120,7 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 	}
 
 	var lineBuffer strings.Builder
+	var fullBuffer strings.Builder
 
 	// Process stream incrementally, emitting complete lines as they arrive
 	for stream.Next() {
@@ -129,6 +130,8 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 		}
 
 		text := event.Delta.Text
+		fullBuffer.WriteString(text)
+		fmt.Printf("[DEBUG] Received text chunk: %s\n", text)
 		
 		// Process character by character to detect complete lines
 		for _, char := range text {
@@ -137,6 +140,7 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 			// Check if we have a complete line (ends with newline or closing brace)
 			if char == '\n' || (char == '}' && strings.Contains(lineBuffer.String(), `"type"`)) {
 				line := strings.TrimSpace(lineBuffer.String())
+				fmt.Printf("[DEBUG] Complete line detected: %s\n", line)
 				lineBuffer.Reset()
 				
 				if line == "" || !strings.HasPrefix(line, "{") {
@@ -151,8 +155,11 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 				}
 
 				if err := json.Unmarshal([]byte(line), &chunk); err != nil {
+					fmt.Printf("[DEBUG] Failed to parse line as chunk: %v\n", err)
 					continue // Skip malformed lines
 				}
+
+				fmt.Printf("[DEBUG] Parsed chunk type: %s\n", chunk.Type)
 
 				if chunk.Type == "rejection" {
 					// Send rejection message
@@ -166,8 +173,11 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 					// Parse and send panelist immediately
 					var panelist Panelist
 					if err := json.Unmarshal(chunk.Data, &panelist); err != nil {
+						fmt.Printf("[DEBUG] Failed to parse panelist data: %v\n", err)
 						continue
 					}
+
+					fmt.Printf("[DEBUG] Parsed panelist: %s\n", panelist.Name)
 
 					// Validate and sanitize
 					if panelist.Name == "" || panelist.ID == "" {
