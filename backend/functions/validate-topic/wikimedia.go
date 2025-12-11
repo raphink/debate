@@ -60,8 +60,16 @@ func (w *WikimediaAPI) FetchPortraitURL(personName string) string {
 	
 	apiURL := baseURL + "?" + params.Encode()
 	
+	// Create request with proper User-Agent header (required by Wikipedia)
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		fmt.Printf("[WIKIMEDIA] Error creating request for %s: %v\n", personName, err)
+		return ""
+	}
+	req.Header.Set("User-Agent", "DebateApp/1.0 (https://github.com/raphink/debate; debate@example.com)")
+	
 	// Make the request
-	resp, err := w.client.Get(apiURL)
+	resp, err := w.client.Do(req)
 	if err != nil {
 		fmt.Printf("[WIKIMEDIA] Error fetching portrait for %s: %v\n", personName, err)
 		return ""
