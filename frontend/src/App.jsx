@@ -10,7 +10,7 @@ import './App.css';
 function App() {
   return (
     <ErrorBoundary>
-      <Router>
+      <Router basename="/debate">
         <div className="App">
           <header className="App-header">
             <h1>Theology & Philosophy Debate Generator</h1>
