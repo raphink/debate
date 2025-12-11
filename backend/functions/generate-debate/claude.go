@@ -129,6 +129,8 @@ func (c *ClaudeClient) buildDebatePrompt(req *DebateRequest) string {
 func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, panelists []Panelist) error {
 	scanner := bufio.NewScanner(reader)
 	var currentText strings.Builder
+	var currentPanelistID string
+	var currentMessage strings.Builder
 	flusher, _ := writer.(http.Flusher)
 
 	for scanner.Scan() {
@@ -145,6 +147,20 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 
 			// Check for stream end
 			if data == "[DONE]" {
+				// Send any remaining message
+				if currentPanelistID != "" && currentMessage.Len() > 0 {
+					chunk := StreamChunk{
+						Type:       "message",
+						PanelistID: currentPanelistID,
+						Text:       strings.TrimSpace(currentMessage.String()),
+						Done:       false,
+					}
+					json.NewEncoder(writer).Encode(chunk)
+					if flusher != nil {
+						flusher.Flush()
+					}
+				}
+				
 				chunk := StreamChunk{
 					Type: "done",
 					Done: true,
@@ -167,20 +183,31 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 				if text, ok := delta["text"].(string); ok {
 					currentText.WriteString(text)
 
-					// Check if we have a complete message (ends with newline or contains panelist ID)
+					// Check if we have a new panelist message starting
 					fullText := currentText.String()
 					if panelistID, messageText := c.parseMessage(fullText); panelistID != "" {
-						chunk := StreamChunk{
-							Type:       "message",
-							PanelistID: panelistID,
-							Text:       messageText,
-							Done:       false,
+						// Send previous message if exists
+						if currentPanelistID != "" && currentMessage.Len() > 0 {
+							chunk := StreamChunk{
+								Type:       "message",
+								PanelistID: currentPanelistID,
+								Text:       strings.TrimSpace(currentMessage.String()),
+								Done:       false,
+							}
+							json.NewEncoder(writer).Encode(chunk)
+							if flusher != nil {
+								flusher.Flush()
+							}
 						}
-						json.NewEncoder(writer).Encode(chunk)
-						if flusher != nil {
-							flusher.Flush()
-						}
+
+						// Start new message
+						currentPanelistID = panelistID
+						currentMessage.Reset()
+						currentMessage.WriteString(messageText)
 						currentText.Reset()
+					} else if currentPanelistID != "" {
+						// Continue accumulating current message
+						currentMessage.WriteString(text)
 					}
 				}
 			}
