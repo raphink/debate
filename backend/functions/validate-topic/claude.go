@@ -38,13 +38,25 @@ func (c *ClaudeClient) ValidateTopicAndSuggestPanelists(ctx context.Context, top
 	// Build user-suggested names section
 	namesSection := ""
 	if len(suggestedNames) > 0 {
-		namesSection = "\n\nUser has suggested considering these individuals (if they have relevant documented views on this topic):\n"
+		namesSection = "\n\nIMPORTANT - User has specifically requested these panelists:\n"
 		for _, name := range suggestedNames {
 			if name != "" {
 				namesSection += fmt.Sprintf("- %s\n", name)
 			}
 		}
-		namesSection += "\nYou may include these individuals in your suggestions if they have known, documented positions relevant to this topic. If not, you may omit them.\n"
+		namesSection += `
+PRIORITY REQUIREMENT: You MUST include these individuals in your panelist list if they meet ANY of these criteria:
+1. They have ANY documented historical views or writings (even if not directly on this topic)
+2. Their philosophical/theological tradition would give them a position on this topic
+3. They are recognized figures in theology, philosophy, or related fields
+
+Only exclude a user-suggested panelist if:
+- They are completely fictional/non-existent
+- They have absolutely no connection to theology, philosophy, or intellectual discourse
+- Their inclusion would be factually impossible (e.g., purely a fictional character)
+
+For user-suggested panelists who qualify, infer their likely position based on their known works and tradition, even if they never directly addressed this specific topic.
+`
 	}
 
 	// Build the combined prompt for Claude
