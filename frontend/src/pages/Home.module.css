@@ -27,7 +27,7 @@
 .main {
   flex: 1;
   padding: 2rem 1.5rem;
-  max-width: 800px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
 }
@@ -53,6 +53,51 @@
   animation: fadeIn 0.3s ease-in;
 }
 
+.panelistSection {
+  margin-top: 3rem;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.topicDisplay {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sectionTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.validatedTopic {
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.validatedTopic em {
+  color: #5b8a72;
+  font-weight: 500;
+}
+
+.panelistContent {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.gridSection {
+  min-width: 0;
+}
+
+.selectorSection {
+  /* Sticky positioning handled in PanelistSelector component */
+}
+
 .footer {
   text-align: center;
   padding: 2rem 1.5rem;
@@ -76,6 +121,23 @@
 }
 
 /* Mobile responsive */
+@media (max-width: 1024px) {
+  .panelistContent {
+    grid-template-columns: 1fr 300px;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .panelistContent {
+    grid-template-columns: 1fr;
+  }
+
+  .selectorSection {
+    order: -1; /* Move selector above grid on mobile */
+  }
+}
+
 @media (max-width: 640px) {
   .header {
     padding: 2rem 1rem 1.5rem;
