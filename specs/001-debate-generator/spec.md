@@ -34,7 +34,7 @@ User browses AI-suggested historical figures with known positions on the topic a
 
 **Acceptance Scenarios**:
 
-1. **Given** user is entering a topic, **When** user wants to suggest specific panelists, **Then** user can type names that appear as removable chips (press comma+space or Enter to add, max 5)
+1. **Given** user is entering a topic, **When** user wants to suggest specific panelists, **Then** user can type names that appear as removable chips (press comma, Tab, or Enter to add, max 5)
 2. **Given** user has added panelist chips, **When** user wants to remove one, **Then** user can click the × button on the chip to remove it
 3. **Given** topic has been validated as relevant, **When** validation response streams in, **Then** user sees 8-20 historical figures appear progressively with avatar, name, handle (id), tagline, and bio (each panelist sent as complete JSON line as soon as Claude generates it)
 4. **Given** user suggested panelist names during topic entry, **When** validation response streams in, **Then** AI MUST include suggested names unless they are fictional/non-existent or completely unrelated to intellectual discourse, inferring positions from their known works even if they never directly addressed the topic

@@ -74,6 +74,8 @@
 - [X] T029d [US1] Fix line detection in streamPanelistResponse to only trigger on newline (not closing brace)
 - [X] T029e [US1] Add debug logging in claude.go and handler.go to track suggested names and streaming behavior
 - [X] T029f [US1] Add fallback parser in streamPanelistResponse for old single-JSON-object format
+- [X] T029g [US1] Strip markdown code blocks (```json...```) from Claude responses to handle formatting variations
+- [X] T029h [US1] Add rejection format parser to handle {"type":"rejection","message":"..."} responses
 - [X] T030 [US1] Implement HTTP handler in backend/functions/validate-topic/handler.go (CORS, error handling, sanitization)
 - [X] T030a [US1] Update handler.go to sanitize and limit suggested names to 5 before passing to Claude client
 - [X] T030b [US1] Update handler.go to support SSE streaming (set Content-Type: text/event-stream, flush chunks)
@@ -88,6 +90,7 @@
 - [X] T034b [US1] Update TopicInput submit button text from "Validate Topic" to "Find Panelists"
 - [X] T034c [US1] Implement chip-based panelist suggestions (type + comma/Enter creates chip with × remove button)
 - [X] T034d [US1] Update TopicInput and Button components with gradient styling, hover animations, and shine effects
+- [X] T034e [US1] Add Tab key support for creating panelist chips (in addition to comma and Enter)
 - [X] T035 [P] [US1] Create TopicInput styles in frontend/src/components/TopicInput/TopicInput.module.css (mobile-first responsive)
 - [X] T036 [P] [US1] Create ValidationResult component in frontend/src/components/ValidationResult/ValidationResult.jsx (success/error display)
 - [X] T037 [P] [US1] Create ValidationResult styles in frontend/src/components/ValidationResult/ValidationResult.module.css
