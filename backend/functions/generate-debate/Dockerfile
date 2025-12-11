@@ -15,8 +15,8 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build the function
-RUN CGO_ENABLED=0 GOOS=linux go build -o /generate-debate .
+# Build the function from cmd/ directory
+RUN CGO_ENABLED=0 GOOS=linux go build -o /generate-debate ./cmd
 
 # Runtime stage
 FROM gcr.io/distroless/static-debian12
