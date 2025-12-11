@@ -66,6 +66,23 @@ check_prerequisites() {
         exit 1
     fi
     
+    # Enable required APIs
+    log_info "Checking and enabling required APIs..."
+    REQUIRED_APIS=(
+        "cloudfunctions.googleapis.com"
+        "cloudbuild.googleapis.com"
+        "run.googleapis.com"
+        "secretmanager.googleapis.com"
+        "artifactregistry.googleapis.com"
+    )
+    
+    for api in "${REQUIRED_APIS[@]}"; do
+        if ! gcloud services list --enabled --filter="name:$api" --format="value(name)" | grep -q "$api"; then
+            log_info "Enabling $api..."
+            gcloud services enable "$api" --quiet
+        fi
+    done
+    
     log_info "Prerequisites check passed ✓"
 }
 
