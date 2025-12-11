@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"strings"
 	"testing"
 )
 
@@ -210,4 +213,116 @@ func TestParseMessageStreamingBehavior(t *testing.T) {
 			t.Errorf("Expected full text after first ID, got %q", text)
 		}
 	})
+}
+
+func TestStreamResponseMultipleSpeakers(t *testing.T) {
+	client := &ClaudeClient{}
+	
+	tests := []struct {
+		name           string
+		mockSSEData    string
+		expectedChunks []StreamChunk
+	}{
+		{
+			name: "Single speaker in one chunk",
+			mockSSEData: `data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"[moderator]: Welcome to the debate"}}
+
+`,
+			expectedChunks: []StreamChunk{
+				{Type: "message", PanelistID: "moderator", Text: "Welcome to the debate", Done: false},
+			},
+		},
+		{
+			name: "Two speakers in one chunk",
+			mockSSEData: `data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"[moderator]: Welcome\n[Augustine354]: Thank you"}}
+
+`,
+			expectedChunks: []StreamChunk{
+				{Type: "message", PanelistID: "moderator", Text: "Welcome", Done: false},
+				{Type: "message", PanelistID: "Augustine354", Text: "Thank you", Done: false},
+			},
+		},
+		{
+			name: "Three speakers in one chunk",
+			mockSSEData: `data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"[moderator]: Let's begin\n[Augustine354]: I believe in divine law\n[MLKJr]: I advocate nonviolence"}}
+
+`,
+			expectedChunks: []StreamChunk{
+				{Type: "message", PanelistID: "moderator", Text: "Let's begin", Done: false},
+				{Type: "message", PanelistID: "Augustine354", Text: "I believe in divine law", Done: false},
+				{Type: "message", PanelistID: "MLKJr", Text: "I advocate nonviolence", Done: false},
+			},
+		},
+		{
+			name: "Speaker change across chunks",
+			mockSSEData: `data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"[moderator]: Welcome to "}}
+
+data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"the debate\n[Augustine354]: "}}
+
+data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Thank you moderator"}}
+
+`,
+			expectedChunks: []StreamChunk{
+				{Type: "message", PanelistID: "moderator", Text: "Welcome to the debate", Done: false},
+				{Type: "message", PanelistID: "Augustine354", Text: "Thank you moderator", Done: false},
+			},
+		},
+	}
+	
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a mock reader
+			reader := strings.NewReader(tt.mockSSEData)
+			
+			// Create a buffer to capture output
+			var output bytes.Buffer
+			
+			// Call streamResponse
+			err := client.streamResponse(reader, &output, []Panelist{})
+			if err != nil {
+				t.Fatalf("streamResponse failed: %v", err)
+			}
+			
+			// Parse output into chunks
+			lines := strings.Split(output.String(), "\n")
+			var gotChunks []StreamChunk
+			
+			for _, line := range lines {
+				if line == "" {
+					continue
+				}
+				
+				var chunk StreamChunk
+				if err := json.Unmarshal([]byte(line), &chunk); err != nil {
+					continue
+				}
+				
+				// Skip "done" chunks for this test
+				if chunk.Type == "done" {
+					continue
+				}
+				
+				gotChunks = append(gotChunks, chunk)
+			}
+			
+			// Compare chunks
+			if len(gotChunks) != len(tt.expectedChunks) {
+				t.Errorf("Expected %d chunks, got %d", len(tt.expectedChunks), len(gotChunks))
+				t.Logf("Got chunks: %+v", gotChunks)
+				return
+			}
+			
+			for i, expected := range tt.expectedChunks {
+				got := gotChunks[i]
+				
+				if got.PanelistID != expected.PanelistID {
+					t.Errorf("Chunk %d: expected PanelistID=%q, got %q", i, expected.PanelistID, got.PanelistID)
+				}
+				
+				if got.Text != expected.Text {
+					t.Errorf("Chunk %d: expected Text=%q, got %q", i, expected.Text, got.Text)
+				}
+			}
+		})
+	}
 }
