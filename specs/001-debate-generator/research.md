@@ -315,6 +315,83 @@ services:
 
 ---
 
+### 9. Production Deployment Strategy
+
+**Decision**: Deploy backend to GCP Cloud Functions (Gen 2) and frontend to GitHub Pages.
+
+**Rationale**:
+- **Backend (GCP Cloud Functions)**: Serverless, auto-scaling, pay-per-use, native Secret Manager integration
+- **Frontend (GitHub Pages)**: Free static hosting, global CDN, HTTPS by default, zero maintenance
+- Separation of concerns: Backend can scale independently of frontend
+- Cost-effective: Both services have generous free tiers suitable for MVP traffic
+
+**Deployment Architecture**:
+```
+┌─────────────────┐
+│  GitHub Pages   │  ← Static React app (https://raphink.github.io/debate)
+│  (Frontend)     │
+└────────┬────────┘
+         │ HTTPS API calls
+         ↓
+┌─────────────────────────────────────────────┐
+│  GCP Cloud Functions (europe-west1)         │
+│  ┌─────────────────────────────────────┐   │
+│  │ validate-topic (Go 1.23)            │   │
+│  │ suggest-panelists (Go 1.23)         │   │
+│  │ generate-debate (Go 1.23)           │   │
+│  └─────────────────────────────────────┘   │
+└────────┬────────────────────────────────────┘
+         │ Secret access
+         ↓
+┌─────────────────┐
+│ GCP Secret Mgr  │  ← ANTHROPIC_API_KEY
+└─────────────────┘
+```
+
+**Deployment Process**:
+1. **Backend**: Use `gcloud functions deploy` with Secret Manager binding
+2. **Frontend**: Build React app with production API URLs → deploy to gh-pages branch
+3. **Secrets**: Already stored in GCP Secret Manager (same as local dev)
+
+**Infrastructure Details**:
+- Cloud Functions Gen 2 (better performance, more control than Gen 1)
+- Runtime: Go 1.23
+- Region: europe-west1 (Belgium - lowest latency for EU users)
+- Memory: 256MB per function (sufficient for API proxy)
+- Timeout: 60s (max for streaming responses)
+- Concurrency: 80 requests per instance (Cloud Functions default)
+- Min instances: 0 (scale to zero when idle)
+- Max instances: 100 (prevent runaway costs)
+
+**Frontend Configuration**:
+- GitHub Pages serves from `gh-pages` branch
+- React app built with production environment variables
+- API URLs point to Cloud Functions endpoints
+- Service Worker for offline capabilities (future enhancement)
+
+**Cost Estimation** (Monthly for MVP traffic):
+- Cloud Functions: Free tier covers ~2M requests
+- Secret Manager: Free tier covers 10K accesses
+- GitHub Pages: Free for public repos
+- Anthropic API: ~$0.01-0.02 per debate (usage-based)
+- **Estimated total**: $0-10/month for low-medium traffic
+
+**Deployment Script**: `deploy.sh` in project root automates entire process
+
+**Monitoring & Observability**:
+- Cloud Functions logs → Cloud Logging (automatic)
+- Error reporting → Cloud Error Reporting (automatic)
+- Metrics → Cloud Monitoring (automatic)
+- Custom metrics: Track debate completion rate, API latency
+
+**Alternatives Considered**:
+- **Vercel/Netlify**: Good alternatives, but GitHub Pages is simpler and free
+- **Cloud Run**: More complex than Functions, unnecessary for stateless API proxy
+- **Firebase Hosting**: Considered, but GitHub Pages offers same benefits with less vendor lock-in
+- **Self-hosted VPS**: Rejected due to maintenance overhead and scaling complexity
+
+---
+
 ## Summary of Key Decisions
 
 | Area | Decision | Rationale |
@@ -325,6 +402,7 @@ services:
 | Avatar Strategy | Public domain + AI-generated | Legal compliance, consistent styling |
 | Security | Multi-layer sanitization (DOMPurify + Go) | Defense in depth against XSS |
 | Accessibility | axe-core + manual testing | Meets WCAG 2.1 Level AA requirements |
-| Local Development | Docker Compose orchestration | Standardized environment, easy onboarding |
+| Local Development | Docker Compose + summon | Standardized environment, production parity |
+| Production Deployment | GCP Functions + GitHub Pages | Serverless backend, free frontend, minimal ops |
 
 All technical unknowns resolved. Ready to proceed to Phase 1 (data model and contracts design).

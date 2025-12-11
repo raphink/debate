@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "AI-Powered Theology/Philosophy Debate Generator - Frontend",
   "private": true,
+  "homepage": "https://raphink.github.io/debate",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -32,7 +33,9 @@
     "test:a11y": "jest --testPathPattern=accessibility",
     "lint": "eslint src/",
     "format": "prettier --write \"src/**/*.{js,jsx,css,md}\"",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
