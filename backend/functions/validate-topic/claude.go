@@ -210,12 +210,31 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 	fullText := fullBuffer.String()
 	fmt.Printf("[DEBUG] Full accumulated text: %s\n", fullText)
 
+	// Strip markdown code blocks if present
+	fullText = strings.TrimSpace(fullText)
+	if strings.HasPrefix(fullText, "```") {
+		// Remove opening ```json or ``` and closing ```
+		lines := strings.Split(fullText, "\n")
+		if len(lines) > 2 {
+			// Remove first line (```json) and last line (```)
+			fullText = strings.Join(lines[1:len(lines)-1], "\n")
+			fullText = strings.TrimSpace(fullText)
+			fmt.Printf("[DEBUG] Stripped markdown code blocks, result: %s\n", fullText)
+		}
+	}
+
 	if fullText != "" {
 		// Try to parse as old format (single JSON object with isRelevant, message, panelists array)
 		var oldFormat struct {
 			IsRelevant bool       `json:"isRelevant"`
 			Message    string     `json:"message"`
 			Panelists  []Panelist `json:"panelists"`
+		}
+
+		// Also try to parse as rejection format
+		var rejectionFormat struct {
+			Type    string `json:"type"`
+			Message string `json:"message"`
 		}
 
 		if err := json.Unmarshal([]byte(fullText), &oldFormat); err == nil {
@@ -233,8 +252,17 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 				panelistJSON, _ := json.Marshal(panelist)
 				sendChunk("panelist", string(panelistJSON))
 			}
+		} else if err := json.Unmarshal([]byte(fullText), &rejectionFormat); err == nil && rejectionFormat.Type == "rejection" {
+			fmt.Printf("[DEBUG] Parsed as rejection format - message: %s\n", rejectionFormat.Message)
+
+			// Send rejection as validation result
+			validationData, _ := json.Marshal(map[string]interface{}{
+				"isRelevant": false,
+				"message":    rejectionFormat.Message,
+			})
+			sendChunk("validation", string(validationData))
 		} else {
-			fmt.Printf("[DEBUG] Failed to parse as old format: %v\n", err)
+			fmt.Printf("[DEBUG] Failed to parse accumulated text in any known format\n")
 		}
 	}
 
