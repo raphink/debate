@@ -33,7 +33,7 @@ User browses AI-suggested historical figures with known positions on the topic a
 
 **Acceptance Scenarios**:
 
-1. **Given** topic has been validated as relevant, **When** system suggests panelists, **Then** user sees up to 20 historical figures with avatar, name, nickname, tagline, and bio
+1. **Given** topic has been validated as relevant, **When** system suggests panelists, **Then** user sees up to 20 historical figures with avatar, name, handle (id), tagline, and bio
 2. **Given** user views panelist list, **When** user clicks on a panelist card, **Then** panelist is added to selection (maximum 5 total)
 3. **Given** user has selected 5 panelists, **When** user attempts to select another, **Then** system prevents selection and displays message "Maximum 5 panelists allowed"
 4. **Given** user has selected panelists, **When** user clicks a selected panelist again, **Then** panelist is deselected and removed from selection
@@ -93,7 +93,7 @@ User exports completed debate as a formatted PDF document for offline reading, s
 
 - **FR-001**: System MUST accept text input for debate topics with minimum 10 characters
 - **FR-002**: System MUST validate topic relevance for theology/philosophy debates via Claude API through GCP function proxy
-- **FR-003**: System MUST request and display up to 20 panelist suggestions with complete profiles (name, avatar URL, nickname, tagline, biography)
+- **FR-003**: System MUST request and display up to 20 panelist suggestions with complete profiles (name, avatar URL, handle (id), tagline, biography)
 - **FR-004**: Users MUST be able to select between 2 and 5 panelists from the suggested list
 - **FR-005**: System MUST visually distinguish selected vs unselected panelists in the UI
 - **FR-006**: System MUST prevent debate generation unless at least 2 panelists are selected
@@ -115,7 +115,7 @@ User exports completed debate as a formatted PDF document for offline reading, s
 ### Key Entities
 
 - **Topic**: User-submitted debate subject; includes validation status and relevance indicator
-- **Panelist**: Historical figure with position on topic; attributes include name, avatar URL, nickname/pseudo, tagline (brief descriptor), biography (credentials and viewpoint), and unique identifier
+- **Panelist**: Historical figure with position on topic; attributes include unique handle/identifier (alphanumeric only), name, avatar URL, tagline (brief descriptor), biography (credentials and viewpoint)
 - **Debate Configuration**: Combination of validated topic and selected panelists (2-5); represents user's debate setup
 - **Debate Response**: Individual contribution from a panelist during debate generation; includes panelist identifier, response text, timestamp, and position in conversation
 - **Debate Session**: Complete generated debate; contains topic, panelist list, ordered responses, generation timestamp, and completion status

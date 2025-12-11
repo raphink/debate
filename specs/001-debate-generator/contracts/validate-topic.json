@@ -1,0 +1,239 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Topic Validation API",
+    "description": "Validates whether a topic is suitable for theological/philosophical debate using Claude API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://us-central1-{project-id}.cloudfunctions.net",
+      "description": "GCP Cloud Functions endpoint"
+    }
+  ],
+  "paths": {
+    "/validate-topic": {
+      "post": {
+        "summary": "Validate debate topic relevance",
+        "description": "Sends topic to Claude API for validation of theological/philosophical relevance",
+        "operationId": "validateTopic",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TopicValidationRequest"
+              },
+              "examples": {
+                "theologicalTopic": {
+                  "summary": "Valid theological topic",
+                  "value": {
+                    "topic": "Should Christians defy authorities when the law is unfair?"
+                  }
+                },
+                "offTopic": {
+                  "summary": "Off-topic example",
+                  "value": {
+                    "topic": "What are the best pizza toppings?"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Topic validation completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicValidationResponse"
+                },
+                "examples": {
+                  "relevant": {
+                    "summary": "Topic is relevant",
+                    "value": {
+                      "isRelevant": true,
+                      "message": "This topic is well-suited for theological and philosophical debate. It addresses fundamental questions about moral authority, civil disobedience, and the relationship between divine and human law.",
+                      "topic": "Should Christians defy authorities when the law is unfair?"
+                    }
+                  },
+                  "notRelevant": {
+                    "summary": "Topic is not relevant",
+                    "value": {
+                      "isRelevant": false,
+                      "message": "This topic is not suitable for theological or philosophical debate. It appears to be about culinary preferences rather than moral, ethical, or theological questions. Please try a topic related to theology, philosophy, ethics, or morality.",
+                      "topic": "What are the best pizza toppings?"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - topic validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "tooShort": {
+                    "summary": "Topic too short",
+                    "value": {
+                      "error": "Topic must be at least 10 characters long",
+                      "code": "INVALID_TOPIC_LENGTH",
+                      "retryable": true
+                    }
+                  },
+                  "tooLong": {
+                    "summary": "Topic too long",
+                    "value": {
+                      "error": "Topic must not exceed 500 characters",
+                      "code": "INVALID_TOPIC_LENGTH",
+                      "retryable": true
+                    }
+                  },
+                  "invalidContent": {
+                    "summary": "Topic contains HTML",
+                    "value": {
+                      "error": "Topic contains invalid characters or HTML content",
+                      "code": "INVALID_TOPIC_CONTENT",
+                      "retryable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Too many requests. Please wait before trying again.",
+                  "code": "RATE_LIMIT_EXCEEDED",
+                  "retryable": true,
+                  "retryAfter": 60
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "An error occurred while validating the topic. Please try again.",
+                  "code": "INTERNAL_ERROR",
+                  "retryable": true
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Claude API unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "The AI service is temporarily unavailable. Please try again in a few moments.",
+                  "code": "SERVICE_UNAVAILABLE",
+                  "retryable": true,
+                  "retryAfter": 30
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TopicValidationRequest": {
+        "type": "object",
+        "required": ["topic"],
+        "properties": {
+          "topic": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 500,
+            "description": "The debate topic to validate",
+            "example": "Should Christians defy authorities when the law is unfair?"
+          }
+        }
+      },
+      "TopicValidationResponse": {
+        "type": "object",
+        "required": ["isRelevant", "message", "topic"],
+        "properties": {
+          "isRelevant": {
+            "type": "boolean",
+            "description": "Whether the topic is suitable for theological/philosophical debate"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Feedback message explaining the validation result"
+          },
+          "topic": {
+            "type": "string",
+            "description": "The sanitized topic that was validated"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error", "code", "retryable"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "User-friendly error message"
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "INVALID_TOPIC_LENGTH",
+              "INVALID_TOPIC_CONTENT",
+              "RATE_LIMIT_EXCEEDED",
+              "INTERNAL_ERROR",
+              "SERVICE_UNAVAILABLE"
+            ],
+            "description": "Machine-readable error code"
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can be retried"
+          },
+          "retryAfter": {
+            "type": "integer",
+            "description": "Seconds to wait before retrying (for rate limits)",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key for authenticating requests (if implemented)"
+      }
+    }
+  }
+}

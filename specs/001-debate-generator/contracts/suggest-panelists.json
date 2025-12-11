@@ -1,0 +1,275 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Panelist Suggestion API",
+    "description": "Suggests historical figures as debate panelists for a given topic using Claude API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://us-central1-{project-id}.cloudfunctions.net",
+      "description": "GCP Cloud Functions endpoint"
+    }
+  ],
+  "paths": {
+    "/suggest-panelists": {
+      "post": {
+        "summary": "Get panelist suggestions for debate topic",
+        "description": "Requests Claude API to suggest up to 20 historical figures with known positions on the topic",
+        "operationId": "suggestPanelists",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PanelistSuggestionRequest"
+              },
+              "example": {
+                "topic": "Should Christians defy authorities when the law is unfair?"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Panelist suggestions retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PanelistSuggestionResponse"
+                },
+                "example": {
+                  "topic": "Should Christians defy authorities when the law is unfair?",
+                  "panelists": [
+                    {
+                      "id": "Augustine354",
+                      "name": "Augustine of Hippo",
+                      "tagline": "4th-5th century theologian and philosopher",
+                      "biography": "Early Christian theologian and philosopher known for 'Confessions' and 'City of God'. Developed influential theories on just war and natural law. Believed that unjust laws are not truly laws and Christians have a duty to resist them when they contradict divine law.",
+                      "position": "Would argue that Christians have a duty to resist unjust laws that contradict divine law",
+                      "avatarUrl": "/avatars/Augustine354-avatar.png"
+                    },
+                    {
+                      "id": "MLKJr",
+                      "name": "Martin Luther King Jr.",
+                      "tagline": "20th century civil rights leader and Baptist minister",
+                      "biography": "American Baptist minister and civil rights activist. Famous for 'Letter from Birmingham Jail' which defended nonviolent civil disobedience against unjust laws. Drew on Christian theology and Gandhi's principles of nonviolence.",
+                      "position": "Believed in nonviolent civil disobedience as a moral duty when confronting unjust laws",
+                      "avatarUrl": "/avatars/MLKJr-avatar.png"
+                    },
+                    {
+                      "id": "Aquinas1225",
+                      "name": "Thomas Aquinas",
+                      "tagline": "13th century theologian and philosopher",
+                      "biography": "Dominican friar and influential medieval philosopher. Synthesized Aristotelian philosophy with Christian theology. Developed comprehensive theory of natural law and just governance in 'Summa Theologica'.",
+                      "position": "Would argue that laws contrary to natural law need not be obeyed, though peaceful resistance is preferred",
+                      "avatarUrl": "/avatars/Aquinas1225-avatar.png"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missingTopic": {
+                    "summary": "Topic not provided",
+                    "value": {
+                      "error": "Topic is required",
+                      "code": "MISSING_TOPIC",
+                      "retryable": true
+                    }
+                  },
+                  "invalidTopic": {
+                    "summary": "Topic not validated",
+                    "value": {
+                      "error": "Topic must be validated before requesting panelists",
+                      "code": "TOPIC_NOT_VALIDATED",
+                      "retryable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Too many requests. Please wait before trying again.",
+                  "code": "RATE_LIMIT_EXCEEDED",
+                  "retryable": true,
+                  "retryAfter": 60
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "An error occurred while suggesting panelists. Please try again.",
+                  "code": "INTERNAL_ERROR",
+                  "retryable": true
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Claude API unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "The AI service is temporarily unavailable. Please try again in a few moments.",
+                  "code": "SERVICE_UNAVAILABLE",
+                  "retryable": true,
+                  "retryAfter": 30
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PanelistSuggestionRequest": {
+        "type": "object",
+        "required": ["topic"],
+        "properties": {
+          "topic": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 500,
+            "description": "The validated debate topic",
+            "example": "Should Christians defy authorities when the law is unfair?"
+          }
+        }
+      },
+      "PanelistSuggestionResponse": {
+        "type": "object",
+        "required": ["topic", "panelists"],
+        "properties": {
+          "topic": {
+            "type": "string",
+            "description": "The topic for which panelists were suggested"
+          },
+          "panelists": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 20,
+            "description": "Array of suggested panelists",
+            "items": {
+              "$ref": "#/components/schemas/Panelist"
+            }
+          }
+        }
+      },
+      "Panelist": {
+        "type": "object",
+        "required": ["id", "name", "tagline", "biography", "avatarUrl"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9]{3,20}$",
+            "minLength": 3,
+            "maxLength": 20,
+            "description": "Unique identifier and social media-style handle (alphanumeric only)",
+            "example": "Augustine354"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Full name of the historical figure",
+            "example": "Augustine of Hippo"
+          },
+          "tagline": {
+            "type": "string",
+            "maxLength": 150,
+            "description": "Brief descriptor of the panelist",
+            "example": "4th-5th century theologian and philosopher"
+          },
+          "biography": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Detailed background including era, key works, and relevant positions",
+            "example": "Early Christian theologian and philosopher known for 'Confessions' and 'City of God'..."
+          },
+          "position": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Panelist's likely stance on the specific topic",
+            "example": "Would argue that Christians have a duty to resist unjust laws"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Path to panelist's avatar image",
+            "example": "/avatars/Augustine354-avatar.png"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error", "code", "retryable"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "User-friendly error message"
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "MISSING_TOPIC",
+              "TOPIC_NOT_VALIDATED",
+              "RATE_LIMIT_EXCEEDED",
+              "INTERNAL_ERROR",
+              "SERVICE_UNAVAILABLE"
+            ],
+            "description": "Machine-readable error code"
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can be retried"
+          },
+          "retryAfter": {
+            "type": "integer",
+            "description": "Seconds to wait before retrying (for rate limits)",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key for authenticating requests (if implemented)"
+      }
+    }
+  }
+}

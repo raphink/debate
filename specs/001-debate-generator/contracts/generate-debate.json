@@ -1,0 +1,345 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Debate Generation API",
+    "description": "Generates a theological/philosophical debate between selected panelists using Claude API with Server-Sent Events (SSE) streaming",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://us-central1-{project-id}.cloudfunctions.net",
+      "description": "GCP Cloud Functions endpoint"
+    }
+  ],
+  "paths": {
+    "/generate-debate": {
+      "post": {
+        "summary": "Generate debate with streaming responses",
+        "description": "Sends debate configuration to Claude API and streams responses as Server-Sent Events (SSE)",
+        "operationId": "generateDebate",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DebateGenerationRequest"
+              },
+              "example": {
+                "topic": {
+                  "text": "Should Christians defy authorities when the law is unfair?",
+                  "isRelevant": true
+                },
+                "panelists": [
+                  {
+                    "id": "Augustine354",
+                    "name": "Augustine of Hippo",
+                    "biography": "Early Christian theologian and philosopher...",
+                    "position": "Would argue that Christians have a duty to resist unjust laws"
+                  },
+                  {
+                    "id": "MLKJr",
+                    "name": "Martin Luther King Jr.",
+                    "biography": "American Baptist minister and civil rights activist...",
+                    "position": "Believed in nonviolent civil disobedience"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Debate generation stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerSentEvents"
+                },
+                "examples": {
+                  "streamExample": {
+                    "summary": "Example SSE stream",
+                    "value": "event: message\ndata: {\"panelistId\":\"Augustine354\",\"panelistName\":\"Augustine of Hippo\",\"textChunk\":\"I believe that \",\"sequence\":0}\n\nevent: message\ndata: {\"panelistId\":\"Augustine354\",\"panelistName\":\"Augustine of Hippo\",\"textChunk\":\"divine law supersedes human law. \",\"sequence\":0}\n\nevent: message\ndata: {\"panelistId\":\"Augustine354\",\"panelistName\":\"Augustine of Hippo\",\"textChunk\":\"When earthly authorities command what contradicts God's will, we must obey God rather than men.\",\"sequence\":0,\"isComplete\":true}\n\nevent: message\ndata: {\"panelistId\":\"MLKJr\",\"panelistName\":\"Martin Luther King Jr.\",\"textChunk\":\"I agree with Augustine's principle, \",\"sequence\":1}\n\nevent: message\ndata: {\"panelistId\":\"MLKJr\",\"panelistName\":\"Martin Luther King Jr.\",\"textChunk\":\"but I would add that our resistance must be nonviolent.\",\"sequence\":1,\"isComplete\":true}\n\nevent: done\ndata: {\"totalMessages\":2,\"completedAt\":\"2025-12-11T10:45:00Z\"}\n\n"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid debate configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "invalidTopic": {
+                    "summary": "Topic not validated",
+                    "value": {
+                      "error": "Topic must be validated and relevant",
+                      "code": "INVALID_TOPIC",
+                      "retryable": true
+                    }
+                  },
+                  "invalidPanelistCount": {
+                    "summary": "Wrong number of panelists",
+                    "value": {
+                      "error": "Must select between 2 and 5 panelists",
+                      "code": "INVALID_PANELIST_COUNT",
+                      "retryable": true
+                    }
+                  },
+                  "invalidPanelistData": {
+                    "summary": "Missing panelist information",
+                    "value": {
+                      "error": "All panelists must have complete profiles (name, biography, position)",
+                      "code": "INVALID_PANELIST_DATA",
+                      "retryable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Too many requests. Please wait before trying again.",
+                  "code": "RATE_LIMIT_EXCEEDED",
+                  "retryable": true,
+                  "retryAfter": 60
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "An error occurred while generating the debate. Please try again.",
+                  "code": "INTERNAL_ERROR",
+                  "retryable": true
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Claude API unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "The AI service is temporarily unavailable. Please try again in a few moments.",
+                  "code": "SERVICE_UNAVAILABLE",
+                  "retryable": true,
+                  "retryAfter": 30
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DebateGenerationRequest": {
+        "type": "object",
+        "required": ["topic", "panelists"],
+        "properties": {
+          "topic": {
+            "$ref": "#/components/schemas/Topic"
+          },
+          "panelists": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 5,
+            "description": "Selected panelists for the debate",
+            "items": {
+              "$ref": "#/components/schemas/Panelist"
+            }
+          }
+        }
+      },
+      "Topic": {
+        "type": "object",
+        "required": ["text", "isRelevant"],
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 500,
+            "description": "The debate topic"
+          },
+          "isRelevant": {
+            "type": "boolean",
+            "description": "Must be true (topic must be validated before generation)",
+            "enum": [true]
+          }
+        }
+      },
+      "Panelist": {
+        "type": "object",
+        "required": ["id", "name", "biography"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9]{3,20}$",
+            "minLength": 3,
+            "maxLength": 20,
+            "description": "Unique identifier and social media-style handle (alphanumeric only)"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Full name"
+          },
+          "biography": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Background and credentials"
+          },
+          "position": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Stance on the topic"
+          }
+        }
+      },
+      "ServerSentEvents": {
+        "description": "Server-Sent Events stream format. Each event is separated by double newline (\\n\\n). Events can be of type 'message', 'error', or 'done'.",
+        "type": "string",
+        "example": "event: message\ndata: {\"panelistId\":\"Augustine354\",\"textChunk\":\"Hello\"}\n\nevent: done\ndata: {\"totalMessages\":1}\n\n"
+      },
+      "MessageEvent": {
+        "description": "SSE event containing a debate message chunk",
+        "type": "object",
+        "required": ["panelistId", "panelistName", "textChunk", "sequence"],
+        "properties": {
+          "panelistId": {
+            "type": "string",
+            "description": "ID of the speaking panelist",
+            "example": "Augustine354"
+          },
+          "panelistName": {
+            "type": "string",
+            "description": "Display name for UI",
+            "example": "Augustine of Hippo"
+          },
+          "textChunk": {
+            "type": "string",
+            "description": "Incremental text content (sentence or phrase)",
+            "example": "I believe that divine law supersedes human law."
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Message sequence number (0-indexed)",
+            "example": 0
+          },
+          "isComplete": {
+            "type": "boolean",
+            "description": "True when this is the final chunk for this message",
+            "example": false
+          }
+        }
+      },
+      "DoneEvent": {
+        "description": "SSE event indicating debate generation is complete",
+        "type": "object",
+        "required": ["totalMessages", "completedAt"],
+        "properties": {
+          "totalMessages": {
+            "type": "integer",
+            "minimum": 2,
+            "description": "Total number of messages in the debate",
+            "example": 12
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp when generation completed",
+            "example": "2025-12-11T10:45:00Z"
+          }
+        }
+      },
+      "ErrorEvent": {
+        "description": "SSE event for errors during streaming",
+        "type": "object",
+        "required": ["error", "code", "retryable"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "User-friendly error message",
+            "example": "The AI service encountered an error. Please try again."
+          },
+          "code": {
+            "type": "string",
+            "description": "Machine-readable error code",
+            "example": "STREAM_ERROR"
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can be retried",
+            "example": true
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error", "code", "retryable"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "User-friendly error message"
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "INVALID_TOPIC",
+              "INVALID_PANELIST_COUNT",
+              "INVALID_PANELIST_DATA",
+              "RATE_LIMIT_EXCEEDED",
+              "INTERNAL_ERROR",
+              "SERVICE_UNAVAILABLE",
+              "STREAM_ERROR"
+            ],
+            "description": "Machine-readable error code"
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can be retried"
+          },
+          "retryAfter": {
+            "type": "integer",
+            "description": "Seconds to wait before retrying (for rate limits)",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key for authenticating requests (if implemented)"
+      }
+    }
+  }
+}
