@@ -135,16 +135,38 @@ deploy_backend() {
     DEBATE_URL=$(gcloud functions describe generate-debate --region="$REGION" --gen2 --format="value(serviceConfig.uri)")
     log_info "generate-debate deployed: $DEBATE_URL"
     
+    # Deploy get-portrait function
+    log_info "Deploying get-portrait function..."
+    gcloud functions deploy get-portrait \
+        --gen2 \
+        --runtime="$RUNTIME" \
+        --region="$REGION" \
+        --source=./backend/functions/get-portrait \
+        --entry-point=GetPortrait \
+        --trigger-http \
+        --allow-unauthenticated \
+        --set-env-vars=ALLOWED_ORIGIN=https://raphink.github.io \
+        --memory=256MB \
+        --timeout=10s \
+        --max-instances=100 \
+        --min-instances=0 \
+        --quiet
+    
+    PORTRAIT_URL=$(gcloud functions describe get-portrait --region="$REGION" --gen2 --format="value(serviceConfig.uri)")
+    log_info "get-portrait deployed: $PORTRAIT_URL"
+    
     log_info "Backend deployment complete ✓"
     
-    # Export URLs for frontend build (no suggest-panelists URL needed)
+    # Export URLs for frontend build
     export REACT_APP_VALIDATE_TOPIC_URL="$VALIDATE_URL"
     export REACT_APP_GENERATE_DEBATE_URL="$DEBATE_URL"
+    export REACT_APP_GET_PORTRAIT_URL="$PORTRAIT_URL"
     
     # Save URLs to file for frontend deployment
     cat > frontend/.env.production << EOF
 REACT_APP_VALIDATE_TOPIC_URL=$VALIDATE_URL
 REACT_APP_GENERATE_DEBATE_URL=$DEBATE_URL
+REACT_APP_GET_PORTRAIT_URL=$PORTRAIT_URL
 EOF
     
     log_info "Saved production URLs to frontend/.env.production"
@@ -235,8 +257,8 @@ main() {
     if [ "$DEPLOY_BACKEND" = true ]; then
         log_info "Backend Functions:"
         log_info "  - validate-topic: $VALIDATE_URL"
-        log_info "  - suggest-panelists: $PANELISTS_URL"
         log_info "  - generate-debate: $DEBATE_URL"
+        log_info "  - get-portrait: $PORTRAIT_URL"
     fi
     
     if [ "$DEPLOY_FRONTEND" = true ]; then
