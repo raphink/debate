@@ -1,0 +1,11 @@
+# GCP Configuration Template
+# Copy this to .gcloudrc and fill in your personal account details
+
+# Your personal GCP account email
+CLOUDSDK_CORE_ACCOUNT=your-email@gmail.com
+
+# The project ID
+CLOUDSDK_CORE_PROJECT=debate-480911
+
+# Optional: specify a named gcloud config to use
+# CLOUDSDK_ACTIVE_CONFIG_NAME=personal
