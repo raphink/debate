@@ -9,6 +9,8 @@ Build a web application that generates AI-powered theological/philosophical deba
 
 **Key Architecture Decision**: The validate-topic endpoint uses character-by-character streaming to detect complete JSON lines as Claude generates them. Response format changed from single JSON object to line-by-line format: `{"type":"rejection","message":"..."}` OR multiple `{"type":"panelist","data":{...}}` lines. This eliminates the validation/panelist race condition and provides true incremental streaming. The backend strips markdown code blocks (```json...```) from responses to handle Claude's formatting variations. Both backend services (validate-topic and generate-debate) use the official Anthropic Go SDK (v1.19.0) for reliable streaming.
 
+**Panelist Portrait Service**: A separate async endpoint (get-portrait) fetches real portrait images from Wikimedia Commons API after panelists stream in. The service requests 300px thumbnails (suitable for 48x48px circular display), includes proper User-Agent headers to avoid 403 errors, falls back to placeholder on failure, and caches portrait URLs in-memory to avoid redundant API calls during debate generation. This keeps validation streaming fast and non-blocking while progressively enhancing avatars.
+
 **User-Suggested Panelists**: Treated as PRIORITY requests - included unless clearly invalid (fictional, non-existent, or completely unrelated to intellectual discourse). Claude infers positions from known works/tradition even if they never directly addressed the specific topic.
 
 **Suggested Names Feature**: Users can optionally propose up to 5 panelist names during topic entry via a chip-based input (type name, press comma, Tab, or Enter to create chip with × remove button). The backend sanitizes these names and includes them in the Claude API prompt. Claude evaluates whether the suggested individuals have known, documented positions on the topic and includes them in the panelist list if appropriate. This gives users more control while maintaining quality through AI validation.
@@ -118,17 +120,19 @@ specs/001-debate-generator/
 ```text
 backend/
 ├── functions/
-│   ├── validate-topic/          # GCP Cloud Function: Topic validation
+│   ├── validate-topic/          # GCP Cloud Function: Topic validation + panelist suggestions
 │   │   ├── main.go
 │   │   ├── handler.go
-│   │   ├── claude.go            # Claude API client
+│   │   ├── claude.go            # Claude API client with streaming
 │   │   ├── validator.go         # Input validation
+│   │   ├── types.go
 │   │   └── go.mod
-│   ├── suggest-panelists/       # GCP Cloud Function: Panelist suggestions
+│   ├── get-portrait/            # GCP Cloud Function: Async portrait fetching
 │   │   ├── main.go
 │   │   ├── handler.go
-│   │   ├── claude.go
-│   │   ├── panelist.go          # Panelist data structures
+│   │   ├── wikimedia.go         # Wikimedia Commons API client
+│   │   ├── cache.go             # In-memory URL cache
+│   │   ├── types.go
 │   │   └── go.mod
 │   └── generate-debate/         # GCP Cloud Function: Debate generation with streaming
 │       ├── main.go

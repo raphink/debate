@@ -1,11 +1,10 @@
-package validatetopic
+package getportrait
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 )
 
@@ -110,39 +109,4 @@ func (w *WikimediaAPI) FetchPortraitURL(personName string) string {
 	
 	fmt.Printf("[WIKIMEDIA] No portrait found for %s\n", personName)
 	return ""
-}
-
-// EnrichPanelistsWithPortraits fetches portrait URLs for panelists and updates their avatarUrl
-// Falls back to placeholder-avatar.svg if no portrait is found
-func EnrichPanelistsWithPortraits(panelists []Panelist) []Panelist {
-	wiki := NewWikimediaAPI()
-	
-	for i := range panelists {
-		// Only fetch if using placeholder
-		if panelists[i].AvatarURL == "placeholder-avatar.svg" || panelists[i].AvatarURL == "" {
-			portraitURL := wiki.FetchPortraitURL(panelists[i].Name)
-			if portraitURL != "" {
-				panelists[i].AvatarURL = portraitURL
-			} else {
-				// Keep placeholder as fallback
-				panelists[i].AvatarURL = "placeholder-avatar.svg"
-			}
-		}
-	}
-	
-	return panelists
-}
-
-// CleanPersonName removes common suffixes and titles to improve Wikipedia search
-func CleanPersonName(name string) string {
-	// Remove common suffixes in parentheses
-	if idx := strings.Index(name, "("); idx > 0 {
-		name = strings.TrimSpace(name[:idx])
-	}
-	
-	// Remove titles
-	name = strings.TrimPrefix(name, "Saint ")
-	name = strings.TrimPrefix(name, "St. ")
-	
-	return strings.TrimSpace(name)
 }

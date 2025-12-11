@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopicInput from '../components/TopicInput/TopicInput';
 import ValidationResult from '../components/ValidationResult/ValidationResult';
@@ -8,6 +8,7 @@ import PanelistGrid from '../components/PanelistGrid/PanelistGrid';
 import PanelistSelector from '../components/PanelistSelector/PanelistSelector';
 import useTopicValidation from '../hooks/useTopicValidation';
 import usePanelistSelection from '../hooks/usePanelistSelection';
+import { getPortrait } from '../services/portraitService';
 import styles from './Home.module.css';
 
 const Home = () => {

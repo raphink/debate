@@ -31,6 +31,19 @@ services:
       - debate-network
     restart: unless-stopped
 
+  # Portrait Fetching Cloud Function (Port 8082)
+  get-portrait:
+    build:
+      context: ./backend/functions/get-portrait
+      dockerfile: Dockerfile
+    ports:
+      - "${BIND_ADDRESS:-0.0.0.0}:8082:8083"
+    environment:
+      - PORT=8083
+    networks:
+      - debate-network
+    restart: unless-stopped
+
   # Frontend React Application (Port 3000)
   frontend:
     build:
@@ -41,11 +54,13 @@ services:
     environment:
       - REACT_APP_VALIDATE_TOPIC_URL=http://localhost:8080
       - REACT_APP_GENERATE_DEBATE_URL=http://localhost:8081
+      - REACT_APP_GET_PORTRAIT_URL=http://localhost:8082
     networks:
       - debate-network
     depends_on:
       - validate-topic
       - generate-debate
+      - get-portrait
     restart: unless-stopped
 
 networks:

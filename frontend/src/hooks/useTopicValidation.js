@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { validateTopic } from '../services/topicService';
+import { getPortrait } from '../services/portraitService';
 
 /**
  * Custom hook for topic validation with streaming panelist results
@@ -46,7 +47,21 @@ const useTopicValidation = () => {
             message: '',
             topic: topic,
           });
+          // Add panelist with placeholder first
           setPanelists((prev) => [...prev, panelist]);
+          
+          // Fetch portrait asynchronously
+          if (panelist.id && panelist.name) {
+            getPortrait(panelist.id, panelist.name).then(portraitUrl => {
+              setPanelists(prevPanelists =>
+                prevPanelists.map(p =>
+                  p.id === panelist.id ? { ...p, avatarUrl: portraitUrl } : p
+                )
+              );
+            }).catch(err => {
+              console.error(`Failed to fetch portrait for ${panelist.name}:`, err);
+            });
+          }
         },
         // onError callback
         (err) => {

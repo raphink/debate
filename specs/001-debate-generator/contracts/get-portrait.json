@@ -1,0 +1,140 @@
+{
+  "service": "get-portrait",
+  "description": "Fetches portrait image URL for a panelist from Wikimedia Commons API. Falls back to placeholder on failure. Results are cached in-memory.",
+  "endpoint": "/get-portrait",
+  "method": "POST",
+  "contentType": "application/json",
+  "request": {
+    "panelistId": {
+      "type": "string",
+      "required": true,
+      "description": "Unique panelist identifier (handle)",
+      "validation": "Alphanumeric with hyphens, 1-50 characters",
+      "example": "augustine-of-hippo"
+    },
+    "panelistName": {
+      "type": "string",
+      "required": true,
+      "description": "Full name of panelist for Wikimedia search",
+      "validation": "UTF-8 string, 1-100 characters",
+      "example": "Augustine of Hippo"
+    }
+  },
+  "response": {
+    "success": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "panelistId": {
+          "type": "string",
+          "description": "Echo of request panelistId",
+          "example": "augustine-of-hippo"
+        },
+        "portraitUrl": {
+          "type": "string",
+          "description": "Wikimedia Commons portrait URL (300px thumbnail) or placeholder-avatar.svg if not found",
+          "example": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Sandro_Botticelli_050.jpg/300px-Sandro_Botticelli_050.jpg"
+        },
+        "cached": {
+          "type": "boolean",
+          "description": "Whether URL was served from cache",
+          "example": false
+        }
+      }
+    },
+    "error": {
+      "status": [400, 500],
+      "contentType": "application/json",
+      "body": {
+        "error": {
+          "type": "string",
+          "description": "Human-readable error message",
+          "example": "Invalid panelist ID format"
+        },
+        "code": {
+          "type": "string",
+          "description": "Machine-readable error code",
+          "enum": ["INVALID_INPUT", "WIKIMEDIA_ERROR", "INTERNAL_ERROR"],
+          "example": "INVALID_INPUT"
+        },
+        "retryable": {
+          "type": "boolean",
+          "description": "Whether client should retry request",
+          "example": true
+        }
+      }
+    }
+  },
+  "rateLimiting": {
+    "strategy": "token-bucket",
+    "limit": 20,
+    "window": "1 minute",
+    "description": "20 requests per minute per IP"
+  },
+  "caching": {
+    "strategy": "in-memory",
+    "ttl": "session-lifetime",
+    "description": "Portrait URLs cached in-memory for the lifetime of the function instance"
+  },
+  "externalDependencies": [
+    {
+      "name": "Wikimedia Commons API",
+      "url": "https://en.wikipedia.org/w/api.php",
+      "purpose": "Fetch portrait images for historical figures",
+      "timeout": "5 seconds",
+      "retries": 0,
+      "fallback": "Return placeholder-avatar.svg"
+    }
+  ],
+  "examples": [
+    {
+      "scenario": "Fetch portrait for Augustine of Hippo",
+      "request": {
+        "panelistId": "augustine-of-hippo",
+        "panelistName": "Augustine of Hippo"
+      },
+      "response": {
+        "panelistId": "augustine-of-hippo",
+        "portraitUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Sandro_Botticelli_050.jpg/300px-Sandro_Botticelli_050.jpg",
+        "cached": false
+      }
+    },
+    {
+      "scenario": "Fetch cached portrait",
+      "request": {
+        "panelistId": "augustine-of-hippo",
+        "panelistName": "Augustine of Hippo"
+      },
+      "response": {
+        "panelistId": "augustine-of-hippo",
+        "portraitUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Sandro_Botticelli_050.jpg/300px-Sandro_Botticelli_050.jpg",
+        "cached": true
+      }
+    },
+    {
+      "scenario": "Portrait not found (fallback to placeholder)",
+      "request": {
+        "panelistId": "obscure-philosopher",
+        "panelistName": "Obscure Philosopher"
+      },
+      "response": {
+        "panelistId": "obscure-philosopher",
+        "portraitUrl": "placeholder-avatar.svg",
+        "cached": false
+      }
+    },
+    {
+      "scenario": "Invalid input",
+      "request": {
+        "panelistId": "",
+        "panelistName": ""
+      },
+      "response": {
+        "error": "Panelist ID and name are required",
+        "code": "INVALID_INPUT",
+        "retryable": false
+      },
+      "status": 400
+    }
+  ]
+}

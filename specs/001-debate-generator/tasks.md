@@ -145,6 +145,33 @@
 
 ---
 
+## Phase 4b: Panelist Portrait Enhancement (Async)
+
+**Goal**: Progressively enhance panelist avatars with real portraits from Wikimedia Commons
+
+**Independent Test**: After panelists stream in with placeholders, verify portraits load asynchronously and update the UI, or fall back to placeholders gracefully
+
+### Backend Implementation for Portrait Service
+
+- [ ] T054a [P] [US2] Create portrait request/response structs in backend/functions/get-portrait/types.go (panelistId, panelistName)
+- [ ] T054b [P] [US2] Implement Wikimedia Commons API client in backend/functions/get-portrait/wikimedia.go (fetch 300px thumbnails with proper User-Agent)
+- [ ] T054c [P] [US2] Implement in-memory cache in backend/functions/get-portrait/cache.go (thread-safe map for portrait URLs)
+- [ ] T054d [US2] Implement HTTP handler in backend/functions/get-portrait/handler.go (validate input, fetch/cache portrait, return URL)
+- [ ] T054e [US2] Create main entry point in backend/functions/get-portrait/main.go (Cloud Function registration)
+- [ ] T054f [US2] Add unit tests for Wikimedia API client in backend/functions/get-portrait/wikimedia_test.go
+- [ ] T054g [US2] Add cache tests in backend/functions/get-portrait/cache_test.go (concurrent access, TTL)
+
+### Frontend Implementation for Portrait Service
+
+- [ ] T054h [P] [US2] Create portraitService in frontend/src/services/portraitService.js (async fetch portrait URLs)
+- [ ] T054i [US2] Update PanelistCard component to fetch portraits on mount and update avatarUrl when loaded
+- [ ] T054j [US2] Add loading shimmer effect to avatars while portraits are being fetched
+- [ ] T054k [US2] Ensure portraits are cached in React state to avoid redundant fetches during debate generation
+
+**Checkpoint**: Panelist avatars progressively enhanced with real portraits
+
+---
+
 ## Phase 5: User Story 3 - Live Debate Generation with Streaming Display (Priority: P1) 🎯 MVP
 
 **Goal**: User launches debate generation and watches the conversation unfold in real-time as a chat-style interface with panelist avatars
