@@ -34,8 +34,17 @@ const TopicInput = ({ onSubmit, isLoading }) => {
   };
 
   const handleNameInputKeyDown = (e) => {
+    // Handle Tab key to add a name
+    if (e.key === 'Tab' && nameInput.trim()) {
+      e.preventDefault();
+      const newName = nameInput.trim();
+      if (suggestedNames.length < 5 && !suggestedNames.includes(newName)) {
+        setSuggestedNames([...suggestedNames, newName]);
+        setNameInput('');
+      }
+    }
     // Also handle Enter key to add a name
-    if (e.key === 'Enter' && nameInput.trim()) {
+    else if (e.key === 'Enter' && nameInput.trim()) {
       e.preventDefault();
       const newName = nameInput.trim();
       if (suggestedNames.length < 5 && !suggestedNames.includes(newName)) {
@@ -145,7 +154,7 @@ const TopicInput = ({ onSubmit, isLoading }) => {
           />
         </div>
         <span id="names-help" className={styles.help}>
-          Type a name and press comma+space or Enter to add (up to 5). AI will prioritize them if relevant.
+          Type a name and press comma, Tab, or Enter to add (up to 5). AI will prioritize them if relevant.
         </span>
       </div>
 
