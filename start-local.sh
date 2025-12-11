@@ -4,6 +4,14 @@
 
 set -e
 
+# Load .gcloudrc if it exists (for multi-account gcloud configurations)
+if [ -f .gcloudrc ]; then
+    echo "📋 Loading gcloud configuration from .gcloudrc..."
+    set -a
+    source .gcloudrc
+    set +a
+fi
+
 echo "🚀 Starting Debate Generator with Docker Compose + Summon..."
 
 # Check if summon is installed
