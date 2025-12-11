@@ -186,7 +186,7 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 					// Check if we have a new panelist message starting
 					fullText := currentText.String()
 					if panelistID, messageText := c.parseMessage(fullText); panelistID != "" {
-						// Send previous message if exists
+						// Send previous message if exists (but exclude any partial bracket from currentText)
 						if currentPanelistID != "" && currentMessage.Len() > 0 {
 							chunk := StreamChunk{
 								Type:       "message",
@@ -206,8 +206,16 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 						currentMessage.WriteString(messageText)
 						currentText.Reset()
 					} else if currentPanelistID != "" {
-						// Continue accumulating current message
-						currentMessage.WriteString(text)
+						// Check if currentText might be the start of a new message pattern
+						trimmed := strings.TrimSpace(currentText.String())
+						if strings.HasPrefix(trimmed, "[") && !strings.Contains(trimmed, "]:") {
+							// Might be starting a new message pattern, don't add to current message yet
+							// Keep it in currentText buffer
+						} else {
+							// Safe to add to current message
+							currentMessage.WriteString(text)
+							currentText.Reset()
+						}
 					}
 				}
 			}
