@@ -137,13 +137,15 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 		for _, char := range text {
 			lineBuffer.WriteRune(char)
 			
-			// Check if we have a complete line (ends with newline or closing brace)
-			if char == '\n' || (char == '}' && strings.Contains(lineBuffer.String(), `"type"`)) {
-				line := strings.TrimSpace(lineBuffer.String())
-				fmt.Printf("[DEBUG] Complete line detected: %s\n", line)
+			// Check if we have a complete JSON object (must start with { and end with }})
+			currentLine := lineBuffer.String()
+			if char == '\n' && strings.TrimSpace(currentLine) != "" {
+				line := strings.TrimSpace(currentLine)
+				fmt.Printf("[DEBUG] Newline detected, line: %s\n", line)
 				lineBuffer.Reset()
 				
-				if line == "" || !strings.HasPrefix(line, "{") {
+				// Skip empty lines or standalone closing braces
+				if line == "" || line == "}" || line == "{" || !strings.HasPrefix(line, "{") {
 					continue
 				}
 
@@ -155,7 +157,7 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 				}
 
 				if err := json.Unmarshal([]byte(line), &chunk); err != nil {
-					fmt.Printf("[DEBUG] Failed to parse line as chunk: %v\n", err)
+					fmt.Printf("[DEBUG] Failed to parse line as chunk: %v (line was: %s)\n", err, line)
 					continue // Skip malformed lines
 				}
 
@@ -197,6 +199,39 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 					sendChunk("panelist", string(panelistData))
 				}
 			}
+		}
+	}
+
+	// After stream completes, check if we accumulated text but didn't emit anything via line parsing
+	// This handles the case where Claude returns the old format instead of line-delimited
+	fullText := fullBuffer.String()
+	fmt.Printf("[DEBUG] Full accumulated text: %s\n", fullText)
+	
+	if fullText != "" {
+		// Try to parse as old format (single JSON object with isRelevant, message, panelists array)
+		var oldFormat struct {
+			IsRelevant bool       `json:"isRelevant"`
+			Message    string     `json:"message"`
+			Panelists  []Panelist `json:"panelists"`
+		}
+
+		if err := json.Unmarshal([]byte(fullText), &oldFormat); err == nil {
+			fmt.Printf("[DEBUG] Parsed as old format - isRelevant: %v, panelists: %d\n", oldFormat.IsRelevant, len(oldFormat.Panelists))
+			
+			// Send validation result
+			validationData, _ := json.Marshal(map[string]interface{}{
+				"isRelevant": oldFormat.IsRelevant,
+				"message":    oldFormat.Message,
+			})
+			sendChunk("validation", string(validationData))
+
+			// Send each panelist
+			for _, panelist := range oldFormat.Panelists {
+				panelistJSON, _ := json.Marshal(panelist)
+				sendChunk("panelist", string(panelistJSON))
+			}
+		} else {
+			fmt.Printf("[DEBUG] Failed to parse as old format: %v\n", err)
 		}
 	}
 
