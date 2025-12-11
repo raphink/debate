@@ -163,7 +163,7 @@ func (c *ClaudeClient) streamResponse(stream *ssestream.Stream[anthropic.Message
 			} else {
 				// Normal text - accumulate and send immediately
 				patternBuffer.WriteRune(char)
-				
+
 				// Send chunks frequently for responsiveness (every 10 chars or at word boundaries)
 				if patternBuffer.Len() >= 10 || char == ' ' || char == '\n' {
 					if currentSpeaker != "" {

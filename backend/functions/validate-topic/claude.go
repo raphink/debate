@@ -59,6 +59,9 @@ For user-suggested panelists who qualify, infer their likely position based on t
 `
 	}
 
+	fmt.Printf("[DEBUG] Suggested names count: %d, names: %v\n", len(suggestedNames), suggestedNames)
+	fmt.Printf("[DEBUG] Names section in prompt:\n%s\n", namesSection)
+
 	// Build the combined prompt for Claude
 	prompt := fmt.Sprintf(`You are an expert in theology and philosophy. Your task is to evaluate if a topic is suitable for a theological or philosophical debate, and if so, suggest panelists.
 
@@ -132,18 +135,18 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 		text := event.Delta.Text
 		fullBuffer.WriteString(text)
 		fmt.Printf("[DEBUG] Received text chunk: %s\n", text)
-		
+
 		// Process character by character to detect complete lines
 		for _, char := range text {
 			lineBuffer.WriteRune(char)
-			
+
 			// Check if we have a complete JSON object (must start with { and end with }})
 			currentLine := lineBuffer.String()
 			if char == '\n' && strings.TrimSpace(currentLine) != "" {
 				line := strings.TrimSpace(currentLine)
 				fmt.Printf("[DEBUG] Newline detected, line: %s\n", line)
 				lineBuffer.Reset()
-				
+
 				// Skip empty lines or standalone closing braces
 				if line == "" || line == "}" || line == "{" || !strings.HasPrefix(line, "{") {
 					continue
@@ -206,7 +209,7 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 	// This handles the case where Claude returns the old format instead of line-delimited
 	fullText := fullBuffer.String()
 	fmt.Printf("[DEBUG] Full accumulated text: %s\n", fullText)
-	
+
 	if fullText != "" {
 		// Try to parse as old format (single JSON object with isRelevant, message, panelists array)
 		var oldFormat struct {
@@ -217,7 +220,7 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 
 		if err := json.Unmarshal([]byte(fullText), &oldFormat); err == nil {
 			fmt.Printf("[DEBUG] Parsed as old format - isRelevant: %v, panelists: %d\n", oldFormat.IsRelevant, len(oldFormat.Panelists))
-			
+
 			// Send validation result
 			validationData, _ := json.Marshal(map[string]interface{}{
 				"isRelevant": oldFormat.IsRelevant,
