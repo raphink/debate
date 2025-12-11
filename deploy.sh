@@ -94,25 +94,7 @@ deploy_backend() {
     VALIDATE_URL=$(gcloud functions describe validate-topic --region="$REGION" --gen2 --format="value(serviceConfig.uri)")
     log_info "validate-topic deployed: $VALIDATE_URL"
     
-    # Deploy suggest-panelists function
-    log_info "Deploying suggest-panelists function..."
-    gcloud functions deploy suggest-panelists \
-        --gen2 \
-        --runtime="$RUNTIME" \
-        --region="$REGION" \
-        --source=./backend/functions/suggest-panelists \
-        --entry-point=main \
-        --trigger-http \
-        --allow-unauthenticated \
-        --set-secrets=ANTHROPIC_API_KEY=anthropic-api-key:latest \
-        --memory=256MB \
-        --timeout=60s \
-        --max-instances=100 \
-        --min-instances=0 \
-        --quiet
-    
-    PANELISTS_URL=$(gcloud functions describe suggest-panelists --region="$REGION" --gen2 --format="value(serviceConfig.uri)")
-    log_info "suggest-panelists deployed: $PANELISTS_URL"
+    # Note: suggest-panelists function removed - panelists now returned by validate-topic
     
     # Deploy generate-debate function
     log_info "Deploying generate-debate function..."
@@ -136,15 +118,13 @@ deploy_backend() {
     
     log_info "Backend deployment complete ✓"
     
-    # Export URLs for frontend build
+    # Export URLs for frontend build (no suggest-panelists URL needed)
     export REACT_APP_VALIDATE_TOPIC_URL="$VALIDATE_URL"
-    export REACT_APP_SUGGEST_PANELISTS_URL="$PANELISTS_URL"
     export REACT_APP_GENERATE_DEBATE_URL="$DEBATE_URL"
     
     # Save URLs to file for frontend deployment
     cat > frontend/.env.production << EOF
 REACT_APP_VALIDATE_TOPIC_URL=$VALIDATE_URL
-REACT_APP_SUGGEST_PANELISTS_URL=$PANELISTS_URL
 REACT_APP_GENERATE_DEBATE_URL=$DEBATE_URL
 EOF
     
