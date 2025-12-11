@@ -34,14 +34,18 @@ User browses AI-suggested historical figures with known positions on the topic a
 
 **Acceptance Scenarios**:
 
-1. **Given** user is entering a topic, **When** user wants to suggest specific panelists, **Then** user can enter up to 5 panelist names (comma-separated) in an optional input field
-2. **Given** topic has been validated as relevant, **When** validation response streams in, **Then** user sees 8-20 historical figures appear progressively with avatar, name, handle (id), tagline, and bio (each panelist sent as complete JSON line as soon as Claude generates it)
-3. **Given** user suggested panelist names during topic entry, **When** validation response streams in, **Then** AI MUST include suggested names unless they are fictional/non-existent or completely unrelated to intellectual discourse, inferring positions from their known works even if they never directly addressed the topic
-4. **Given** panelist list is displayed, **When** user reviews the suggestions, **Then** panelists represent diverse time periods across the last 2000 years (roughly 25% ancient/early church 0-500 AD, 25% medieval/reformation 500-1700 AD, 25% modern 1700-1950 AD, 25% contemporary 1950-present)
-5. **Given** user views panelist list, **When** user clicks on a panelist card, **Then** panelist is added to selection (maximum 5 total)
-6. **Given** user has selected 5 panelists, **When** user attempts to select another, **Then** system prevents selection and displays message "Maximum 5 panelists allowed"
-7. **Given** user has selected panelists, **When** user clicks a selected panelist again, **Then** panelist is deselected and removed from selection
-8. **Given** panelist list is displayed, **When** user reviews panelist details, **Then** each panelist shows relevant credentials, historical period, and known position on the topic
+1. **Given** user is entering a topic, **When** user wants to suggest specific panelists, **Then** user can type names that appear as removable chips (press comma+space or Enter to add, max 5)
+2. **Given** user has added panelist chips, **When** user wants to remove one, **Then** user can click the × button on the chip to remove it
+3. **Given** topic has been validated as relevant, **When** validation response streams in, **Then** user sees 8-20 historical figures appear progressively with avatar, name, handle (id), tagline, and bio (each panelist sent as complete JSON line as soon as Claude generates it)
+4. **Given** user suggested panelist names during topic entry, **When** validation response streams in, **Then** AI MUST include suggested names unless they are fictional/non-existent or completely unrelated to intellectual discourse, inferring positions from their known works even if they never directly addressed the topic
+5. **Given** user clicks "Find Panelists", **When** validation begins, **Then** input section is hidden and panelists appear one by one in the main view
+6. **Given** panelists are streaming in, **When** user views the page, **Then** loading animation appears at the bottom of the panelist list (not blocking the view)
+7. **Given** panelist list is displayed, **When** user reviews the suggestions, **Then** panelists represent diverse time periods across the last 2000 years (roughly 25% ancient/early church 0-500 AD, 25% medieval/reformation 500-1700 AD, 25% modern 1700-1950 AD, 25% contemporary 1950-present)
+8. **Given** user views panelist list, **When** user clicks on a panelist card, **Then** panelist is added to selection (maximum 5 total)
+9. **Given** user has selected 5 panelists, **When** user attempts to select another, **Then** system prevents selection and displays message "Maximum 5 panelists allowed"
+10. **Given** user has selected panelists, **When** user clicks a selected panelist again, **Then** panelist is deselected and removed from selection
+11. **Given** streaming completes, **When** user has selected panelists, **Then** "Clear Selection" and "Generate Debate" buttons appear with gradient styling and hover effects
+12. **Given** panelist list is displayed, **When** user reviews panelist details, **Then** each panelist shows relevant credentials, historical period, and known position on the topic
 
 ---
 

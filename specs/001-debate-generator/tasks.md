@@ -83,6 +83,8 @@
 - [X] T034 [P] [US1] Create TopicInput component in frontend/src/components/TopicInput/TopicInput.jsx (form, character counter)
 - [X] T034a [P] [US1] Add suggested panelist names input field to TopicInput component (comma-separated, max 5, optional)
 - [X] T034b [US1] Update TopicInput submit button text from "Validate Topic" to "Find Panelists"
+- [X] T034c [US1] Implement chip-based panelist suggestions (type + comma/Enter creates chip with × remove button)
+- [X] T034d [US1] Update TopicInput and Button components with gradient styling, hover animations, and shine effects
 - [X] T035 [P] [US1] Create TopicInput styles in frontend/src/components/TopicInput/TopicInput.module.css (mobile-first responsive)
 - [X] T036 [P] [US1] Create ValidationResult component in frontend/src/components/ValidationResult/ValidationResult.jsx (success/error display)
 - [X] T037 [P] [US1] Create ValidationResult styles in frontend/src/components/ValidationResult/ValidationResult.module.css
@@ -95,6 +97,8 @@
 - [X] T039c [US1] Add progressive panelist state management in useTopicValidation (append panelists as they stream in)
 - [X] T040 [US1] Create Home page in frontend/src/pages/Home.jsx (integrate TopicInput, ValidationResult, navigation)
 - [X] T040a [US1] Update Home.jsx to display panelists progressively as they stream in (show loading until first panelist)
+- [X] T040b [US1] Update Home.jsx to hide input section when validation starts, show panelists with loading at bottom
+- [X] T040c [US1] Update Home.jsx handleSubmit to receive and pass suggestedNames array to validate function
 - [X] T041 [US1] Add client-side validation utilities in frontend/src/utils/validation.js (length check, sanitization)
 - [X] T042 [US1] Add TopicInput component tests in frontend/src/components/TopicInput/TopicInput.test.jsx (Jest, RTL)
 - [X] T043 [US1] Add ValidationResult component tests in frontend/src/components/ValidationResult/ValidationResult.test.jsx

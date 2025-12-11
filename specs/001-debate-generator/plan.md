@@ -11,7 +11,11 @@ Build a web application that generates AI-powered theological/philosophical deba
 
 **User-Suggested Panelists**: Treated as PRIORITY requests - included unless clearly invalid (fictional, non-existent, or completely unrelated to intellectual discourse). Claude infers positions from known works/tradition even if they never directly addressed the specific topic.
 
-**Suggested Names Feature**: Users can optionally propose up to 5 panelist names during topic entry. The backend sanitizes these names and includes them in the Claude API prompt. Claude evaluates whether the suggested individuals have known, documented positions on the topic and includes them in the panelist list if appropriate. This gives users more control while maintaining quality through AI validation.
+**Suggested Names Feature**: Users can optionally propose up to 5 panelist names during topic entry via a chip-based input (type name, press comma+space or Enter to create chip with × remove button). The backend sanitizes these names and includes them in the Claude API prompt. Claude evaluates whether the suggested individuals have known, documented positions on the topic and includes them in the panelist list if appropriate. This gives users more control while maintaining quality through AI validation.
+
+**Progressive Loading UX**: When "Find Panelists" is clicked, the input section hides to focus attention on the streaming panelist results. Panelists appear one by one as Claude generates them, with the loading animation positioned at the bottom of the list (not blocking view). Once streaming completes, the panelist selector sidebar appears with beautifully styled gradient buttons.
+
+**Button Design**: All action buttons feature gradient backgrounds (purple for primary actions, gray for secondary), smooth hover animations with lift effects, shine sweeps across on hover, enhanced shadows, and improved focus states for accessibility.
 
 **Moderator Behavior**: The moderator is responsible for introducing the debate, optionally intervening between panelist exchanges (to ask clarifying questions, highlight contrasts, or summarize progress), and providing a concluding summary that synthesizes the key points at the end of the debate.
 
