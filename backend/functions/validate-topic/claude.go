@@ -120,79 +120,74 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 		}
 	}
 
-	// Accumulate the streaming response
+	var lineBuffer strings.Builder
+
+	// Process stream incrementally, emitting complete lines as they arrive
 	for stream.Next() {
 		event := stream.Current()
-		if event.Delta.Text != "" {
-			buffer.WriteString(event.Delta.Text)
-		}
-	}
-
-	// Check for stream errors
-	if err := stream.Err(); err != nil {
-		return fmt.Errorf("stream error: %w", err)
-	}
-
-	response := buffer.String()
-	
-	// Extract JSON content (skip any markdown code blocks)
-	startIdx := strings.Index(response, "{")
-	if startIdx == -1 {
-		return fmt.Errorf("no JSON found in response")
-	}
-	response = response[startIdx:]
-
-	// Parse line by line
-	lines := strings.Split(response, "\n")
-	
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" || !strings.HasPrefix(line, "{") {
+		if event.Delta.Text == "" {
 			continue
 		}
 
-		// Try to parse as a chunk
-		var chunk struct {
-			Type string          `json:"type"`
-			Data json.RawMessage `json:"data"`
-			Message string       `json:"message"`
-		}
+		text := event.Delta.Text
+		
+		// Process character by character to detect complete lines
+		for _, char := range text {
+			lineBuffer.WriteRune(char)
+			
+			// Check if we have a complete line (ends with newline or closing brace)
+			if char == '\n' || (char == '}' && strings.Contains(lineBuffer.String(), `"type"`)) {
+				line := strings.TrimSpace(lineBuffer.String())
+				lineBuffer.Reset()
+				
+				if line == "" || !strings.HasPrefix(line, "{") {
+					continue
+				}
 
-		if err := json.Unmarshal([]byte(line), &chunk); err != nil {
-			continue // Skip malformed lines
-		}
+				// Try to parse as a chunk
+				var chunk struct {
+					Type    string          `json:"type"`
+					Data    json.RawMessage `json:"data"`
+					Message string          `json:"message"`
+				}
 
-		if chunk.Type == "rejection" {
-			// Send rejection message
-			rejectionData, _ := json.Marshal(map[string]interface{}{
-				"isRelevant": false,
-				"message":    chunk.Message,
-			})
-			sendChunk("validation", string(rejectionData))
-			break // No panelists to follow
-		} else if chunk.Type == "panelist" {
-			// Parse and send panelist
-			var panelist Panelist
-			if err := json.Unmarshal(chunk.Data, &panelist); err != nil {
-				continue
-			}
+				if err := json.Unmarshal([]byte(line), &chunk); err != nil {
+					continue // Skip malformed lines
+				}
 
-			// Validate and sanitize
-			if panelist.Name == "" || panelist.ID == "" {
-				continue
-			}
-			if len(panelist.Tagline) > 60 {
-				panelist.Tagline = panelist.Tagline[:57] + "..."
-			}
-			if len(panelist.Bio) > 300 {
-				panelist.Bio = panelist.Bio[:297] + "..."
-			}
-			if len(panelist.Position) > 100 {
-				panelist.Position = panelist.Position[:97] + "..."
-			}
+				if chunk.Type == "rejection" {
+					// Send rejection message
+					rejectionData, _ := json.Marshal(map[string]interface{}{
+						"isRelevant": false,
+						"message":    chunk.Message,
+					})
+					sendChunk("validation", string(rejectionData))
+					// Continue processing in case there's more
+				} else if chunk.Type == "panelist" {
+					// Parse and send panelist immediately
+					var panelist Panelist
+					if err := json.Unmarshal(chunk.Data, &panelist); err != nil {
+						continue
+					}
 
-			panelistData, _ := json.Marshal(panelist)
-			sendChunk("panelist", string(panelistData))
+					// Validate and sanitize
+					if panelist.Name == "" || panelist.ID == "" {
+						continue
+					}
+					if len(panelist.Tagline) > 60 {
+						panelist.Tagline = panelist.Tagline[:57] + "..."
+					}
+					if len(panelist.Bio) > 300 {
+						panelist.Bio = panelist.Bio[:297] + "..."
+					}
+					if len(panelist.Position) > 100 {
+						panelist.Position = panelist.Position[:97] + "..."
+					}
+
+					panelistData, _ := json.Marshal(panelist)
+					sendChunk("panelist", string(panelistData))
+				}
+			}
 		}
 	}
 
