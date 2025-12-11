@@ -53,6 +53,18 @@ func handleValidateTopicImpl(w http.ResponseWriter, r *http.Request) {
 	// Sanitize the topic
 	sanitizedTopic := SanitizeTopic(req.Topic)
 
+	// Limit suggested names to 5 and sanitize
+	suggestedNames := make([]string, 0, 5)
+	for i, name := range req.SuggestedNames {
+		if i >= 5 {
+			break
+		}
+		sanitized := SanitizeTopic(name) // Reuse sanitization logic
+		if sanitized != "" {
+			suggestedNames = append(suggestedNames, sanitized)
+		}
+	}
+
 	// Create Claude client
 	claudeClient, err := NewClaudeClient()
 	if err != nil {
@@ -67,7 +79,7 @@ func handleValidateTopicImpl(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate topic and get panelist suggestions from Claude in one call
-	isRelevant, message, panelists, err := claudeClient.ValidateTopicAndSuggestPanelists(r.Context(), sanitizedTopic)
+	isRelevant, message, panelists, err := claudeClient.ValidateTopicAndSuggestPanelists(r.Context(), sanitizedTopic, suggestedNames)
 	if err != nil {
 		log.Printf("Error validating topic with Claude: %v", err)
 		w.WriteHeader(http.StatusServiceUnavailable)

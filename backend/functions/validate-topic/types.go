@@ -2,7 +2,8 @@ package validatetopic
 
 // TopicValidationRequest represents the incoming request to validate a topic
 type TopicValidationRequest struct {
-	Topic string `json:"topic"`
+	Topic          string   `json:"topic"`
+	SuggestedNames []string `json:"suggestedNames,omitempty"` // Optional: user-suggested panelist names (max 5)
 }
 
 // Panelist represents a suggested debate participant

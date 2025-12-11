@@ -6,12 +6,18 @@ import styles from './TopicInput.module.css';
 
 const TopicInput = ({ onSubmit, isLoading }) => {
   const [topic, setTopic] = useState('');
+  const [suggestedNames, setSuggestedNames] = useState('');
   const [clientError, setClientError] = useState(null);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
     setTopic(value);
     setClientError(null);
+  };
+
+  const handleNamesChange = (e) => {
+    const value = e.target.value;
+    setSuggestedNames(value);
   };
 
   const handleSubmit = (e) => {
@@ -29,9 +35,16 @@ const TopicInput = ({ onSubmit, isLoading }) => {
       return;
     }
 
+    // Parse suggested names (comma-separated, max 5)
+    const names = suggestedNames
+      .split(',')
+      .map(n => n.trim())
+      .filter(n => n.length > 0)
+      .slice(0, 5);
+
     // Clear error and submit
     setClientError(null);
-    onSubmit(topic);
+    onSubmit(topic, names);
   };
 
   const charactersRemaining = MAX_TOPIC_LENGTH - topic.length;
@@ -72,6 +85,25 @@ const TopicInput = ({ onSubmit, isLoading }) => {
             {clientError}
           </div>
         )}
+      </div>
+
+      <div className={styles.inputGroup}>
+        <label htmlFor="suggested-names" className={styles.label}>
+          Suggest panelists (optional)
+        </label>
+        <input
+          id="suggested-names"
+          type="text"
+          value={suggestedNames}
+          onChange={handleNamesChange}
+          placeholder="E.g., Martin Luther King Jr., Gandhi, Mother Teresa"
+          className={styles.input}
+          disabled={isLoading}
+          aria-describedby="names-help"
+        />
+        <span id="names-help" className={styles.help}>
+          Comma-separated names (up to 5). AI may include them if they have relevant views.
+        </span>
       </div>
 
       <button

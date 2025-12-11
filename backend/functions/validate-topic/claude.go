@@ -42,13 +42,25 @@ func NewClaudeClient() (*ClaudeClient, error) {
 }
 
 // ValidateTopicAndSuggestPanelists validates topic relevance and suggests panelists in one API call
-func (c *ClaudeClient) ValidateTopicAndSuggestPanelists(ctx context.Context, topic string) (bool, string, []Panelist, error) {
+func (c *ClaudeClient) ValidateTopicAndSuggestPanelists(ctx context.Context, topic string, suggestedNames []string) (bool, string, []Panelist, error) {
+	// Build user-suggested names section
+	namesSection := ""
+	if len(suggestedNames) > 0 {
+		namesSection = "\n\nUser has suggested considering these individuals (if they have relevant documented views on this topic):\n"
+		for _, name := range suggestedNames {
+			if name != "" {
+				namesSection += fmt.Sprintf("- %s\n", name)
+			}
+		}
+		namesSection += "\nYou may include these individuals in your suggestions if they have known, documented positions relevant to this topic. If not, you may omit them.\n"
+	}
+
 	// Build the combined prompt for Claude
 	prompt := fmt.Sprintf(`You are an expert in theology and philosophy. Your task is to:
 1. Determine if the following topic is suitable for a theological or philosophical debate
 2. If suitable, suggest 8-20 historical or contemporary figures who would make excellent panelists
 
-Topic: "%s"
+Topic: "%s"%s
 
 First, evaluate whether this topic relates to:
 - Theology (study of God, religion, faith, sacred texts)
@@ -82,7 +94,7 @@ Respond with a JSON object:
 }
 
 If not relevant, set panelists to an empty array.
-Format your response as valid JSON only, no other text.`, topic)
+Format your response as valid JSON only, no other text.`, topic, namesSection)
 
 	// Create the request body with higher token limit for panelist suggestions
 	requestBody := map[string]interface{}{

@@ -13,14 +13,15 @@ const useTopicValidation = () => {
   /**
    * Validates a topic with the backend API
    * @param {string} topic - The topic to validate
+   * @param {string[]} suggestedNames - Optional array of suggested panelist names
    */
-  const validate = useCallback(async (topic) => {
+  const validate = useCallback(async (topic, suggestedNames = []) => {
     setIsValidating(true);
     setError(null);
     setValidationResult(null);
 
     try {
-      const result = await validateTopic(topic);
+      const result = await validateTopic(topic, suggestedNames);
       setValidationResult(result);
       return result;
     } catch (err) {
