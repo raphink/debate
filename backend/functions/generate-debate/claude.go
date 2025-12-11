@@ -222,7 +222,7 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 					} else if currentPanelistID != "" {
 						// Check if currentText might be the start of a new message pattern
 						trimmed := strings.TrimSpace(currentText.String())
-						if strings.HasPrefix(trimmed, "[") && !strings.Contains(trimmed, "]:") {
+						if strings.HasPrefix(trimmed, "[") && !strings.Contains(trimmed, "]: ") && !strings.Contains(trimmed, "]:") {
 							// Might be starting a new message pattern, don't add to current message yet
 							// Keep it in currentText buffer
 						} else {
@@ -245,13 +245,24 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 
 // parseMessage extracts panelist ID and message text from formatted response
 func (c *ClaudeClient) parseMessage(text string) (panelistID, messageText string) {
-	// Look for pattern: [PANELIST_ID]: Message text
-	if idx := strings.Index(text, "]:"); idx != -1 {
+	// Look for pattern: [PANELIST_ID]: Message text or [PANELIST_ID]:Message text
+	// Try with space after colon first
+	if idx := strings.Index(text, "]: "); idx != -1 {
 		if startIdx := strings.LastIndex(text[:idx], "["); startIdx != -1 {
 			panelistID = text[startIdx+1 : idx]
-			messageText = strings.TrimSpace(text[idx+2:])
+			messageText = strings.TrimSpace(text[idx+3:]) // Skip ]: and space
 			return panelistID, messageText
 		}
 	}
+	
+	// Fallback to no space after colon
+	if idx := strings.Index(text, "]:"); idx != -1 {
+		if startIdx := strings.LastIndex(text[:idx], "["); startIdx != -1 {
+			panelistID = text[startIdx+1 : idx]
+			messageText = strings.TrimSpace(text[idx+2:]) // Skip ]:
+			return panelistID, messageText
+		}
+	}
+	
 	return "", ""
 }
