@@ -73,7 +73,7 @@ const PanelistModal = ({ panelist, onClose }) => {
 
         <div className={styles.content}>
           <img
-            src={panelist.avatarUrl}
+            src={panelist.avatarUrl.startsWith('http') || panelist.avatarUrl.startsWith('/') ? panelist.avatarUrl : `${process.env.PUBLIC_URL}/avatars/${panelist.avatarUrl}`}
             alt={`${panelist.name} avatar`}
             className={styles.avatar}
             onError={(e) => {

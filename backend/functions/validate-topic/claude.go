@@ -75,7 +75,7 @@ Respond with a JSON object:
       "name": "Full Name",
       "tagline": "One-line description with era (max 60 chars, e.g., '4th Century Church Father')",
       "bio": "Brief bio explaining their relevant expertise and historical period (max 300 chars)",
-      "avatarUrl": "/avatars/placeholder-avatar.png",
+      "avatarUrl": "placeholder-avatar.svg",
       "position": "Brief statement of their likely position on this topic (max 100 chars)"
     }
   ]
@@ -178,7 +178,7 @@ func (c *ClaudeClient) callClaudeAPI(ctx context.Context, requestBody []byte) (s
 func (c *ClaudeClient) parseValidationAndPanelistResponse(response string) (bool, string, []Panelist, error) {
 	// Log the response for debugging
 	fmt.Printf("Claude response text: %s\n", response)
-	
+
 	// Extract JSON from response (Claude might include it in content)
 	var result struct {
 		IsRelevant bool       `json:"isRelevant"`

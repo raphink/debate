@@ -37,7 +37,7 @@ const DebateView = ({ messages, panelists, isStreaming, currentPanelistId }) => 
     moderator: {
       id: 'moderator',
       name: 'Moderator',
-      avatarUrl: '/avatars/moderator-avatar.svg',
+      avatarUrl: `${process.env.PUBLIC_URL}/avatars/moderator-avatar.svg`,
       tagline: 'Neutral Facilitator',
       bio: 'Guiding the conversation'
     }

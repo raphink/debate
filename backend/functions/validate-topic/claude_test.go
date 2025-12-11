@@ -50,11 +50,11 @@ func TestParseValidationResponse(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		response      string
-		wantRelevant  bool
-		wantMessage   string
-		wantErr       bool
+		name         string
+		response     string
+		wantRelevant bool
+		wantMessage  string
+		wantErr      bool
 	}{
 		{
 			name:         "valid JSON response",

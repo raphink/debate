@@ -41,7 +41,7 @@ const PanelistSelector = ({ selectedPanelists, onClear, onProceed, isLoading = f
             {selectedPanelists.map((panelist) => (
               <div key={panelist.id} className={styles.selectedItem}>
                 <img
-                  src={panelist.avatarUrl}
+                  src={panelist.avatarUrl.startsWith('http') || panelist.avatarUrl.startsWith('/') ? panelist.avatarUrl : `${process.env.PUBLIC_URL}/avatars/${panelist.avatarUrl}`}
                   alt={`${panelist.name} avatar`}
                   className={styles.selectedAvatar}
                   onError={(e) => {

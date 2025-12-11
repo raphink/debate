@@ -36,8 +36,8 @@ func ValidateTopicInput(topic string) error {
 	}
 
 	// Check for common HTML entities
-	if strings.Contains(topic, "&lt;") || strings.Contains(topic, "&gt;") || 
-	   strings.Contains(topic, "&#") || strings.Contains(topic, "&amp;") {
+	if strings.Contains(topic, "&lt;") || strings.Contains(topic, "&gt;") ||
+		strings.Contains(topic, "&#") || strings.Contains(topic, "&amp;") {
 		return ErrTopicInvalid
 	}
 

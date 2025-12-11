@@ -46,11 +46,11 @@ const PanelistCard = ({ panelist, isSelected, onToggle, disabled }) => {
     >
       <div className={styles.header}>
         <img
-          src={avatarUrl}
+          src={`${process.env.PUBLIC_URL}/avatars/${avatarUrl}`}
           alt={`${name} avatar`}
           className={styles.avatar}
           onError={(e) => {
-            e.target.src = '/avatars/placeholder-avatar.svg';
+            e.target.src = `${process.env.PUBLIC_URL}/avatars/placeholder-avatar.svg`;
           }}
         />
         <div className={styles.headerText}>

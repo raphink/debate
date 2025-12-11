@@ -29,11 +29,11 @@ const DebateBubble = ({ panelist, text, index, onAvatarClick }) => {
         aria-label={`View ${panelist.name} details`}
       >
         <img
-          src={panelist.avatarUrl}
+          src={panelist.avatarUrl.startsWith('http') || panelist.avatarUrl.startsWith('/') ? panelist.avatarUrl : `${process.env.PUBLIC_URL}/avatars/${panelist.avatarUrl}`}
           alt={`${panelist.name} avatar`}
           className={styles.avatar}
           onError={(e) => {
-            e.target.src = '/avatars/placeholder-avatar.svg';
+            e.target.src = `${process.env.PUBLIC_URL}/avatars/placeholder-avatar.svg`;
           }}
         />
       </button>
