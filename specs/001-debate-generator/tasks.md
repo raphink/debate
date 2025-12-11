@@ -69,8 +69,11 @@
 - [X] T028 [P] [US1] Implement input validation in backend/functions/validate-topic/validator.go (10-500 chars, HTML stripping)
 - [X] T029 [US1] Implement Claude API client in backend/functions/validate-topic/claude.go (topic relevance check)
 - [X] T029a [US1] Update ValidateTopicAndSuggestPanelists in claude.go to accept suggestedNames parameter and include in prompt
+- [X] T029b [US1] Migrate validate-topic to Anthropic Go SDK v1.19.0 for reliable streaming (replaces manual HTTP/SSE)
+- [X] T029c [US1] Implement streamPanelistResponse in claude.go to parse streaming JSON and emit progressive panelist chunks
 - [X] T030 [US1] Implement HTTP handler in backend/functions/validate-topic/handler.go (CORS, error handling, sanitization)
 - [X] T030a [US1] Update handler.go to sanitize and limit suggested names to 5 before passing to Claude client
+- [X] T030b [US1] Update handler.go to support SSE streaming (set Content-Type: text/event-stream, flush chunks)
 - [X] T031 [US1] Create main entry point in backend/functions/validate-topic/main.go (Cloud Function registration)
 - [X] T032 [US1] Add unit tests for validator in backend/functions/validate-topic/validator_test.go
 - [X] T033 [US1] Add integration tests for Claude API client in backend/functions/validate-topic/claude_test.go
@@ -83,12 +86,15 @@
 - [X] T035 [P] [US1] Create TopicInput styles in frontend/src/components/TopicInput/TopicInput.module.css (mobile-first responsive)
 - [X] T036 [P] [US1] Create ValidationResult component in frontend/src/components/ValidationResult/ValidationResult.jsx (success/error display)
 - [X] T037 [P] [US1] Create ValidationResult styles in frontend/src/components/ValidationResult/ValidationResult.module.css
-- [X] T038 [US1] Implement topicService in frontend/src/services/topicService.js (API call to validate-topic function)
+- [X] T038 [US1] Implement topicService in frontend/src/services/topicService.js (streaming SSE connection to validate-topic function)
 - [X] T038a [US1] Update topicService to send suggested panelist names array to validate-topic endpoint
-- [X] T039 [US1] Create useTopicValidation custom hook in frontend/src/hooks/useTopicValidation.js (state management, API call)
+- [X] T038b [US1] Implement streaming chunk parsing in topicService (handle validation, panelist, error, done chunks)
+- [X] T039 [US1] Create useTopicValidation custom hook in frontend/src/hooks/useTopicValidation.js (state management, streaming API)
 - [X] T039a [US1] Update useTopicValidation hook to accept and pass suggestedNames parameter to topicService
 - [X] T039b [US1] Update useTopicValidation hook loading message from "Validating..." to "Looking for Panelists"
+- [X] T039c [US1] Add progressive panelist state management in useTopicValidation (append panelists as they stream in)
 - [X] T040 [US1] Create Home page in frontend/src/pages/Home.jsx (integrate TopicInput, ValidationResult, navigation)
+- [X] T040a [US1] Update Home.jsx to display panelists progressively as they stream in (show loading until first panelist)
 - [X] T041 [US1] Add client-side validation utilities in frontend/src/utils/validation.js (length check, sanitization)
 - [X] T042 [US1] Add TopicInput component tests in frontend/src/components/TopicInput/TopicInput.test.jsx (Jest, RTL)
 - [X] T043 [US1] Add ValidationResult component tests in frontend/src/components/ValidationResult/ValidationResult.test.jsx
@@ -135,29 +141,32 @@
 
 ### Backend Implementation for User Story 3
 
-- [ ] T058 [P] [US3] Create DebateConfiguration request struct in backend/functions/generate-debate/types.go (topic, panelists array)
-- [ ] T059 [P] [US3] Create StreamChunk response structs in backend/functions/generate-debate/types.go (message, error, done events)
-- [ ] T060 [P] [US3] Implement input validation in backend/functions/generate-debate/validator.go (2-5 panelists, valid topic)
-- [ ] T061 [US3] Implement Claude API streaming client in backend/functions/generate-debate/claude.go (SSE with debate prompt)
-- [ ] T061a [US3] Update debate prompt in claude.go to ensure moderator provides concluding summary at end of debate
-- [ ] T062 [US3] Implement SSE stream handler in backend/functions/generate-debate/stream.go (chunk parsing, panelist identification)
-- [ ] T063 [US3] Implement HTTP handler in backend/functions/generate-debate/handler.go (SSE headers, flush chunks, error recovery)
-- [ ] T064 [US3] Create main entry point in backend/functions/generate-debate/main.go (Cloud Function registration)
+- [X] T058 [P] [US3] Create DebateConfiguration request struct in backend/functions/generate-debate/types.go (topic, panelists array)
+- [X] T059 [P] [US3] Create StreamChunk response structs in backend/functions/generate-debate/types.go (message, error, done events)
+- [X] T060 [P] [US3] Implement input validation in backend/functions/generate-debate/validator.go (2-5 panelists, valid topic)
+- [X] T061 [US3] Implement Claude API streaming client in backend/functions/generate-debate/claude.go (SSE with debate prompt)
+- [X] T061a [US3] Update debate prompt in claude.go to ensure moderator provides concluding summary at end of debate
+- [X] T061b [US3] Migrate generate-debate to Anthropic Go SDK v1.19.0 for reliable streaming (replaces manual HTTP/SSE)
+- [X] T062 [US3] Implement streaming proxy in claude.go streamResponse function (character-by-character forwarding with pattern buffering)
+- [X] T062a [US3] Fix UTF-8 handling in streamResponse (use runes not bytes, WriteRune not WriteByte)
+- [X] T063 [US3] Implement HTTP handler in backend/functions/generate-debate/handler.go (SSE headers, flush chunks, error recovery)
+- [X] T064 [US3] Create main entry point in backend/functions/generate-debate/main.go (Cloud Function registration)
 - [ ] T065 [US3] Add unit tests for debate prompt construction in backend/functions/generate-debate/claude_test.go
 - [ ] T066 [US3] Add integration tests for SSE streaming in backend/functions/generate-debate/stream_test.go
 
 ### Frontend Implementation for User Story 3
 
-- [ ] T067 [P] [US3] Create DebateBubble component in frontend/src/components/DebateView/DebateBubble.jsx (chat bubble with avatar)
-- [ ] T068 [P] [US3] Create DebateBubble styles in frontend/src/components/DebateView/DebateBubble.module.css (left/right alignment per panelist)
-- [ ] T069 [P] [US3] Create TypingIndicator component in frontend/src/components/DebateView/TypingIndicator.jsx (animated dots)
-- [ ] T070 [P] [US3] Create TypingIndicator styles in frontend/src/components/DebateView/TypingIndicator.module.css
-- [ ] T071 [P] [US3] Create DebateView component in frontend/src/components/DebateView/DebateView.jsx (scrollable message list)
-- [ ] T072 [P] [US3] Create DebateView styles in frontend/src/components/DebateView/DebateView.module.css (chat interface styling)
-- [ ] T073 [US3] Implement debateService in frontend/src/services/debateService.js (EventSource SSE connection)
-- [ ] T074 [US3] Create useDebateStream custom hook in frontend/src/hooks/useDebateStream.js (SSE state, message accumulation, error handling)
-- [ ] T075 [US3] Create DebateGeneration page in frontend/src/pages/DebateGeneration.jsx (integrate DebateView, generate button, retry logic)
-- [ ] T076 [US3] Add message accumulation logic in useDebateStream hook (append chunks to correct message by panelistId)
+- [X] T067 [P] [US3] Create DebateBubble component in frontend/src/components/DebateView/DebateBubble.jsx (chat bubble with avatar)
+- [X] T068 [P] [US3] Create DebateBubble styles in frontend/src/components/DebateView/DebateBubble.module.css (left/right alignment per panelist)
+- [X] T069 [P] [US3] Create TypingIndicator component in frontend/src/components/DebateView/TypingIndicator.jsx (animated dots)
+- [X] T070 [P] [US3] Create TypingIndicator styles in frontend/src/components/DebateView/TypingIndicator.module.css
+- [X] T071 [P] [US3] Create DebateView component in frontend/src/components/DebateView/DebateView.jsx (scrollable message list)
+- [X] T072 [P] [US3] Create DebateView styles in frontend/src/components/DebateView/DebateView.module.css (chat interface styling)
+- [X] T073 [US3] Implement debateService in frontend/src/services/debateService.js (fetch API SSE connection)
+- [X] T074 [US3] Create useDebateStream custom hook in frontend/src/hooks/useDebateStream.js (SSE state, message accumulation, error handling)
+- [X] T074a [US3] Simplify useDebateStream after backend streaming redesign (speaker detection handled by backend)
+- [X] T075 [US3] Create DebateGeneration page in frontend/src/pages/DebateGeneration.jsx (integrate DebateView, generate button, retry logic)
+- [X] T076 [US3] Add message accumulation logic in useDebateStream hook (append chunks to correct message by panelistId)
 - [X] T077 [US3] Add auto-scroll toggle control in DebateView component (checkbox, disabled by default, conditional scrollIntoView)
 - [X] T077a [P] [US3] Create PanelistModal component in frontend/src/components/DebateView/PanelistModal.jsx (display name, tagline, bio, close controls)
 - [X] T077b [P] [US3] Create PanelistModal styles in frontend/src/components/DebateView/PanelistModal.module.css (overlay, centered modal, accessible focus trap)
