@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import DebateView from '../components/DebateView/DebateView';
+import PDFExport from '../components/PDFExport/PDFExport';
 import Button from '../components/common/Button/Button';
 import ErrorMessage from '../components/common/ErrorMessage/ErrorMessage';
 import useDebateStream from '../hooks/useDebateStream';
@@ -101,8 +102,12 @@ const DebateGeneration = () => {
               <Button onClick={handleBack} variant="secondary">
                 New Debate
               </Button>
-              {/* PDF Export will be added in Phase 6 */}
             </div>
+            <PDFExport 
+              topic={topic}
+              panelists={selectedPanelists}
+              messages={messages}
+            />
           </div>
         )}
       </div>

@@ -169,13 +169,13 @@
 
 ### Frontend Implementation for User Story 4
 
-- [ ] T082 [P] [US4] Create pdfGenerator utility in frontend/src/components/PDFExport/pdfGenerator.js (jsPDF integration, debate formatting)
-- [ ] T083 [P] [US4] Create PDFExport component in frontend/src/components/PDFExport/PDFExport.jsx (export button, download trigger)
-- [ ] T084 [US4] Add PDF header generation in pdfGenerator.js (debate topic, timestamp, page numbers)
-- [ ] T085 [US4] Add panelist profile section in pdfGenerator.js (avatars, names, bios)
-- [ ] T086 [US4] Add debate conversation rendering in pdfGenerator.js (chat bubbles with avatars, proper page breaks)
-- [ ] T087 [US4] Integrate PDFExport component in DebateGeneration page (show after debate completes)
-- [ ] T088 [US4] Add error handling for PDF generation failures in PDFExport component
+- [X] T082 [P] [US4] Create pdfGenerator utility in frontend/src/components/PDFExport/pdfGenerator.js (jsPDF integration, debate formatting)
+- [X] T083 [P] [US4] Create PDFExport component in frontend/src/components/PDFExport/PDFExport.jsx (export button, download trigger)
+- [X] T084 [US4] Add PDF header generation in pdfGenerator.js (debate topic, timestamp, page numbers)
+- [X] T085 [US4] Add panelist profile section in pdfGenerator.js (avatars, names, bios)
+- [X] T086 [US4] Add debate conversation rendering in pdfGenerator.js (chat bubbles with avatars, proper page breaks)
+- [X] T087 [US4] Integrate PDFExport component in DebateGeneration page (show after debate completes)
+- [X] T088 [US4] Add error handling for PDF generation failures in PDFExport component
 - [ ] T089 [US4] Add pdfGenerator unit tests in frontend/src/components/PDFExport/pdfGenerator.test.js (content formatting, page breaks)
 - [ ] T090 [US4] Add PDFExport component tests in frontend/src/components/PDFExport/PDFExport.test.jsx
 
