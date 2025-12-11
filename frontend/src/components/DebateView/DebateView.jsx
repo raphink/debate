@@ -29,7 +29,16 @@ const DebateView = ({ messages, panelists, isStreaming, currentPanelistId }) => 
   const panelistMap = panelists.reduce((acc, panelist) => {
     acc[panelist.id] = panelist;
     return acc;
-  }, {});
+  }, {
+    // Add moderator with default avatar
+    moderator: {
+      id: 'moderator',
+      name: 'Moderator',
+      avatarUrl: '/avatars/moderator-avatar.svg',
+      tagline: 'Neutral Facilitator',
+      bio: 'Guiding the conversation'
+    }
+  });
 
   const currentPanelist = currentPanelistId ? panelistMap[currentPanelistId] : null;
 
