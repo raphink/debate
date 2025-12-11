@@ -7,8 +7,8 @@ import (
 	"net/http"
 )
 
-// HandleValidateTopic is the HTTP handler for the validate-topic Cloud Function
-func HandleValidateTopic(w http.ResponseWriter, r *http.Request) {
+// handleValidateTopicImpl is the HTTP handler for the validate-topic Cloud Function
+func handleValidateTopicImpl(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
@@ -94,11 +94,4 @@ func HandleValidateTopic(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Printf("Error encoding response: %v", err)
 	}
-}
-
-// HealthCheck is a simple health check handler
-func HealthCheck(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, `{"status":"healthy"}`)
 }

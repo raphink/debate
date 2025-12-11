@@ -1,26 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"os"
 )
 
-func main() {
-	// Register HTTP handlers
-	http.HandleFunc("/", HandleValidateTopic)
-	http.HandleFunc("/health", HealthCheck)
-
-	// Get port from environment or default to 8080
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	// Start server
-	log.Printf("Starting validate-topic function on port %s", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatal(fmt.Errorf("failed to start server: %w", err))
-	}
+// HandleValidateTopic is the entry point for the Cloud Function
+func HandleValidateTopic(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Validate topic request received: %s %s", r.Method, r.URL.Path)
+	
+	// Delegate to the existing handler
+	handleValidateTopicImpl(w, r)
 }

@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-// HandleGenerateDebate handles debate generation requests with SSE streaming
-func HandleGenerateDebate(w http.ResponseWriter, r *http.Request) {
+// handleGenerateDebateImpl handles debate generation requests with SSE streaming
+func handleGenerateDebateImpl(w http.ResponseWriter, r *http.Request) {
 	// Enable CORS
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")

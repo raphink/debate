@@ -2,23 +2,13 @@ package main
 
 import (
 	"log"
-	"os"
-
-	"github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
+	"net/http"
 )
 
-func init() {
-	funcframework.RegisterHTTPFunctionContext(nil, "/", HandleGenerateDebate)
-}
-
-func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	log.Printf("Generate Debate function listening on port %s\n", port)
-	if err := funcframework.Start(port); err != nil {
-		log.Fatalf("funcframework.Start: %v\n", err)
-	}
+// HandleGenerateDebate is the entry point for the Cloud Function
+func HandleGenerateDebate(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Generate debate request received: %s %s", r.Method, r.URL.Path)
+	
+	// Delegate to the existing handler
+	handleGenerateDebateImpl(w, r)
 }

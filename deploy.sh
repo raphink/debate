@@ -97,7 +97,7 @@ deploy_backend() {
         --runtime="$RUNTIME" \
         --region="$REGION" \
         --source=./backend/functions/validate-topic \
-        --entry-point=main \
+        --entry-point=HandleValidateTopic \
         --trigger-http \
         --allow-unauthenticated \
         --set-secrets=ANTHROPIC_API_KEY=anthropic-api-key:latest \
@@ -120,7 +120,7 @@ deploy_backend() {
         --runtime="$RUNTIME" \
         --region="$REGION" \
         --source=./backend/functions/generate-debate \
-        --entry-point=main \
+        --entry-point=HandleGenerateDebate \
         --trigger-http \
         --allow-unauthenticated \
         --set-secrets=ANTHROPIC_API_KEY=anthropic-api-key:latest \
