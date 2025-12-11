@@ -117,66 +117,133 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 		}
 	}
 
-	// Accumulate the full response
+	var validationSent bool
+	var inPanelistsArray bool
+	var panelistBuffer strings.Builder
+	var braceDepth int
+	var inString bool
+	var escapeNext bool
+
+	// Process stream character by character to detect complete panelist objects
 	for stream.Next() {
 		event := stream.Current()
-		if event.Delta.Text != "" {
-			buffer.WriteString(event.Delta.Text)
+		if event.Delta.Text == "" {
+			continue
+		}
+
+		text := event.Delta.Text
+		buffer.WriteString(text)
+
+		// Parse incrementally to find complete panelist objects
+		for _, char := range text {
+			// Track string context to ignore braces inside strings
+			if escapeNext {
+				escapeNext = false
+				panelistBuffer.WriteRune(char)
+				continue
+			}
+			if char == '\\' && inString {
+				escapeNext = true
+				panelistBuffer.WriteRune(char)
+				continue
+			}
+			if char == '"' {
+				inString = !inString
+			}
+
+			// Send validation once we find "isRelevant"
+			if !validationSent && strings.Contains(buffer.String(), `"isRelevant"`) {
+				// Try to parse validation fields
+				currentJSON := buffer.String()
+				if startIdx := strings.Index(currentJSON, "{"); startIdx != -1 {
+					// Look for both isRelevant and message
+					if strings.Contains(currentJSON, `"message"`) {
+						// Extract up to the panelists array
+						endIdx := strings.Index(currentJSON, `"panelists"`)
+						if endIdx == -1 {
+							endIdx = len(currentJSON)
+						}
+						
+						partialJSON := currentJSON[startIdx:endIdx] + `}`
+						
+						var validation struct {
+							IsRelevant bool   `json:"isRelevant"`
+							Message    string `json:"message"`
+						}
+						
+						if err := json.Unmarshal([]byte(partialJSON), &validation); err == nil {
+							validationData, _ := json.Marshal(map[string]interface{}{
+								"isRelevant": validation.IsRelevant,
+								"message":    validation.Message,
+							})
+							sendChunk("validation", string(validationData))
+							validationSent = true
+						}
+					}
+				}
+			}
+
+			// Detect when we enter the panelists array
+			if !inPanelistsArray && strings.Contains(buffer.String(), `"panelists"`) {
+				if char == '[' && !inString {
+					inPanelistsArray = true
+					braceDepth = 0
+					panelistBuffer.Reset()
+					continue
+				}
+			}
+
+			// If we're in the panelists array, track complete objects
+			if inPanelistsArray {
+				if !inString {
+					if char == '{' {
+						if braceDepth == 0 {
+							panelistBuffer.Reset()
+						}
+						braceDepth++
+					} else if char == '}' {
+						braceDepth--
+						panelistBuffer.WriteRune(char)
+						
+						// Complete panelist object found
+						if braceDepth == 0 {
+							panelistJSON := panelistBuffer.String()
+							
+							var panelist Panelist
+							if err := json.Unmarshal([]byte(panelistJSON), &panelist); err == nil {
+								// Validate and sanitize
+								if panelist.Name != "" && panelist.ID != "" {
+									if len(panelist.Tagline) > 60 {
+										panelist.Tagline = panelist.Tagline[:57] + "..."
+									}
+									if len(panelist.Bio) > 300 {
+										panelist.Bio = panelist.Bio[:297] + "..."
+									}
+									if len(panelist.Position) > 100 {
+										panelist.Position = panelist.Position[:97] + "..."
+									}
+
+									panelistData, _ := json.Marshal(panelist)
+									sendChunk("panelist", string(panelistData))
+								}
+							}
+							
+							panelistBuffer.Reset()
+							continue
+						}
+					}
+				}
+				
+				if braceDepth > 0 {
+					panelistBuffer.WriteRune(char)
+				}
+			}
 		}
 	}
 
 	// Check for stream errors
 	if err := stream.Err(); err != nil {
 		return fmt.Errorf("stream error: %w", err)
-	}
-
-	// Parse the complete JSON response
-	response := buffer.String()
-	
-	// Extract JSON from response
-	startIdx := strings.Index(response, "{")
-	endIdx := strings.LastIndex(response, "}")
-	if startIdx == -1 || endIdx == -1 {
-		return fmt.Errorf("no JSON found in response")
-	}
-
-	jsonStr := response[startIdx : endIdx+1]
-	
-	var result struct {
-		IsRelevant bool       `json:"isRelevant"`
-		Message    string     `json:"message"`
-		Panelists  []Panelist `json:"panelists"`
-	}
-
-	if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
-		return fmt.Errorf("failed to parse response: %w", err)
-	}
-
-	// Send validation result first
-	validationData, _ := json.Marshal(map[string]interface{}{
-		"isRelevant": result.IsRelevant,
-		"message":    result.Message,
-	})
-	sendChunk("validation", string(validationData))
-
-	// Stream panelists one by one
-	for _, panelist := range result.Panelists {
-		// Validate and sanitize
-		if panelist.Name == "" || panelist.ID == "" {
-			continue
-		}
-		if len(panelist.Tagline) > 60 {
-			panelist.Tagline = panelist.Tagline[:57] + "..."
-		}
-		if len(panelist.Bio) > 300 {
-			panelist.Bio = panelist.Bio[:297] + "..."
-		}
-		if len(panelist.Position) > 100 {
-			panelist.Position = panelist.Position[:97] + "..."
-		}
-
-		panelistData, _ := json.Marshal(panelist)
-		sendChunk("panelist", string(panelistData))
 	}
 
 	// Send done signal
