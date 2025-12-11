@@ -51,6 +51,7 @@
 - [X] T024 [P] Create common LoadingSpinner component in frontend/src/components/common/LoadingSpinner/LoadingSpinner.jsx
 - [X] T025 [P] Create common ErrorMessage component in frontend/src/components/common/ErrorMessage/ErrorMessage.jsx
 - [X] T026 [P] Create ErrorBoundary component in frontend/src/components/common/ErrorBoundary/ErrorBoundary.jsx
+- [X] T027 [P] Configure CORS in all backend services (validate-topic, generate-debate, get-portrait) to use ALLOWED_ORIGIN environment variable (localhost for dev, raphink.github.io for prod)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -153,20 +154,21 @@
 
 ### Backend Implementation for Portrait Service
 
-- [ ] T054a [P] [US2] Create portrait request/response structs in backend/functions/get-portrait/types.go (panelistId, panelistName)
-- [ ] T054b [P] [US2] Implement Wikimedia Commons API client in backend/functions/get-portrait/wikimedia.go (fetch 300px thumbnails with proper User-Agent)
-- [ ] T054c [P] [US2] Implement in-memory cache in backend/functions/get-portrait/cache.go (thread-safe map for portrait URLs)
-- [ ] T054d [US2] Implement HTTP handler in backend/functions/get-portrait/handler.go (validate input, fetch/cache portrait, return URL)
-- [ ] T054e [US2] Create main entry point in backend/functions/get-portrait/main.go (Cloud Function registration)
-- [ ] T054f [US2] Add unit tests for Wikimedia API client in backend/functions/get-portrait/wikimedia_test.go
-- [ ] T054g [US2] Add cache tests in backend/functions/get-portrait/cache_test.go (concurrent access, TTL)
+- [X] T054a [P] [US2] Create portrait request/response structs in backend/functions/get-portrait/types.go (panelistId, panelistName)
+- [X] T054b [P] [US2] Implement Wikimedia Commons API client in backend/functions/get-portrait/wikimedia.go (fetch 300px thumbnails with proper User-Agent)
+- [X] T054c [P] [US2] Implement in-memory cache in backend/functions/get-portrait/cache.go (thread-safe map for portrait URLs)
+- [X] T054d [US2] Implement HTTP handler in backend/functions/get-portrait/handler.go (validate input, fetch/cache portrait, return URL)
+- [X] T054e [US2] Create main entry point in backend/functions/get-portrait/main.go (Cloud Function registration)
+- [X] T054f [US2] Create local dev binary in backend/functions/get-portrait/cmd/main.go (HTTP server for local testing)
+- [ ] T054g [US2] Add unit tests for Wikimedia API client in backend/functions/get-portrait/wikimedia_test.go
+- [ ] T054h [US2] Add cache tests in backend/functions/get-portrait/cache_test.go (concurrent access, TTL)
 
 ### Frontend Implementation for Portrait Service
 
-- [ ] T054h [P] [US2] Create portraitService in frontend/src/services/portraitService.js (async fetch portrait URLs)
-- [ ] T054i [US2] Update PanelistCard component to fetch portraits on mount and update avatarUrl when loaded
-- [ ] T054j [US2] Add loading shimmer effect to avatars while portraits are being fetched
-- [ ] T054k [US2] Ensure portraits are cached in React state to avoid redundant fetches during debate generation
+- [X] T054i [P] [US2] Create portraitService in frontend/src/services/portraitService.js (async fetch portrait URLs)
+- [X] T054j [US2] Update useTopicValidation hook to fetch portraits when panelists arrive and update avatarUrl state
+- [ ] T054k [US2] Add loading shimmer effect to avatars while portraits are being fetched
+- [ ] T054l [US2] Ensure portraits are cached in React state to avoid redundant fetches during debate generation
 
 **Checkpoint**: Panelist avatars progressively enhanced with real portraits
 

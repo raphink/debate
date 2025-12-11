@@ -140,6 +140,7 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - **FR-019**: System MUST validate and sanitize user topic input and suggested panelist names before sending to Claude API (per Constitution Principle V)
 - **FR-020**: UI MUST be keyboard-navigable for accessibility (per Constitution Principle III)
 - **FR-021**: System MUST maintain minimum 4.5:1 contrast ratio for text (per Constitution Principle III)
+- **FR-022**: Backend services MUST restrict CORS to localhost in development and raphink.github.io in production via ALLOWED_ORIGIN environment variable (per Constitution Principle V)
 
 ### Key Entities
 
