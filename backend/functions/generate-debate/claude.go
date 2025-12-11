@@ -130,9 +130,8 @@ func (c *ClaudeClient) streamResponse(stream *ssestream.Stream[anthropic.Message
 
 		text := event.Delta.Text
 
-		for i := 0; i < len(text); i++ {
-			char := text[i]
-
+		// Process character by character (runes, not bytes - handles UTF-8 correctly)
+		for _, char := range text {
 			if char == '[' && !inPattern {
 				// Start of potential pattern - flush any accumulated text first
 				if patternBuffer.Len() > 0 && currentSpeaker != "" {
@@ -140,9 +139,9 @@ func (c *ClaudeClient) streamResponse(stream *ssestream.Stream[anthropic.Message
 					patternBuffer.Reset()
 				}
 				inPattern = true
-				patternBuffer.WriteByte(char)
+				patternBuffer.WriteRune(char)
 			} else if inPattern {
-				patternBuffer.WriteByte(char)
+				patternBuffer.WriteRune(char)
 
 				// Check if we have a complete pattern [handle]:
 				bufStr := patternBuffer.String()
@@ -163,7 +162,7 @@ func (c *ClaudeClient) streamResponse(stream *ssestream.Stream[anthropic.Message
 				}
 			} else {
 				// Normal text - accumulate and send immediately
-				patternBuffer.WriteByte(char)
+				patternBuffer.WriteRune(char)
 				
 				// Send chunks frequently for responsiveness (every 10 chars or at word boundaries)
 				if patternBuffer.Len() >= 10 || char == ' ' || char == '\n' {
