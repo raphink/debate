@@ -12,7 +12,7 @@ Build a web application that generates AI-powered theological/philosophical deba
 **Language/Version**: Go 1.23+ (backend/GCP Functions), JavaScript/React 18+ (frontend)  
 **Primary Dependencies**: 
 - Frontend: React 18, React Router, Axios (HTTP client), jsPDF (PDF generation), CSS Modules
-- Backend: Go 1.21+, Google Cloud Functions SDK, Anthropic Claude API SDK
+- Backend: Go 1.23+, Google Cloud Functions SDK, Anthropic Claude API SDK
 **Storage**: N/A (stateless, no persistence for MVP)  
 **Testing**: 
 - Frontend: Jest, React Testing Library, axe-core (accessibility)
