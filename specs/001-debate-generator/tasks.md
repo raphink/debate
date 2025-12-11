@@ -64,27 +64,27 @@
 
 ### Backend Implementation for User Story 1
 
-- [ ] T027 [P] [US1] Create Topic validation request/response structs in backend/functions/validate-topic/types.go
-- [ ] T028 [P] [US1] Implement input validation in backend/functions/validate-topic/validator.go (10-500 chars, HTML stripping)
-- [ ] T029 [US1] Implement Claude API client in backend/functions/validate-topic/claude.go (topic relevance check)
-- [ ] T030 [US1] Implement HTTP handler in backend/functions/validate-topic/handler.go (CORS, error handling, sanitization)
-- [ ] T031 [US1] Create main entry point in backend/functions/validate-topic/main.go (Cloud Function registration)
-- [ ] T032 [US1] Add unit tests for validator in backend/functions/validate-topic/validator_test.go
-- [ ] T033 [US1] Add integration tests for Claude API client in backend/functions/validate-topic/claude_test.go
+- [X] T027 [P] [US1] Create Topic validation request/response structs in backend/functions/validate-topic/types.go
+- [X] T028 [P] [US1] Implement input validation in backend/functions/validate-topic/validator.go (10-500 chars, HTML stripping)
+- [X] T029 [US1] Implement Claude API client in backend/functions/validate-topic/claude.go (topic relevance check)
+- [X] T030 [US1] Implement HTTP handler in backend/functions/validate-topic/handler.go (CORS, error handling, sanitization)
+- [X] T031 [US1] Create main entry point in backend/functions/validate-topic/main.go (Cloud Function registration)
+- [X] T032 [US1] Add unit tests for validator in backend/functions/validate-topic/validator_test.go
+- [X] T033 [US1] Add integration tests for Claude API client in backend/functions/validate-topic/claude_test.go
 
 ### Frontend Implementation for User Story 1
 
-- [ ] T034 [P] [US1] Create TopicInput component in frontend/src/components/TopicInput/TopicInput.jsx (form, character counter)
-- [ ] T035 [P] [US1] Create TopicInput styles in frontend/src/components/TopicInput/TopicInput.module.css (mobile-first responsive)
-- [ ] T036 [P] [US1] Create ValidationResult component in frontend/src/components/ValidationResult/ValidationResult.jsx (success/error display)
-- [ ] T037 [P] [US1] Create ValidationResult styles in frontend/src/components/ValidationResult/ValidationResult.module.css
-- [ ] T038 [US1] Implement topicService in frontend/src/services/topicService.js (API call to validate-topic function)
-- [ ] T039 [US1] Create useTopicValidation custom hook in frontend/src/hooks/useTopicValidation.js (state management, API call)
-- [ ] T040 [US1] Create Home page in frontend/src/pages/Home.jsx (integrate TopicInput, ValidationResult, navigation)
-- [ ] T041 [US1] Add client-side validation utilities in frontend/src/utils/validation.js (length check, sanitization)
-- [ ] T042 [US1] Add TopicInput component tests in frontend/src/components/TopicInput/TopicInput.test.jsx (Jest, RTL)
-- [ ] T043 [US1] Add ValidationResult component tests in frontend/src/components/ValidationResult/ValidationResult.test.jsx
-- [ ] T044 [US1] Add accessibility tests for topic validation flow in frontend/tests/accessibility/topic-validation.test.js (axe-core)
+- [X] T034 [P] [US1] Create TopicInput component in frontend/src/components/TopicInput/TopicInput.jsx (form, character counter)
+- [X] T035 [P] [US1] Create TopicInput styles in frontend/src/components/TopicInput/TopicInput.module.css (mobile-first responsive)
+- [X] T036 [P] [US1] Create ValidationResult component in frontend/src/components/ValidationResult/ValidationResult.jsx (success/error display)
+- [X] T037 [P] [US1] Create ValidationResult styles in frontend/src/components/ValidationResult/ValidationResult.module.css
+- [X] T038 [US1] Implement topicService in frontend/src/services/topicService.js (API call to validate-topic function)
+- [X] T039 [US1] Create useTopicValidation custom hook in frontend/src/hooks/useTopicValidation.js (state management, API call)
+- [X] T040 [US1] Create Home page in frontend/src/pages/Home.jsx (integrate TopicInput, ValidationResult, navigation)
+- [X] T041 [US1] Add client-side validation utilities in frontend/src/utils/validation.js (length check, sanitization)
+- [X] T042 [US1] Add TopicInput component tests in frontend/src/components/TopicInput/TopicInput.test.jsx (Jest, RTL)
+- [X] T043 [US1] Add ValidationResult component tests in frontend/src/components/ValidationResult/ValidationResult.test.jsx
+- [X] T044 [US1] Add accessibility tests for topic validation flow in frontend/tests/accessibility/topic-validation.test.js (axe-core)
 
 **Checkpoint**: User Story 1 complete - users can validate topics independently
 
