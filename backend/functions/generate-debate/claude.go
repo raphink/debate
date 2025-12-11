@@ -200,7 +200,7 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 					// Check if we have a new panelist message starting
 					fullText := currentText.String()
 					if panelistID, messageText := c.parseMessage(fullText); panelistID != "" {
-						// Send previous message if exists (but exclude any partial bracket from currentText)
+						// Send previous message if exists
 						if currentPanelistID != "" && currentMessage.Len() > 0 {
 							chunk := StreamChunk{
 								Type:       "message",
@@ -219,6 +219,43 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 						currentMessage.Reset()
 						currentMessage.WriteString(messageText)
 						currentText.Reset()
+						
+						// Check if the messageText itself contains ANOTHER [ID]: pattern
+						// This handles cases where Claude sends multiple messages in one chunk
+						for {
+							msgText := currentMessage.String()
+							if nextID, nextText := c.parseMessage(msgText); nextID != "" && nextID != currentPanelistID {
+								// Found another panelist in the accumulated message!
+								// Extract everything before the new pattern
+								idx := strings.Index(msgText, "[" + nextID + "]:")
+								if idx == -1 {
+									idx = strings.Index(msgText, "[" + nextID + "]: ")
+								}
+								
+								if idx > 0 {
+									// Send current message up to the new pattern
+									chunk := StreamChunk{
+										Type:       "message",
+										PanelistID: currentPanelistID,
+										Text:       strings.TrimSpace(msgText[:idx]),
+										Done:       false,
+									}
+									json.NewEncoder(writer).Encode(chunk)
+									if flusher != nil {
+										flusher.Flush()
+									}
+									
+									// Start new message with the next panelist
+									currentPanelistID = nextID
+									currentMessage.Reset()
+									currentMessage.WriteString(nextText)
+								} else {
+									break
+								}
+							} else {
+								break
+							}
+						}
 					} else if currentPanelistID != "" {
 						// Check if currentText might be the start of a new message pattern
 						trimmed := strings.TrimSpace(currentText.String())
