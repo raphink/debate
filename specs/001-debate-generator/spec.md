@@ -33,7 +33,7 @@ User browses AI-suggested historical figures with known positions on the topic a
 
 **Acceptance Scenarios**:
 
-1. **Given** topic has been validated as relevant, **When** system suggests panelists, **Then** user sees up to 20 historical figures with avatar, name, handle (id), tagline, and bio
+1. **Given** topic has been validated as relevant, **When** validation response is received, **Then** user sees up to 20 historical figures with avatar, name, handle (id), tagline, and bio (returned in the same API call for efficiency)
 2. **Given** user views panelist list, **When** user clicks on a panelist card, **Then** panelist is added to selection (maximum 5 total)
 3. **Given** user has selected 5 panelists, **When** user attempts to select another, **Then** system prevents selection and displays message "Maximum 5 panelists allowed"
 4. **Given** user has selected panelists, **When** user clicks a selected panelist again, **Then** panelist is deselected and removed from selection

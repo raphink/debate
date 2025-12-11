@@ -2,8 +2,8 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Topic Validation API",
-    "description": "Validates whether a topic is suitable for theological/philosophical debate using Claude API",
-    "version": "1.0.0"
+    "description": "Validates whether a topic is suitable for theological/philosophical debate using Claude API. IMPORTANT: This endpoint returns both validation result AND suggested panelists (8-20) in a single response to reduce AI token costs and improve UX responsiveness.",
+    "version": "2.0.0"
   },
   "servers": [
     {

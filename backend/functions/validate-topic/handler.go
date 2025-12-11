@@ -67,8 +67,8 @@ func HandleValidateTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate topic with Claude
-	isRelevant, message, err := claudeClient.ValidateTopicRelevance(r.Context(), sanitizedTopic)
+	// Validate topic and get panelist suggestions from Claude in one call
+	isRelevant, message, panelists, err := claudeClient.ValidateTopicAndSuggestPanelists(r.Context(), sanitizedTopic)
 	if err != nil {
 		log.Printf("Error validating topic with Claude: %v", err)
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -82,11 +82,12 @@ func HandleValidateTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return successful response
+	// Return successful response with panelists
 	response := TopicValidationResponse{
-		IsRelevant: isRelevant,
-		Message:    message,
-		Topic:      sanitizedTopic,
+		IsRelevant:         isRelevant,
+		Message:            message,
+		Topic:              sanitizedTopic,
+		SuggestedPanelists: panelists, // Included when isRelevant=true
 	}
 
 	w.WriteHeader(http.StatusOK)
