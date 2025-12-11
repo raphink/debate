@@ -56,7 +56,8 @@ User launches debate generation and watches the conversation unfold in real-time
 3. **Given** debate is streaming, **When** a panelist's turn begins, **Then** their chat bubble appears with loading indicator before text streams in
 4. **Given** debate is in progress, **When** user views the conversation, **Then** different panelists' responses and moderator interventions are visually distinguishable by avatar and styling
 5. **Given** debate includes moderator, **When** moderator intervenes, **Then** moderator may redirect conversation, ask clarifying questions, highlight contrasts, or summarize progress
-6. **Given** debate is generating, **When** an error occurs (API timeout, rate limit), **Then** user sees friendly error message with option to retry
+6. **Given** debate is streaming, **When** user toggles auto-scroll, **Then** conversation view automatically follows new messages (when enabled) or remains at current scroll position (when disabled, default)
+7. **Given** debate is generating, **When** an error occurs (API timeout, rate limit), **Then** user sees friendly error message with option to retry
 
 ---
 
@@ -105,6 +106,7 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - **FR-010a**: System MUST include a neutral moderator who introduces the debate, may intervene between exchanges, and provides conclusion
 - **FR-010b**: Moderator responses MUST be visually distinguished from panelist responses with unique avatar and styling
 - **FR-011**: System MUST show loading/typing indicators while waiting for next response
+- **FR-011a**: System MUST provide toggleable auto-scroll control for debate view (disabled by default)
 - **FR-012**: System MUST handle API errors gracefully with user-friendly error messages
 - **FR-013**: System MUST provide retry mechanism for failed API calls
 - **FR-014**: System MUST allow PDF export of completed debates

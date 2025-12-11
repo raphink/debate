@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import DebateBubble from './DebateBubble';
 import TypingIndicator from './TypingIndicator';
@@ -6,7 +6,7 @@ import styles from './DebateView.module.css';
 
 /**
  * DebateView component displays the debate conversation as a scrollable chat interface.
- * Auto-scrolls to show the latest messages.
+ * Auto-scroll can be toggled on/off.
  * 
  * @param {Object} props - Component props
  * @param {Array} props.messages - Array of message objects with { panelistId, text }
@@ -17,13 +17,14 @@ import styles from './DebateView.module.css';
 const DebateView = ({ messages, panelists, isStreaming, currentPanelistId }) => {
   const messagesEndRef = useRef(null);
   const containerRef = useRef(null);
+  const [autoScroll, setAutoScroll] = useState(false);
 
-  // Auto-scroll to latest message
+  // Auto-scroll to latest message (only if enabled)
   useEffect(() => {
-    if (messagesEndRef.current) {
+    if (autoScroll && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
-  }, [messages, isStreaming]);
+  }, [messages, isStreaming, autoScroll]);
 
   // Create a map of panelists by ID for quick lookup
   const panelistMap = panelists.reduce((acc, panelist) => {
@@ -44,6 +45,16 @@ const DebateView = ({ messages, panelists, isStreaming, currentPanelistId }) => 
 
   return (
     <div className={styles.container} ref={containerRef}>
+      <div className={styles.controls}>
+        <label className={styles.autoScrollToggle}>
+          <input
+            type="checkbox"
+            checked={autoScroll}
+            onChange={(e) => setAutoScroll(e.target.checked)}
+          />
+          <span>Auto-scroll</span>
+        </label>
+      </div>
       <div className={styles.messageList}>
         {messages.length === 0 && !isStreaming && (
           <div className={styles.emptyState}>

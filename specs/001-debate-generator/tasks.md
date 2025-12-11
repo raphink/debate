@@ -148,7 +148,7 @@
 - [ ] T074 [US3] Create useDebateStream custom hook in frontend/src/hooks/useDebateStream.js (SSE state, message accumulation, error handling)
 - [ ] T075 [US3] Create DebateGeneration page in frontend/src/pages/DebateGeneration.jsx (integrate DebateView, generate button, retry logic)
 - [ ] T076 [US3] Add message accumulation logic in useDebateStream hook (append chunks to correct message by panelistId)
-- [ ] T077 [US3] Add auto-scroll behavior in DebateView component (scroll to latest message during streaming)
+- [X] T077 [US3] Add auto-scroll toggle control in DebateView component (checkbox, disabled by default, conditional scrollIntoView)
 - [ ] T078 [US3] Add DebateBubble component tests in frontend/src/components/DebateView/DebateBubble.test.jsx
 - [ ] T079 [US3] Add DebateView component tests in frontend/src/components/DebateView/DebateView.test.jsx
 - [ ] T080 [US3] Add useDebateStream hook tests in frontend/src/hooks/useDebateStream.test.js (SSE event handling, error states)
