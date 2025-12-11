@@ -288,8 +288,8 @@ services:
 - Each Go Cloud Function has its own Dockerfile (multi-stage build: golang:1.23-alpine → distroless)
 - Frontend Dockerfile builds React app and serves via nginx
 - docker-compose.yml orchestrates all services with proper networking
-- Environment variables passed via .env file (ANTHROPIC_API_KEY)
-- Quick start script (start-local.sh) for one-command launch
+- Secrets managed via summon with GCP Secret Manager (same source as production)
+- Quick start script (start-local.sh) for one-command launch with summon
 
 **Alternatives Considered**:
 - Manual terminal management: Rejected due to poor developer experience
@@ -302,6 +302,16 @@ services:
 - Consistent behavior across macOS, Linux, Windows (via WSL2)
 - Easy to add auxiliary services later (Redis, PostgreSQL if needed)
 - CI/CD can use same Dockerfiles for deployment
+- Unified secret management between local dev and production via summon
+
+**Secret Management with Summon**:
+- Production secrets stored in GCP Secret Manager
+- Local development uses same secrets via summon + gcloud plugin
+- summon-gcloud plugin installed at `/usr/local/lib/summon/gcloud`
+- secrets.yml defines secret paths (e.g., `ANTHROPIC_API_KEY: gcp/secrets/anthropic-api-key`)
+- Command: `summon -p gcloud docker-compose up`
+- Eliminates .env file management and prevents secret leakage
+- Ensures parity between local and production secret sources
 
 ---
 

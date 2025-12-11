@@ -23,23 +23,39 @@ This guide gets you from zero to running the debate generator locally in under 1
 ### Prerequisites
 - Docker 24+ installed
 - Docker Compose v2+ installed
-- Anthropic API key
+- Summon (CyberArk secret manager) installed
+- Summon GCP plugin installed at `/usr/local/lib/summon/gcloud`
+- GCP Secret Manager access with required secrets
+- Anthropic API key stored in GCP Secret Manager
 
 ### Quick Start
 
-1. **Configure API Key**
+1. **Configure Secret Management**
 
-Create `.env` file in project root:
+Ensure summon and the GCP plugin are installed:
 ```bash
-# .env
-ANTHROPIC_API_KEY=sk-ant-api03-...  # Get from https://console.anthropic.com
+# Verify summon installation
+which summon
+
+# Verify GCP plugin
+ls -l /usr/local/lib/summon/gcloud
+```
+
+Ensure secrets are configured in GCP Secret Manager:
+- `anthropic-api-key`: Your Anthropic API key from https://console.anthropic.com
+- `gcp-project-id`: Your GCP project ID
+
+The `secrets.yml` file in the project root maps these secrets:
+```yaml
+ANTHROPIC_API_KEY: gcp/secrets/anthropic-api-key
+GCP_PROJECT_ID: gcp/secrets/gcp-project-id
 ```
 
 2. **Launch All Services**
 
 ```bash
 # From project root
-docker-compose up --build
+summon -p gcloud docker-compose up --build
 ```
 
 **Services will start on**:
@@ -51,38 +67,39 @@ docker-compose up --build
 3. **Quick Start Script (Alternative)**
 
 ```bash
-# Make executable (first time only)
-chmod +x start-local.sh
-
-# Run all services
+# Run all services with summon
 ./start-local.sh
 ```
+
+The script validates all prerequisites (summon, GCP plugin, secrets.yml) before starting.
 
 ### Docker Development Workflow
 
 **Rebuild after code changes**:
 ```bash
-docker-compose up --build
+summon -p gcloud docker-compose up --build
 ```
 
 **View logs**:
 ```bash
-docker-compose logs -f [service-name]
+summon -p gcloud docker-compose logs -f [service-name]
 # Examples:
-docker-compose logs -f validate-topic
-docker-compose logs -f frontend
+summon -p gcloud docker-compose logs -f validate-topic
+summon -p gcloud docker-compose logs -f frontend
 ```
 
 **Stop services**:
 ```bash
-docker-compose down
+summon -p gcloud docker-compose down
 ```
 
 **Clean rebuild** (removes volumes):
 ```bash
-docker-compose down -v
-docker-compose up --build
+summon -p gcloud docker-compose down -v
+summon -p gcloud docker-compose up --build
 ```
+
+**Why Summon?**: Secrets are stored in GCP Secret Manager and accessed securely in both local development and production. This eliminates `.env` files and ensures secret consistency across environments.
 
 ---
 
@@ -127,15 +144,19 @@ go mod download
 
 **3. Configure API Keys**
 
-Create `.env` file in project root:
+For manual setup, you'll need to export environment variables from GCP Secret Manager:
 
 ```bash
-# .env
-ANTHROPIC_API_KEY=sk-ant-api03-...  # Get from https://console.anthropic.com
-GCP_PROJECT_ID=your-project-id       # For local emulation metadata
+# Option 1: Use summon to inject secrets into your shell session
+summon -p gcloud env | grep -E "ANTHROPIC_API_KEY|GCP_PROJECT_ID" > .env.local
+source .env.local
+
+# Option 2: Export directly (requires gcloud CLI)
+export ANTHROPIC_API_KEY=$(gcloud secrets versions access latest --secret="anthropic-api-key")
+export GCP_PROJECT_ID=$(gcloud secrets versions access latest --secret="gcp-project-id")
 ```
 
-**Security Note**: Never commit `.env` to version control. Add to `.gitignore` immediately.
+**Security Note**: The `.env.local` file is temporary for manual development. It's already in `.gitignore` and should never be committed.
 
 ### Running Locally (Manual)
 
@@ -146,7 +167,6 @@ Use Google Cloud Functions Framework to run functions locally:
 **Terminal 1 - Validate Topic Function**:
 ```bash
 cd backend/functions/validate-topic
-export ANTHROPIC_API_KEY=$(grep ANTHROPIC_API_KEY ../../.env | cut -d '=' -f2)
 go run cmd/main.go
 # Runs on http://localhost:8080
 ```
@@ -154,7 +174,6 @@ go run cmd/main.go
 **Terminal 2 - Suggest Panelists Function**:
 ```bash
 cd backend/functions/suggest-panelists
-export ANTHROPIC_API_KEY=$(grep ANTHROPIC_API_KEY ../../.env | cut -d '=' -f2)
 PORT=8081 go run cmd/main.go
 # Runs on http://localhost:8081
 ```
@@ -162,7 +181,6 @@ PORT=8081 go run cmd/main.go
 **Terminal 3 - Generate Debate Function**:
 ```bash
 cd backend/functions/generate-debate
-export ANTHROPIC_API_KEY=$(grep ANTHROPIC_API_KEY ../../.env | cut -d '=' -f2)
 PORT=8082 go run cmd/main.go
 # Runs on http://localhost:8082
 ```

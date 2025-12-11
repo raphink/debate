@@ -1,29 +1,35 @@
 #!/bin/bash
 
-# Quick start script for local development with Docker
+# Quick start script for local development with Docker Compose and Summon
 
 set -e
 
-echo "🚀 Starting Debate Generator with Docker Compose..."
+echo "🚀 Starting Debate Generator with Docker Compose + Summon..."
 
-# Check if .env file exists
-if [ ! -f .env ]; then
-    echo "⚠️  No .env file found. Creating from .env.example..."
-    cp .env.example .env
-    echo "📝 Please edit .env and add your ANTHROPIC_API_KEY"
-    echo "   Then run this script again."
+# Check if summon is installed
+if ! command -v summon &> /dev/null; then
+    echo "❌ summon is not installed"
+    echo "   Install from: https://cyberark.github.io/summon/"
     exit 1
 fi
 
-# Check if ANTHROPIC_API_KEY is set
-if grep -q "your-key-here" .env; then
-    echo "⚠️  Please set your ANTHROPIC_API_KEY in .env file"
+# Check if summon-gcloud plugin is installed
+if [ ! -f /usr/local/lib/summon/gcloud ]; then
+    echo "❌ summon-gcloud plugin not found at /usr/local/lib/summon/gcloud"
+    echo "   Please install the gcloud plugin for summon"
     exit 1
 fi
 
-# Build and start services
-echo "🔨 Building and starting services..."
-docker-compose up --build -d
+# Check if secrets.yml exists
+if [ ! -f secrets.yml ]; then
+    echo "❌ secrets.yml not found"
+    echo "   This file should define secret paths in GCP Secret Manager"
+    exit 1
+fi
+
+# Build and start services with summon
+echo "🔨 Building and starting services with summon..."
+summon -p gcloud docker-compose up --build -d
 
 echo ""
 echo "✅ All services started successfully!"

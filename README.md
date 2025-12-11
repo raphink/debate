@@ -7,10 +7,14 @@ Generate engaging debates between historical theological and philosophical figur
 ### Prerequisites
 
 - **Docker & Docker Compose** - [Download](https://www.docker.com/get-started) (recommended)
+- **Summon** - [Install](https://github.com/cyberark/summon#install) (secret manager for Docker workflow)
+- **Summon GCP Plugin** - Must be installed at `/usr/local/lib/summon/gcloud`
+- **GCP Secret Manager Access** - Required secrets: `anthropic-api-key`, `gcp-project-id`
 - **OR** Manual setup:
   - **Go 1.23+** - [Download](https://golang.org/dl/)
   - **Node.js 18+** - [Download](https://nodejs.org/)
-- **Anthropic API Key** - [Get one](https://console.anthropic.com)
+  - **gcloud CLI** - [Install](https://cloud.google.com/sdk/docs/install)
+- **Anthropic API Key** - [Get one](https://console.anthropic.com) and store in GCP Secret Manager
 
 ### Setup
 
@@ -21,29 +25,45 @@ Generate engaging debates between historical theological and philosophical figur
    git checkout 001-debate-generator
    ```
 
-2. **Configure environment variables**
+2. **Configure secrets in GCP Secret Manager**
+   
+   Store your secrets in GCP Secret Manager (one-time setup):
    ```bash
-   cp .env.example .env
-   # Edit .env and add your ANTHROPIC_API_KEY
+   # Set your Anthropic API key
+   echo -n "sk-ant-api03-YOUR_KEY_HERE" | gcloud secrets create anthropic-api-key --data-file=-
+   
+   # Set your GCP project ID
+   echo -n "your-project-id" | gcloud secrets create gcp-project-id --data-file=-
    ```
+   
+   The `secrets.yml` file in the project root maps these secrets to environment variables for local development.
 
 ### Running with Docker (Recommended)
 
-The easiest way to run the entire application locally:
+The easiest way to run the entire application locally using secrets from GCP Secret Manager:
 
 ```bash
-# Start all services (backend functions + frontend)
-docker-compose up --build
+# Verify summon and GCP plugin are installed
+which summon
+ls -l /usr/local/lib/summon/gcloud
+
+# Start all services (backend functions + frontend) with summon
+summon -p gcloud docker-compose up --build
 
 # Or run in detached mode
-docker-compose up -d --build
+summon -p gcloud docker-compose up -d --build
+
+# Or use the convenience script (validates all prerequisites)
+./start-local.sh
 
 # View logs
-docker-compose logs -f
+summon -p gcloud docker-compose logs -f
 
 # Stop all services
-docker-compose down
+summon -p gcloud docker-compose down
 ```
+
+**Why Summon?** Secrets are stored in GCP Secret Manager and injected securely into Docker containers. This eliminates `.env` files and ensures your local development uses the same secret source as production, preventing configuration drift.
 
 The application will be available at:
 - **Frontend**: http://localhost:3000
@@ -54,9 +74,19 @@ The application will be available at:
 
 ### Running Manually (Without Docker)
 
-**Install dependencies first:**
+**Export secrets from GCP Secret Manager:**
 
-**Install dependencies first:**
+```bash
+# Option 1: Use summon to inject secrets into your shell
+summon -p gcloud env | grep -E "ANTHROPIC_API_KEY|GCP_PROJECT_ID" > .env.local
+source .env.local
+
+# Option 2: Export directly using gcloud CLI
+export ANTHROPIC_API_KEY=$(gcloud secrets versions access latest --secret="anthropic-api-key")
+export GCP_PROJECT_ID=$(gcloud secrets versions access latest --secret="gcp-project-id")
+```
+
+**Install dependencies:**
 
 ```bash
 # Frontend dependencies
@@ -74,17 +104,14 @@ cd ../generate-debate && go mod download
 ```bash
 # Terminal 1 - Topic Validation (port 8080)
 cd backend/functions/validate-topic
-export ANTHROPIC_API_KEY=$(grep ANTHROPIC_API_KEY ../../.env | cut -d '=' -f2)
 go run main.go
 
 # Terminal 2 - Panelist Suggestions (port 8081)
 cd backend/functions/suggest-panelists
-export ANTHROPIC_API_KEY=$(grep ANTHROPIC_API_KEY ../../.env | cut -d '=' -f2)
 PORT=8081 go run main.go
 
 # Terminal 3 - Debate Generation (port 8082)
 cd backend/functions/generate-debate
-export ANTHROPIC_API_KEY=$(grep ANTHROPIC_API_KEY ../../.env | cut -d '=' -f2)
 PORT=8082 go run main.go
 ```
 
