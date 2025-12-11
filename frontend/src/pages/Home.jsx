@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopicInput from '../components/TopicInput/TopicInput';
 import ValidationResult from '../components/ValidationResult/ValidationResult';
@@ -20,15 +20,17 @@ const Home = () => {
     }
   };
 
-  const handleContinue = () => {
-    // Navigate to panelist selection with topic and panelists in state
-    navigate('/panelists', {
-      state: {
-        topic: validationResult.topic,
-        panelists: validationResult.suggestedPanelists || [],
-      },
-    });
-  };
+  // Auto-navigate to panelist selection when topic is validated as relevant
+  useEffect(() => {
+    if (validationResult && validationResult.isRelevant) {
+      navigate('/panelists', {
+        state: {
+          topic: validationResult.topic,
+          panelists: validationResult.suggestedPanelists || [],
+        },
+      });
+    }
+  }, [validationResult, navigate]);
 
   const handleTryAgain = () => {
     reset();
@@ -66,12 +68,11 @@ const Home = () => {
           </div>
         )}
 
-        {validationResult && (
+        {validationResult && !validationResult.isRelevant && (
           <ValidationResult
             isRelevant={validationResult.isRelevant}
             message={validationResult.message}
             topic={validationResult.topic}
-            onContinue={handleContinue}
             onTryAgain={handleTryAgain}
           />
         )}
