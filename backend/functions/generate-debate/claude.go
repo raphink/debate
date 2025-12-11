@@ -251,16 +251,10 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 							}
 						}
 					} else if currentPanelistID != "" {
-						// Check if currentText might be the start of a new message pattern
-						trimmed := strings.TrimSpace(currentText.String())
-						if strings.HasPrefix(trimmed, "[") && !strings.Contains(trimmed, "]: ") && !strings.Contains(trimmed, "]:") {
-							// Might be starting a new message pattern, don't add to current message yet
-							// Keep it in currentText buffer
-						} else {
-							// Safe to add to current message
-							currentMessage.WriteString(text)
-							currentText.Reset()
-						}
+						// Always add new text to current message
+						// The stripTrailingPatterns function will handle removing any incomplete patterns
+						currentMessage.WriteString(text)
+						currentText.Reset()
 					}
 				}
 			}
