@@ -1,0 +1,6 @@
+#!/bin/bash
+# Install this file in /usr/local/lib/summon/gcloud
+
+read -r PROJECT SECRET VERSION <<<$@
+
+gcloud secrets versions access "$VERSION" --project="$PROJECT" --secret="$SECRET"

@@ -13,10 +13,15 @@ Build a web application that generates AI-powered theological/philosophical deba
 **Primary Dependencies**: 
 - Frontend: React 18, React Router, Axios (HTTP client), jsPDF (PDF generation), CSS Modules
 - Backend: Go 1.23+, Google Cloud Functions SDK, Anthropic Claude API SDK
+- DevOps: Docker 24+, Docker Compose v2+ (local development)
 **Storage**: N/A (stateless, no persistence for MVP)  
 **Testing**: 
 - Frontend: Jest, React Testing Library, axe-core (accessibility)
 - Backend: Go testing package, httptest
+**Local Development**: 
+- Docker Compose orchestration for all services
+- Hot-reload for frontend development
+- Independent containerized Cloud Functions
 **Target Platform**: 
 - Frontend: Modern browsers (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
 - Backend: Google Cloud Functions (Gen 2), serverless runtime
@@ -188,7 +193,14 @@ frontend/
 │   └── e2e/
 ├── package.json
 ├── .eslintrc.json
+├── Dockerfile                   # Production frontend container
+├── nginx.conf                   # Nginx config for production
 └── README.md
+
+# Docker/DevOps files
+docker-compose.yml               # Local development orchestration
+.dockerignore                    # Docker build exclusions
+start-local.sh                   # Quick start script
 
 .github/
 └── workflows/

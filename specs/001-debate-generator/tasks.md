@@ -24,6 +24,12 @@
 - [X] T006 [P] Setup golangci-lint configuration in backend/.golangci.yml
 - [X] T007 Create environment variable template (.env.example) with ANTHROPIC_API_KEY and GCP_PROJECT_ID
 - [X] T008 [P] Create README.md with quick start instructions per quickstart.md
+- [X] T009 [P] Create docker-compose.yml to orchestrate all services (validate-topic:8080, suggest-panelists:8081, generate-debate:8082, frontend:3000)
+- [X] T010 [P] Create multi-stage Dockerfiles for each backend Cloud Function (golang:1.23-alpine → distroless)
+- [X] T011 [P] Create multi-stage Dockerfile for frontend (node:18-alpine → nginx:alpine)
+- [X] T012 [P] Create .dockerignore to exclude node_modules, .env, build artifacts from Docker context
+- [X] T013 [P] Create nginx.conf for frontend container (SPA routing, gzip, security headers)
+- [X] T014 [P] Create start-local.sh script for one-command local development startup
 
 ---
 
@@ -33,18 +39,18 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [X] T009 Create shared sanitization utility in backend/shared/sanitize/sanitizer.go (HTML tag removal, XSS prevention)
-- [X] T010 [P] Create shared error handling utilities in backend/shared/errors/errors.go (user-friendly error types)
-- [X] T011 [P] Create shared rate limiting utility in backend/shared/ratelimit/ratelimit.go (per Constitution Principle V)
-- [X] T012 [P] Create shared API key management in backend/shared/auth/keys.go (GCP Secret Manager integration)
-- [X] T013 [P] Setup React Router configuration in frontend/src/App.jsx (routes for Home, PanelistSelection, DebateGeneration)
-- [X] T014 [P] Create constants file in frontend/src/utils/constants.js (MAX_PANELISTS=5, MIN_TOPIC_LENGTH=10, etc.)
-- [X] T015 [P] Create DOMPurify wrapper in frontend/src/services/sanitizer.js (client-side XSS prevention)
-- [X] T016 [P] Create Axios HTTP client configuration in frontend/src/services/api.js (base URLs, timeout settings)
-- [X] T017 [P] Create common Button component in frontend/src/components/common/Button/Button.jsx (keyboard accessible)
-- [X] T018 [P] Create common LoadingSpinner component in frontend/src/components/common/LoadingSpinner/LoadingSpinner.jsx
-- [X] T019 [P] Create common ErrorMessage component in frontend/src/components/common/ErrorMessage/ErrorMessage.jsx
-- [X] T020 [P] Create ErrorBoundary component in frontend/src/components/common/ErrorBoundary/ErrorBoundary.jsx
+- [X] T015 Create shared sanitization utility in backend/shared/sanitize/sanitizer.go (HTML tag removal, XSS prevention)
+- [X] T016 [P] Create shared error handling utilities in backend/shared/errors/errors.go (user-friendly error types)
+- [X] T017 [P] Create shared rate limiting utility in backend/shared/ratelimit/ratelimit.go (per Constitution Principle V)
+- [X] T018 [P] Create shared API key management in backend/shared/auth/keys.go (GCP Secret Manager integration)
+- [X] T019 [P] Setup React Router configuration in frontend/src/App.jsx (routes for Home, PanelistSelection, DebateGeneration)
+- [X] T020 [P] Create constants file in frontend/src/utils/constants.js (MAX_PANELISTS=5, MIN_TOPIC_LENGTH=10, etc.)
+- [X] T021 [P] Create DOMPurify wrapper in frontend/src/services/sanitizer.js (client-side XSS prevention)
+- [X] T022 [P] Create Axios HTTP client configuration in frontend/src/services/api.js (base URLs, timeout settings)
+- [X] T023 [P] Create common Button component in frontend/src/components/common/Button/Button.jsx (keyboard accessible)
+- [X] T024 [P] Create common LoadingSpinner component in frontend/src/components/common/LoadingSpinner/LoadingSpinner.jsx
+- [X] T025 [P] Create common ErrorMessage component in frontend/src/components/common/ErrorMessage/ErrorMessage.jsx
+- [X] T026 [P] Create ErrorBoundary component in frontend/src/components/common/ErrorBoundary/ErrorBoundary.jsx
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -58,27 +64,27 @@
 
 ### Backend Implementation for User Story 1
 
-- [ ] T021 [P] [US1] Create Topic validation request/response structs in backend/functions/validate-topic/types.go
-- [ ] T022 [P] [US1] Implement input validation in backend/functions/validate-topic/validator.go (10-500 chars, HTML stripping)
-- [ ] T023 [US1] Implement Claude API client in backend/functions/validate-topic/claude.go (topic relevance check)
-- [ ] T024 [US1] Implement HTTP handler in backend/functions/validate-topic/handler.go (CORS, error handling, sanitization)
-- [ ] T025 [US1] Create main entry point in backend/functions/validate-topic/main.go (Cloud Function registration)
-- [ ] T026 [US1] Add unit tests for validator in backend/functions/validate-topic/validator_test.go
-- [ ] T027 [US1] Add integration tests for Claude API client in backend/functions/validate-topic/claude_test.go
+- [ ] T027 [P] [US1] Create Topic validation request/response structs in backend/functions/validate-topic/types.go
+- [ ] T028 [P] [US1] Implement input validation in backend/functions/validate-topic/validator.go (10-500 chars, HTML stripping)
+- [ ] T029 [US1] Implement Claude API client in backend/functions/validate-topic/claude.go (topic relevance check)
+- [ ] T030 [US1] Implement HTTP handler in backend/functions/validate-topic/handler.go (CORS, error handling, sanitization)
+- [ ] T031 [US1] Create main entry point in backend/functions/validate-topic/main.go (Cloud Function registration)
+- [ ] T032 [US1] Add unit tests for validator in backend/functions/validate-topic/validator_test.go
+- [ ] T033 [US1] Add integration tests for Claude API client in backend/functions/validate-topic/claude_test.go
 
 ### Frontend Implementation for User Story 1
 
-- [ ] T028 [P] [US1] Create TopicInput component in frontend/src/components/TopicInput/TopicInput.jsx (form, character counter)
-- [ ] T029 [P] [US1] Create TopicInput styles in frontend/src/components/TopicInput/TopicInput.module.css (mobile-first responsive)
-- [ ] T030 [P] [US1] Create ValidationResult component in frontend/src/components/ValidationResult/ValidationResult.jsx (success/error display)
-- [ ] T031 [P] [US1] Create ValidationResult styles in frontend/src/components/ValidationResult/ValidationResult.module.css
-- [ ] T032 [US1] Implement topicService in frontend/src/services/topicService.js (API call to validate-topic function)
-- [ ] T033 [US1] Create useTopicValidation custom hook in frontend/src/hooks/useTopicValidation.js (state management, API call)
-- [ ] T034 [US1] Create Home page in frontend/src/pages/Home.jsx (integrate TopicInput, ValidationResult, navigation)
-- [ ] T035 [US1] Add client-side validation utilities in frontend/src/utils/validation.js (length check, sanitization)
-- [ ] T036 [US1] Add TopicInput component tests in frontend/src/components/TopicInput/TopicInput.test.jsx (Jest, RTL)
-- [ ] T037 [US1] Add ValidationResult component tests in frontend/src/components/ValidationResult/ValidationResult.test.jsx
-- [ ] T038 [US1] Add accessibility tests for topic validation flow in frontend/tests/accessibility/topic-validation.test.js (axe-core)
+- [ ] T034 [P] [US1] Create TopicInput component in frontend/src/components/TopicInput/TopicInput.jsx (form, character counter)
+- [ ] T035 [P] [US1] Create TopicInput styles in frontend/src/components/TopicInput/TopicInput.module.css (mobile-first responsive)
+- [ ] T036 [P] [US1] Create ValidationResult component in frontend/src/components/ValidationResult/ValidationResult.jsx (success/error display)
+- [ ] T037 [P] [US1] Create ValidationResult styles in frontend/src/components/ValidationResult/ValidationResult.module.css
+- [ ] T038 [US1] Implement topicService in frontend/src/services/topicService.js (API call to validate-topic function)
+- [ ] T039 [US1] Create useTopicValidation custom hook in frontend/src/hooks/useTopicValidation.js (state management, API call)
+- [ ] T040 [US1] Create Home page in frontend/src/pages/Home.jsx (integrate TopicInput, ValidationResult, navigation)
+- [ ] T041 [US1] Add client-side validation utilities in frontend/src/utils/validation.js (length check, sanitization)
+- [ ] T042 [US1] Add TopicInput component tests in frontend/src/components/TopicInput/TopicInput.test.jsx (Jest, RTL)
+- [ ] T043 [US1] Add ValidationResult component tests in frontend/src/components/ValidationResult/ValidationResult.test.jsx
+- [ ] T044 [US1] Add accessibility tests for topic validation flow in frontend/tests/accessibility/topic-validation.test.js (axe-core)
 
 **Checkpoint**: User Story 1 complete - users can validate topics independently
 
@@ -92,12 +98,12 @@
 
 ### Backend Implementation for User Story 2
 
-- [ ] T039 [P] [US2] Create Panelist struct in backend/functions/suggest-panelists/panelist.go (id, name, tagline, bio, avatarUrl, position)
-- [ ] T040 [P] [US2] Implement Claude API client in backend/functions/suggest-panelists/claude.go (panelist suggestion with topic context)
-- [ ] T041 [US2] Implement HTTP handler in backend/functions/suggest-panelists/handler.go (parse request, call Claude, sanitize responses)
-- [ ] T042 [US2] Create main entry point in backend/functions/suggest-panelists/main.go (Cloud Function registration)
-- [ ] T043 [US2] Add validation for Panelist data in backend/functions/suggest-panelists/validator.go (alphanumeric ID, no HTML)
-- [ ] T044 [US2] Add unit tests for Panelist validation in backend/functions/suggest-panelists/validator_test.go
+- [ ] T045 [P] [US2] Create Panelist struct in backend/functions/suggest-panelists/panelist.go (id, name, tagline, bio, avatarUrl, position)
+- [ ] T046 [P] [US2] Implement Claude API client in backend/functions/suggest-panelists/claude.go (panelist suggestion with topic context)
+- [ ] T047 [US2] Implement HTTP handler in backend/functions/suggest-panelists/handler.go (parse request, call Claude, sanitize responses)
+- [ ] T048 [US2] Create main entry point in backend/functions/suggest-panelists/main.go (Cloud Function registration)
+- [ ] T049 [US2] Add validation for Panelist data in backend/functions/suggest-panelists/validator.go (alphanumeric ID, no HTML)
+- [ ] T050 [US2] Add unit tests for Panelist validation in backend/functions/suggest-panelists/validator_test.go
 - [ ] T045 [US2] Add integration tests for Claude API client in backend/functions/suggest-panelists/claude_test.go
 
 ### Frontend Implementation for User Story 2

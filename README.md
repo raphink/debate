@@ -6,8 +6,10 @@ Generate engaging debates between historical theological and philosophical figur
 
 ### Prerequisites
 
-- **Go 1.23+** - [Download](https://golang.org/dl/)
-- **Node.js 18+** - [Download](https://nodejs.org/)
+- **Docker & Docker Compose** - [Download](https://www.docker.com/get-started) (recommended)
+- **OR** Manual setup:
+  - **Go 1.23+** - [Download](https://golang.org/dl/)
+  - **Node.js 18+** - [Download](https://nodejs.org/)
 - **Anthropic API Key** - [Get one](https://console.anthropic.com)
 
 ### Setup
@@ -25,21 +27,47 @@ Generate engaging debates between historical theological and philosophical figur
    # Edit .env and add your ANTHROPIC_API_KEY
    ```
 
-3. **Install frontend dependencies**
-   ```bash
-   cd frontend
-   npm install
-   ```
+### Running with Docker (Recommended)
 
-4. **Install backend dependencies**
-   ```bash
-   # For each Cloud Function
-   cd backend/functions/validate-topic && go mod download
-   cd ../suggest-panelists && go mod download
-   cd ../generate-debate && go mod download
-   ```
+The easiest way to run the entire application locally:
 
-### Running Locally
+```bash
+# Start all services (backend functions + frontend)
+docker-compose up --build
+
+# Or run in detached mode
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+```
+
+The application will be available at:
+- **Frontend**: http://localhost:3000
+- **Backend Functions**:
+  - Topic Validation: http://localhost:8080
+  - Panelist Suggestions: http://localhost:8081
+  - Debate Generation: http://localhost:8082
+
+### Running Manually (Without Docker)
+
+**Install dependencies first:**
+
+**Install dependencies first:**
+
+```bash
+# Frontend dependencies
+cd frontend
+npm install
+
+# Backend dependencies (for each Cloud Function)
+cd ../backend/functions/validate-topic && go mod download
+cd ../suggest-panelists && go mod download
+cd ../generate-debate && go mod download
+```
 
 **Start Backend Functions** (3 separate terminals):
 

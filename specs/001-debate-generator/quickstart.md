@@ -2,7 +2,7 @@
 
 **Feature**: 001-debate-generator  
 **Last Updated**: 2025-12-11  
-**Prerequisites**: Go 1.23+, Node.js 18+, GCP account with billing enabled
+**Prerequisites**: Docker 24+ & Docker Compose v2+ (recommended) OR Go 1.23+ & Node.js 18+ (manual setup)
 
 ## Overview
 
@@ -12,18 +12,97 @@ This guide gets you from zero to running the debate generator locally in under 1
 - **Backend**: 3 Go Cloud Functions (local emulation via Functions Framework)
 - **External API**: Anthropic Claude API (requires API key)
 
+**Two Setup Options**:
+1. **Docker Compose** (recommended): One command to start all services
+2. **Manual Setup**: Run each service in separate terminals
+
 ---
 
-## Initial Setup
+## Option 1: Docker Compose (Recommended)
 
-### 1. Clone and Navigate
+### Prerequisites
+- Docker 24+ installed
+- Docker Compose v2+ installed
+- Anthropic API key
+
+### Quick Start
+
+1. **Configure API Key**
+
+Create `.env` file in project root:
+```bash
+# .env
+ANTHROPIC_API_KEY=sk-ant-api03-...  # Get from https://console.anthropic.com
+```
+
+2. **Launch All Services**
+
+```bash
+# From project root
+docker-compose up --build
+```
+
+**Services will start on**:
+- Frontend: http://localhost:3000
+- Validate Topic API: http://localhost:8080
+- Suggest Panelists API: http://localhost:8081
+- Generate Debate API: http://localhost:8082
+
+3. **Quick Start Script (Alternative)**
+
+```bash
+# Make executable (first time only)
+chmod +x start-local.sh
+
+# Run all services
+./start-local.sh
+```
+
+### Docker Development Workflow
+
+**Rebuild after code changes**:
+```bash
+docker-compose up --build
+```
+
+**View logs**:
+```bash
+docker-compose logs -f [service-name]
+# Examples:
+docker-compose logs -f validate-topic
+docker-compose logs -f frontend
+```
+
+**Stop services**:
+```bash
+docker-compose down
+```
+
+**Clean rebuild** (removes volumes):
+```bash
+docker-compose down -v
+docker-compose up --build
+```
+
+---
+
+## Option 2: Manual Setup
+
+### Prerequisites
+- Go 1.23+ installed
+- Node.js 18+ installed
+- Anthropic API key
+
+### Initial Setup
+
+**1. Clone and Navigate**
 
 ```bash
 cd /Users/raphink/src/github.com/raphink/debate
 git checkout -b 001-debate-generator
 ```
 
-### 2. Install Dependencies
+**2. Install Dependencies**
 
 **Frontend**:
 ```bash
@@ -46,7 +125,7 @@ cd ../generate-debate
 go mod download
 ```
 
-### 3. Configure API Keys
+**3. Configure API Keys**
 
 Create `.env` file in project root:
 
@@ -58,11 +137,9 @@ GCP_PROJECT_ID=your-project-id       # For local emulation metadata
 
 **Security Note**: Never commit `.env` to version control. Add to `.gitignore` immediately.
 
----
+### Running Locally (Manual)
 
-## Running Locally
-
-### Backend (Cloud Functions Emulation)
+**Backend (Cloud Functions Emulation)**
 
 Use Google Cloud Functions Framework to run functions locally:
 
@@ -90,7 +167,7 @@ PORT=8082 go run cmd/main.go
 # Runs on http://localhost:8082
 ```
 
-### Frontend (React Dev Server)
+**Frontend (React Dev Server)**
 
 **Terminal 4 - React Application**:
 ```bash

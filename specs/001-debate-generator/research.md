@@ -263,6 +263,48 @@ const sanitizeClaudeOutput = (text) => {
 
 ---
 
+### 8. Local Development with Docker
+
+**Decision**: Use Docker Compose for local development with containerized Cloud Functions and frontend.
+
+**Rationale**:
+- Eliminates "works on my machine" issues by standardizing environment
+- Simplifies onboarding - single command to start entire stack
+- Matches production environment more closely (Cloud Functions run in containers)
+- Easier to test service-to-service communication
+- No need to manually manage multiple terminal windows for 3+ services
+
+**Implementation Strategy**:
+```yaml
+# docker-compose.yml structure
+services:
+  validate-topic:    # Port 8080
+  suggest-panelists: # Port 8081
+  generate-debate:   # Port 8082
+  frontend:          # Port 3000 (nginx serves built React app)
+```
+
+**Development Workflow**:
+- Each Go Cloud Function has its own Dockerfile (multi-stage build: golang:1.23-alpine → distroless)
+- Frontend Dockerfile builds React app and serves via nginx
+- docker-compose.yml orchestrates all services with proper networking
+- Environment variables passed via .env file (ANTHROPIC_API_KEY)
+- Quick start script (start-local.sh) for one-command launch
+
+**Alternatives Considered**:
+- Manual terminal management: Rejected due to poor developer experience
+- Tilt/Skaffold: Rejected as overkill for 4-service local dev
+- VS Code devcontainers: Rejected to avoid IDE lock-in
+- GCP Functions Framework emulator: Rejected due to limited local testing capabilities
+
+**Benefits**:
+- New developers productive in minutes, not hours
+- Consistent behavior across macOS, Linux, Windows (via WSL2)
+- Easy to add auxiliary services later (Redis, PostgreSQL if needed)
+- CI/CD can use same Dockerfiles for deployment
+
+---
+
 ## Summary of Key Decisions
 
 | Area | Decision | Rationale |
@@ -273,5 +315,6 @@ const sanitizeClaudeOutput = (text) => {
 | Avatar Strategy | Public domain + AI-generated | Legal compliance, consistent styling |
 | Security | Multi-layer sanitization (DOMPurify + Go) | Defense in depth against XSS |
 | Accessibility | axe-core + manual testing | Meets WCAG 2.1 Level AA requirements |
+| Local Development | Docker Compose orchestration | Standardized environment, easy onboarding |
 
 All technical unknowns resolved. Ready to proceed to Phase 1 (data model and contracts design).
