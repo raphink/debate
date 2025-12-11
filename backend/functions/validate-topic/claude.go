@@ -87,7 +87,7 @@ Format your response as valid JSON only, no other text.`, topic)
 	// Create the request body with higher token limit for panelist suggestions
 	requestBody := map[string]interface{}{
 		"model":      c.model,
-		"max_tokens": 2000, // Increased for panelist data
+		"max_tokens": 4096, // Increased for 8-20 detailed panelist profiles
 		"messages": []map[string]string{
 			{
 				"role":    "user",
@@ -163,12 +163,12 @@ func (c *ClaudeClient) callClaudeAPI(ctx context.Context, requestBody []byte) (s
 	// Parse Claude response
 	var claudeResp ClaudeResponse
 	if err := json.Unmarshal(body, &claudeResp); err != nil {
-		return "", fmt.Errorf("failed to parse Claude response: %w", err)
+		return "", fmt.Errorf("failed to parse Claude response: %w (body: %s)", err, string(body))
 	}
 
 	// Extract text content
 	if len(claudeResp.Content) == 0 {
-		return "", errors.New("no content in Claude response")
+		return "", fmt.Errorf("no content in Claude response (body: %s)", string(body))
 	}
 
 	return claudeResp.Content[0].Text, nil
@@ -176,6 +176,9 @@ func (c *ClaudeClient) callClaudeAPI(ctx context.Context, requestBody []byte) (s
 
 // parseValidationAndPanelistResponse parses Claude's JSON response with panelists
 func (c *ClaudeClient) parseValidationAndPanelistResponse(response string) (bool, string, []Panelist, error) {
+	// Log the response for debugging
+	fmt.Printf("Claude response text: %s\n", response)
+	
 	// Extract JSON from response (Claude might include it in content)
 	var result struct {
 		IsRelevant bool       `json:"isRelevant"`
@@ -188,13 +191,14 @@ func (c *ClaudeClient) parseValidationAndPanelistResponse(response string) (bool
 	endIdx := strings.LastIndex(response, "}")
 
 	if startIdx == -1 || endIdx == -1 {
-		return false, "", nil, errors.New("no JSON found in Claude response")
+		return false, "", nil, fmt.Errorf("no JSON found in Claude response: %s", response)
 	}
 
 	jsonStr := response[startIdx : endIdx+1]
+	fmt.Printf("Extracted JSON: %s\n", jsonStr)
 
 	if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
-		return false, "", nil, fmt.Errorf("failed to parse Claude response: %w", err)
+		return false, "", nil, fmt.Errorf("failed to parse Claude response: %w (json: %s)", err, jsonStr)
 	}
 
 	// Limit message length to 200 characters
