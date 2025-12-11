@@ -51,6 +51,7 @@ Build a web application that generates AI-powered theological/philosophical deba
 **Target Platform**: 
 - Frontend: Modern browsers (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
 - Backend: Google Cloud Functions (Gen 2), serverless runtime
+- Mobile: PWA installable on iOS (Safari 14+) and Android (Chrome 90+) with standalone display mode
 **Project Type**: Web application (frontend + backend)  
 **Performance Goals**: 
 - Topic validation response: <3s
@@ -71,6 +72,7 @@ Build a web application that generates AI-powered theological/philosophical deba
 - GCP Cloud Functions timeout: 60s max per request
 - Client-side PDF generation to avoid server overhead
 - Mobile-first responsive design (≥375px width)
+- PWA manifest for mobile installation (no service worker for MVP - online-only)
 **Scale/Scope**: 
 - MVP: Single-user sessions, no concurrent debate limit
 - Expected load: <100 concurrent users initially

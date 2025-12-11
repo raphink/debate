@@ -2,6 +2,16 @@
 
 Generate engaging debates between historical theological and philosophical figures on topics of your choice.
 
+## Features
+
+✨ **AI-Powered Debates** - Generate dynamic conversations between historical figures using Claude AI  
+🎭 **Real Portraits** - Automatic fetching of portrait images from Wikimedia Commons  
+💬 **Live Streaming** - Watch debates unfold in real-time with progressive message streaming  
+📱 **Mobile PWA** - Install as a standalone app on iOS and Android devices  
+📄 **PDF Export** - Export debates with portraits and chat bubble formatting  
+🎨 **Beautiful UI** - Modern, responsive design with gradient effects and animations  
+🔒 **Secure** - CORS protection, input sanitization, and rate limiting
+
 ## Quick Start
 
 ### Prerequisites
@@ -158,6 +168,41 @@ debate/
 ```
 
 ## Development
+
+### PWA Icon Generation
+
+If you need to regenerate the PWA icons from the SVG source:
+
+```bash
+cd frontend
+./generate-icons.sh
+```
+
+Requires either `rsvg-convert` (librsvg) or ImageMagick:
+```bash
+# macOS
+brew install librsvg
+# or
+brew install imagemagick
+```
+
+### Mobile Installation
+
+The app can be installed as a PWA on mobile devices:
+
+**iOS (Safari)**:
+1. Open the app in Safari
+2. Tap the Share button
+3. Select "Add to Home Screen"
+4. Confirm installation
+
+**Android (Chrome)**:
+1. Open the app in Chrome
+2. Tap the menu (three dots)
+3. Select "Install app" or "Add to Home Screen"
+4. Confirm installation
+
+The installed app runs in standalone mode without browser chrome for a native app experience.
 
 ### Running Tests
 

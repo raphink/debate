@@ -1,0 +1,30 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="192" height="192" fill="#1a1a2e" rx="32"/>
+  
+  <!-- Speech Bubbles (representing debate) -->
+  <!-- Left bubble -->
+  <g transform="translate(30, 50)">
+    <rect x="0" y="0" width="60" height="45" rx="8" fill="#7C3AED" opacity="0.9"/>
+    <path d="M 10 45 L 5 55 L 20 45 Z" fill="#7C3AED" opacity="0.9"/>
+    <!-- Lines representing text -->
+    <line x1="10" y1="12" x2="50" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    <line x1="10" y1="22" x2="45" y2="22" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    <line x1="10" y1="32" x2="50" y2="32" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Right bubble -->
+  <g transform="translate(102, 80)">
+    <rect x="0" y="0" width="60" height="45" rx="8" fill="#10B981" opacity="0.9"/>
+    <path d="M 50 45 L 55 55 L 40 45 Z" fill="#10B981" opacity="0.9"/>
+    <!-- Lines representing text -->
+    <line x1="10" y1="12" x2="50" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    <line x1="10" y1="22" x2="45" y2="22" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    <line x1="10" y1="32" x2="50" y2="32" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Central icon (brain/thought representing philosophy) -->
+  <circle cx="96" cy="96" r="20" fill="#F59E0B" opacity="0.95"/>
+  <circle cx="96" cy="96" r="12" fill="none" stroke="white" stroke-width="2"/>
+  <circle cx="96" cy="96" r="4" fill="white"/>
+</svg>

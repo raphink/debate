@@ -258,7 +258,10 @@
 - [ ] T095 [P] Add analytics/logging for user flow completion rates (optional, privacy-preserving)
 - [ ] T096 [P] Create 404 NotFound page in frontend/src/pages/NotFound.jsx
 - [ ] T097 [P] Add global CSS styles in frontend/src/index.css (typography, color scheme, responsive breakpoints)
-- [ ] T098 [P] Add favicon and meta tags in frontend/public/index.html (SEO, PWA manifest)
+- [X] T098 [P] Add PWA manifest and meta tags in frontend/public/ (mobile installation support)
+- [X] T098a [P] Create manifest.json with app name, description, icons, theme colors, and standalone display mode
+- [X] T098b [P] Create app icons in multiple sizes (192x192, 512x512) for iOS and Android
+- [X] T098c [P] Add manifest link and apple-touch-icon meta tags to index.html
 - [ ] T099 Perform full accessibility audit with axe-core across all pages (verify WCAG 2.1 Level AA)
 - [ ] T100 Perform performance audit with Lighthouse (verify SC-007: <100ms UI response)
 - [ ] T101 Test complete user journey end-to-end (topic → validation → panelist selection → debate → PDF export)
@@ -359,7 +362,7 @@ Each phase must pass these gates before proceeding:
 
 ## Task Statistics
 
-- **Total Tasks**: 110 (includes portrait service and enhanced PDF export)
+- **Total Tasks**: 113 (includes portrait service, enhanced PDF export, and PWA support)
 - **Setup Phase**: 14 tasks (T001-T014)
 - **Foundational Phase**: 13 tasks (T015-T027, BLOCKING - includes CORS configuration)
 - **User Story 1**: 18 tasks (T027-T044: 7 backend + 11 frontend)
@@ -370,11 +373,13 @@ Each phase must pass these gates before proceeding:
 - **User Story 4**: 12 tasks (T082-T090 + T086a-T086c: frontend only, includes enhanced PDF with portraits)
   - Original PDF export: 9 tasks (T082-T090)
   - Portrait embedding: 3 tasks (T086a-T086c: image loading, CORS, circular cropping)
-- **Polish Phase**: 16 tasks (T091-T106)
+- **Polish Phase**: 19 tasks (T091-T106 + T098a-T098c: includes PWA manifest)
+  - Original polish: 16 tasks (T091-T106)
+  - PWA support: 3 tasks (T098a-T098c: manifest, icons, meta tags)
 
 **Parallel Opportunities**: ~65% of tasks can run in parallel after foundational phase completes
 
-**MVP Tasks**: 91 tasks (Phases 1-5 including portrait service and enhanced PDF, excludes Polish)
+**MVP Tasks**: 94 tasks (Phases 1-5 including portrait service, enhanced PDF, and PWA, excludes remaining Polish)
 
 **Architecture Notes**: 
 - Portrait service (get-portrait) runs as independent Cloud Function with async frontend integration
@@ -382,3 +387,5 @@ Each phase must pass these gates before proceeding:
 - Frontend avatar components check for absolute URLs before prepending local path prefix
 - PDF export uses async image loading with CORS-enabled fetch, converts portraits to base64 data URLs for embedding
 - Chat bubble format in PDF matches web UI with circular portrait avatars and rounded rectangles
+- PWA manifest enables mobile installation with standalone display mode (iOS Safari 14+, Android Chrome 90+)
+- Icon generation automated via generate-icons.sh script using librsvg or ImageMagick

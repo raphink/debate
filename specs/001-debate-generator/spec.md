@@ -103,6 +103,8 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - How does system handle panelist avatars that fail to load?
 - What happens when Wikimedia API returns 403 Forbidden (requires proper User-Agent header)?
 - How does frontend distinguish between absolute portrait URLs and relative avatar paths?
+- What happens when user installs PWA on mobile and launches offline without service worker?
+- How does PWA manifest handle different screen sizes and orientations?
 
 ## Requirements *(mandatory)*
 
@@ -148,6 +150,9 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - **FR-020**: UI MUST be keyboard-navigable for accessibility (per Constitution Principle III)
 - **FR-021**: System MUST maintain minimum 4.5:1 contrast ratio for text (per Constitution Principle III)
 - **FR-022**: Backend services MUST restrict CORS to localhost in development and raphink.github.io in production via ALLOWED_ORIGIN environment variable (per Constitution Principle V)
+- **FR-023**: Application MUST provide PWA manifest for mobile installation with app name, description, icons, theme colors, and display mode
+- **FR-023a**: PWA manifest MUST include multiple icon sizes (192x192, 512x512) for various mobile platforms
+- **FR-023b**: Application MUST use standalone display mode to provide app-like experience when installed
 
 ### Key Entities
 
