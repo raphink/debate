@@ -18,10 +18,10 @@ type DebateRequest struct {
 
 // StreamChunk represents a single chunk of the streaming response
 type StreamChunk struct {
-	Type       string `json:"type"`        // "message", "error", "done"
-	PanelistID string `json:"panelistId"`  // ID of the speaking panelist
-	Text       string `json:"text"`        // Partial or complete text
-	Done       bool   `json:"done"`        // Whether streaming is complete
+	Type       string `json:"type"`            // "message", "error", "done"
+	PanelistID string `json:"panelistId"`      // ID of the speaking panelist
+	Text       string `json:"text"`            // Partial or complete text
+	Done       bool   `json:"done"`            // Whether streaming is complete
 	Error      string `json:"error,omitempty"` // Error message if type="error"
 }
 

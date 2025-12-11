@@ -1,0 +1,172 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7f9;
+}
+
+.header {
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1.5rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: #5b8a72;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  margin-bottom: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.backButton:hover {
+  color: #4a7060;
+}
+
+.backButton:focus {
+  outline: 2px solid #5b8a72;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.topicDisplay {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.topic {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.125rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.topic em {
+  color: #5b8a72;
+  font-weight: 500;
+}
+
+.panelists {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.938rem;
+}
+
+.panelistsLabel {
+  color: #666;
+  font-weight: 500;
+}
+
+.panelistName {
+  color: #2c3e50;
+}
+
+.errorContainer {
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  padding: 0 2rem;
+}
+
+.debateContainer {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  width: 100%;
+}
+
+.completeActions {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.completeMessage {
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #5b8a72;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .header {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .topic {
+    font-size: 1rem;
+  }
+
+  .debateContainer {
+    padding: 1rem;
+  }
+
+  .errorContainer {
+    padding: 0 1rem;
+  }
+
+  .panelists {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0.75rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .topic {
+    font-size: 0.938rem;
+  }
+
+  .debateContainer {
+    padding: 0.75rem;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+  }
+
+  .actionButtons button {
+    width: 100%;
+  }
+}
