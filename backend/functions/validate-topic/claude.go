@@ -46,7 +46,7 @@ func (c *ClaudeClient) ValidateTopicAndSuggestPanelists(ctx context.Context, top
 	// Build the combined prompt for Claude
 	prompt := fmt.Sprintf(`You are an expert in theology and philosophy. Your task is to:
 1. Determine if the following topic is suitable for a theological or philosophical debate
-2. If suitable, suggest 5-8 historical or contemporary figures who would make excellent panelists
+2. If suitable, suggest 8-20 historical or contemporary figures who would make excellent panelists
 
 Topic: "%s"
 
@@ -59,8 +59,11 @@ First, evaluate whether this topic relates to:
 
 If the topic IS relevant, suggest 8-20 diverse panelists with:
 - Different theological/philosophical positions on this topic
-- Historical or contemporary figures with known views
-- Mix of perspectives (theist/atheist, conservative/progressive, different traditions)
+- IMPORTANT: Mix of time periods across the last 2000 years (e.g., early church fathers, medieval scholars, reformation thinkers, enlightenment philosophers, modern theologians, contemporary figures)
+- Aim for roughly equal representation: 25%% ancient/early church (0-500 AD), 25%% medieval/reformation (500-1700 AD), 25%% modern (1700-1950 AD), 25%% contemporary (1950-present)
+- Different traditions (Catholic, Protestant, Orthodox, Jewish, Islamic, secular, etc.)
+- Mix of perspectives (theist/atheist, conservative/progressive, different schools of thought)
+- Historical or contemporary figures with known, documented views on related topics
 
 Respond with a JSON object:
 {
@@ -70,8 +73,8 @@ Respond with a JSON object:
     {
       "id": "unique-kebab-case-id",
       "name": "Full Name",
-      "tagline": "One-line description (max 60 chars)",
-      "bio": "Brief bio explaining their relevant expertise (max 300 chars)",
+      "tagline": "One-line description with era (max 60 chars, e.g., '4th Century Church Father')",
+      "bio": "Brief bio explaining their relevant expertise and historical period (max 300 chars)",
       "avatarUrl": "/avatars/placeholder-avatar.png",
       "position": "Brief statement of their likely position on this topic (max 100 chars)"
     }

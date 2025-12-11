@@ -33,11 +33,12 @@ User browses AI-suggested historical figures with known positions on the topic a
 
 **Acceptance Scenarios**:
 
-1. **Given** topic has been validated as relevant, **When** validation response is received, **Then** user sees up to 20 historical figures with avatar, name, handle (id), tagline, and bio (returned in the same API call for efficiency)
-2. **Given** user views panelist list, **When** user clicks on a panelist card, **Then** panelist is added to selection (maximum 5 total)
-3. **Given** user has selected 5 panelists, **When** user attempts to select another, **Then** system prevents selection and displays message "Maximum 5 panelists allowed"
-4. **Given** user has selected panelists, **When** user clicks a selected panelist again, **Then** panelist is deselected and removed from selection
-5. **Given** panelist list is displayed, **When** user reviews panelist details, **Then** each panelist shows relevant credentials and known position on the topic
+1. **Given** topic has been validated as relevant, **When** validation response is received, **Then** user sees 8-20 historical figures with avatar, name, handle (id), tagline, and bio (returned in the same API call for efficiency)
+2. **Given** panelist list is displayed, **When** user reviews the suggestions, **Then** panelists represent diverse time periods across the last 2000 years (roughly 25% ancient/early church 0-500 AD, 25% medieval/reformation 500-1700 AD, 25% modern 1700-1950 AD, 25% contemporary 1950-present)
+3. **Given** user views panelist list, **When** user clicks on a panelist card, **Then** panelist is added to selection (maximum 5 total)
+4. **Given** user has selected 5 panelists, **When** user attempts to select another, **Then** system prevents selection and displays message "Maximum 5 panelists allowed"
+5. **Given** user has selected panelists, **When** user clicks a selected panelist again, **Then** panelist is deselected and removed from selection
+6. **Given** panelist list is displayed, **When** user reviews panelist details, **Then** each panelist shows relevant credentials, historical period, and known position on the topic
 
 ---
 
@@ -97,7 +98,8 @@ User exports completed debate as a formatted PDF document for offline reading, s
 
 - **FR-001**: System MUST accept text input for debate topics with minimum 10 characters
 - **FR-002**: System MUST validate topic relevance for theology/philosophy debates via Claude API through GCP function proxy
-- **FR-003**: System MUST request and display up to 20 panelist suggestions with complete profiles (name, avatar URL, handle (id), tagline, biography)
+- **FR-003**: System MUST request and display 8-20 panelist suggestions with complete profiles (name, avatar URL, handle (id), tagline, biography)
+- **FR-003a**: Panelist suggestions MUST represent diverse historical periods across 2000 years (approximately 25% ancient/early church 0-500 AD, 25% medieval/reformation 500-1700 AD, 25% modern 1700-1950 AD, 25% contemporary 1950-present)
 - **FR-004**: Users MUST be able to select between 2 and 5 panelists from the suggested list
 - **FR-005**: System MUST visually distinguish selected vs unselected panelists in the UI
 - **FR-006**: System MUST prevent debate generation unless at least 2 panelists are selected
