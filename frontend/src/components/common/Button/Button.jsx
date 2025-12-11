@@ -1,5 +1,5 @@
 import React from 'react';
-import './Button.module.css';
+import styles from './Button.module.css';
 
 /**
  * Accessible button component with keyboard navigation support
@@ -13,12 +13,12 @@ const Button = ({
   ariaLabel,
   className = '',
 }) => {
-  const variantClass = variant === 'secondary' ? 'button-secondary' : 'button-primary';
+  const variantClass = variant === 'secondary' ? styles['button-secondary'] : styles['button-primary'];
   
   return (
     <button
       type={type}
-      className={`button ${variantClass} ${className}`}
+      className={`${styles.button} ${variantClass} ${className}`}
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel || undefined}

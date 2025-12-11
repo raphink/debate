@@ -121,7 +121,7 @@ const Home = () => {
                   )}
                 </div>
 
-                {!isValidating && (
+                {panelists.length > 0 && (
                   <aside className={styles.selectorSection}>
                     <PanelistSelector
                       selectedPanelists={selectedPanelists}

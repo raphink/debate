@@ -122,7 +122,8 @@
   flex-wrap: wrap;
 }
 
-.actions button {
+.actions > button,
+.actions > * {
   flex: 1;
   min-width: 120px;
 }
