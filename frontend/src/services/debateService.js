@@ -68,16 +68,13 @@ export const generateDebateStream = (topic, selectedPanelists, onMessage, onErro
 
           try {
             const chunk = JSON.parse(line);
-            console.log('[DEBUG] Parsed chunk:', chunk);
 
             if (chunk.type === 'message' && chunk.panelistId && chunk.text) {
-              console.log('[DEBUG] Calling onMessage with:', chunk.panelistId, chunk.text.substring(0, 100));
               onMessage(chunk.panelistId, chunk.text);
             } else if (chunk.type === 'error') {
               onError(new Error(chunk.error || 'Unknown error occurred'));
               return;
             } else if (chunk.type === 'done') {
-              console.log('[DEBUG] Stream done');
               if (onComplete) onComplete();
               return;
             }

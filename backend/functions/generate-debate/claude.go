@@ -100,84 +100,85 @@ func (c *ClaudeClient) buildDebatePrompt(req *DebateRequest) string {
 
 // streamResponse processes the SDK stream and writes formatted chunks
 func (c *ClaudeClient) streamResponse(stream *ssestream.Stream[anthropic.MessageStreamEventUnion], writer io.Writer) error {
-	var buffer strings.Builder
-	var currentPanelistID string
-	var currentMessage strings.Builder
+	var patternBuffer strings.Builder // Buffer only for incomplete [handle]: patterns
+	var currentSpeaker string
+	inPattern := false
 	flusher, _ := writer.(http.Flusher)
 
-	fmt.Printf("[DEBUG] Starting stream parsing\n")
+	sendChunk := func(speaker, text string) {
+		if text == "" {
+			return
+		}
+		chunk := StreamChunk{
+			Type:       "message",
+			PanelistID: speaker,
+			Text:       text,
+			Done:       false,
+		}
+		json.NewEncoder(writer).Encode(chunk)
+		if flusher != nil {
+			flusher.Flush()
+		}
+	}
 
 	for stream.Next() {
 		event := stream.Current()
 
-		// Handle content block delta events (text chunks from Claude)
-		if event.Delta.Text != "" {
-			text := event.Delta.Text
-			fmt.Printf("[DEBUG] Received text chunk: %q\n", text)
+		if event.Delta.Text == "" {
+			continue
+		}
 
-			// Add to buffer
-			buffer.WriteString(text)
-			bufferText := buffer.String()
-			fmt.Printf("[DEBUG] Buffer contains: %q\n", bufferText)
+		text := event.Delta.Text
 
-			// Process ALL complete patterns in buffer
-			for {
-				panelistID, messageText := parseMessage(bufferText)
-				if panelistID == "" {
-					// No complete pattern found
-					if currentPanelistID != "" {
-						// We have an active speaker, add buffer content to their message
-						fmt.Printf("[DEBUG] Appending buffer to %s's message: %q\n", currentPanelistID, bufferText)
-						currentMessage.WriteString(bufferText)
-						buffer.Reset()
-					} else {
-						// No active speaker yet, keep in buffer for next iteration
-						fmt.Printf("[DEBUG] No speaker yet, keeping in buffer\n")
-					}
-					break // Exit loop, wait for more data
+		for i := 0; i < len(text); i++ {
+			char := text[i]
+
+			if char == '[' && !inPattern {
+				// Start of potential pattern - flush any accumulated text first
+				if patternBuffer.Len() > 0 && currentSpeaker != "" {
+					sendChunk(currentSpeaker, patternBuffer.String())
+					patternBuffer.Reset()
 				}
+				inPattern = true
+				patternBuffer.WriteByte(char)
+			} else if inPattern {
+				patternBuffer.WriteByte(char)
 
-				fmt.Printf("[DEBUG] Detected new speaker: %s\n", panelistID)
-
-				// Send previous message if exists
-				if currentPanelistID != "" && currentMessage.Len() > 0 {
-					finalText := strings.TrimSpace(currentMessage.String())
-					fmt.Printf("[DEBUG] Sending complete message for %s: %q\n", currentPanelistID, finalText)
-					chunk := StreamChunk{
-						Type:       "message",
-						PanelistID: currentPanelistID,
-						Text:       finalText,
-						Done:       false,
+				// Check if we have a complete pattern [handle]:
+				bufStr := patternBuffer.String()
+				if strings.HasSuffix(bufStr, "]: ") || strings.HasSuffix(bufStr, "]:") {
+					// Extract speaker ID
+					var newSpeaker string
+					if idx := strings.Index(bufStr, "]: "); idx != -1 {
+						newSpeaker = bufStr[1:idx] // Skip opening [
+					} else if idx := strings.Index(bufStr, "]:"); idx != -1 {
+						newSpeaker = bufStr[1:idx]
 					}
-					json.NewEncoder(writer).Encode(chunk)
-					if flusher != nil {
-						flusher.Flush()
+
+					if newSpeaker != "" {
+						currentSpeaker = newSpeaker
+						patternBuffer.Reset()
+						inPattern = false
 					}
 				}
-
-				// Start new message
-				fmt.Printf("[DEBUG] Starting new message for %s\n", panelistID)
-				currentPanelistID = panelistID
-				currentMessage.Reset()
-
-				// Check if messageText itself contains another pattern
-				pos, nextID, _ := findNextPattern(messageText, 0)
-				if pos > 0 && nextID != "" {
-					// Multiple patterns in this chunk!
-					// Current message is everything before the next pattern
-					currentMessage.WriteString(strings.TrimSpace(messageText[:pos]))
-					// Update buffer to continue processing from next pattern
-					bufferText = messageText[pos:]
-					buffer.Reset()
-					buffer.WriteString(bufferText)
-					// Continue loop to process next pattern
-				} else {
-					// No additional pattern, this is the message content
-					currentMessage.WriteString(messageText)
-					buffer.Reset()
-					break // Exit loop, wait for more chunks
+			} else {
+				// Normal text - accumulate and send immediately
+				patternBuffer.WriteByte(char)
+				
+				// Send chunks frequently for responsiveness (every 10 chars or at word boundaries)
+				if patternBuffer.Len() >= 10 || char == ' ' || char == '\n' {
+					if currentSpeaker != "" {
+						sendChunk(currentSpeaker, patternBuffer.String())
+						patternBuffer.Reset()
+					}
 				}
 			}
+		}
+
+		// Flush any remaining buffered text at end of each delta
+		if patternBuffer.Len() > 0 && currentSpeaker != "" && !inPattern {
+			sendChunk(currentSpeaker, patternBuffer.String())
+			patternBuffer.Reset()
 		}
 	}
 
@@ -186,20 +187,9 @@ func (c *ClaudeClient) streamResponse(stream *ssestream.Stream[anthropic.Message
 		return fmt.Errorf("stream error: %w", err)
 	}
 
-	// Send any remaining message when stream ends
-	if currentPanelistID != "" && currentMessage.Len() > 0 {
-		finalText := strings.TrimSpace(currentMessage.String())
-		fmt.Printf("[DEBUG] Final message for %s: %q\n", currentPanelistID, finalText)
-		chunk := StreamChunk{
-			Type:       "message",
-			PanelistID: currentPanelistID,
-			Text:       finalText,
-			Done:       false,
-		}
-		json.NewEncoder(writer).Encode(chunk)
-		if flusher != nil {
-			flusher.Flush()
-		}
+	// Send any final buffered text
+	if patternBuffer.Len() > 0 && currentSpeaker != "" {
+		sendChunk(currentSpeaker, patternBuffer.String())
 	}
 
 	// Send done signal
@@ -213,49 +203,4 @@ func (c *ClaudeClient) streamResponse(stream *ssestream.Stream[anthropic.Message
 	}
 
 	return nil
-}
-
-// findNextPattern searches for a [ID]: pattern starting from position start+1
-// Returns the position of '[', the panelist ID, and the message text after the pattern
-func findNextPattern(text string, start int) (pos int, panelistID, messageText string) {
-	searchText := text[start:]
-
-	// Look for '[' character
-	for i := 1; i < len(searchText); i++ {
-		if searchText[i] == '[' {
-			// Try to parse from this position
-			testText := searchText[i:]
-			if id, msg := parseMessage(testText); id != "" {
-				return start + i, id, msg
-			}
-		}
-	}
-
-	return -1, "", ""
-}
-
-// parseMessage extracts panelist ID and message text from formatted response
-func parseMessage(text string) (panelistID, messageText string) {
-	// Look for pattern: [PANELIST_ID]: Message text or [PANELIST_ID]:Message text
-	// Try with space after colon first
-	if idx := strings.Index(text, "]: "); idx != -1 {
-		if startIdx := strings.LastIndex(text[:idx], "["); startIdx != -1 {
-			panelistID = text[startIdx+1 : idx]
-			messageText = strings.TrimSpace(text[idx+3:]) // Skip ]: and space
-			fmt.Printf("[DEBUG] parseMessage found (with space): ID=%s\n", panelistID)
-			return panelistID, messageText
-		}
-	}
-
-	// Fallback to no space after colon
-	if idx := strings.Index(text, "]:"); idx != -1 {
-		if startIdx := strings.LastIndex(text[:idx], "["); startIdx != -1 {
-			panelistID = text[startIdx+1 : idx]
-			messageText = strings.TrimSpace(text[idx+2:]) // Skip ]:
-			fmt.Printf("[DEBUG] parseMessage found (no space): ID=%s\n", panelistID)
-			return panelistID, messageText
-		}
-	}
-
-	return "", ""
 }
