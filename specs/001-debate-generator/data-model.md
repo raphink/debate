@@ -157,13 +157,13 @@ Represents a single contribution from a panelist during debate generation.
 - `id` (string, required): Unique message identifier
   - Format: `{panelistId}-{sequenceNumber}`
   - Example: "Augustine354-1"
-- `panelistId` (string, required): ID of speaking panelist (used for display and correlation)
-  - References Panelist.id from configuration
+- `panelistId` (string, required): ID of speaking panelist or moderator
+  - References Panelist.id from configuration, or "moderator" for moderator messages
 - `panelistName` (string, required): Display name for UI
-  - Copy of Panelist.name for quick access
+  - Copy of Panelist.name for quick access, or "Moderator" for moderator messages
 - `avatarUrl` (string, required): Avatar to display with message
-  - Copy of Panelist.avatarUrl for quick access
-- `text` (string, required): The panelist's contribution
+  - Copy of Panelist.avatarUrl for quick access, or moderator avatar URL for moderator messages
+- `text` (string, required): The panelist's or moderator's contribution
   - Max length: 2000 characters per message
   - Accumulated from streaming chunks
 - `timestamp` (timestamp, required): When message was generated
@@ -176,7 +176,7 @@ Represents a single contribution from a panelist during debate generation.
   - `true` when final chunk received
 
 **Validation Rules**:
-- Panelist ID MUST match one of the selected panelists
+- Panelist ID MUST match one of the selected panelists OR be "moderator"
 - Text MUST be sanitized before rendering (XSS prevention)
 - Sequence MUST be monotonically increasing
 - Text MUST NOT be empty when `isComplete = true`

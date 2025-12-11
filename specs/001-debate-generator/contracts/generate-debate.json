@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Debate Generation API",
-    "description": "Generates a theological/philosophical debate between selected panelists using Claude API with Server-Sent Events (SSE) streaming",
+    "description": "Generates a theological/philosophical debate between selected panelists using Claude API with Server-Sent Events (SSE) streaming. Includes a neutral moderator who introduces the debate, may intervene between exchanges, and provides conclusion.",
     "version": "1.0.0"
   },
   "servers": [
@@ -57,8 +57,8 @@
                 },
                 "examples": {
                   "streamExample": {
-                    "summary": "Example SSE stream",
-                    "value": "event: message\ndata: {\"panelistId\":\"Augustine354\",\"panelistName\":\"Augustine of Hippo\",\"textChunk\":\"I believe that \",\"sequence\":0}\n\nevent: message\ndata: {\"panelistId\":\"Augustine354\",\"panelistName\":\"Augustine of Hippo\",\"textChunk\":\"divine law supersedes human law. \",\"sequence\":0}\n\nevent: message\ndata: {\"panelistId\":\"Augustine354\",\"panelistName\":\"Augustine of Hippo\",\"textChunk\":\"When earthly authorities command what contradicts God's will, we must obey God rather than men.\",\"sequence\":0,\"isComplete\":true}\n\nevent: message\ndata: {\"panelistId\":\"MLKJr\",\"panelistName\":\"Martin Luther King Jr.\",\"textChunk\":\"I agree with Augustine's principle, \",\"sequence\":1}\n\nevent: message\ndata: {\"panelistId\":\"MLKJr\",\"panelistName\":\"Martin Luther King Jr.\",\"textChunk\":\"but I would add that our resistance must be nonviolent.\",\"sequence\":1,\"isComplete\":true}\n\nevent: done\ndata: {\"totalMessages\":2,\"completedAt\":\"2025-12-11T10:45:00Z\"}\n\n"
+                    "summary": "Example SSE stream with moderator",
+                    "value": "event: message\ndata: {\"panelistId\":\"moderator\",\"panelistName\":\"Moderator\",\"textChunk\":\"Welcome to today's debate on divine law versus human authority. \",\"sequence\":0}\n\nevent: message\ndata: {\"panelistId\":\"moderator\",\"panelistName\":\"Moderator\",\"textChunk\":\"We have Augustine of Hippo and Martin Luther King Jr. joining us.\",\"sequence\":0,\"isComplete\":true}\n\nevent: message\ndata: {\"panelistId\":\"Augustine354\",\"panelistName\":\"Augustine of Hippo\",\"textChunk\":\"I believe that divine law supersedes human law. \",\"sequence\":1}\n\nevent: message\ndata: {\"panelistId\":\"Augustine354\",\"panelistName\":\"Augustine of Hippo\",\"textChunk\":\"When earthly authorities command what contradicts God's will, we must obey God rather than men.\",\"sequence\":1,\"isComplete\":true}\n\nevent: message\ndata: {\"panelistId\":\"MLKJr\",\"panelistName\":\"Martin Luther King Jr.\",\"textChunk\":\"I agree with Augustine's principle, but I would add that our resistance must be nonviolent.\",\"sequence\":2,\"isComplete\":true}\n\nevent: message\ndata: {\"panelistId\":\"moderator\",\"panelistName\":\"Moderator\",\"textChunk\":\"Thank you both for this thoughtful exchange.\",\"sequence\":3,\"isComplete\":true}\n\nevent: done\ndata: {\"totalMessages\":4,\"completedAt\":\"2025-12-11T10:45:00Z\"}\n\n"
                   }
                 }
               }

@@ -51,11 +51,12 @@ User launches debate generation and watches the conversation unfold in real-time
 
 **Acceptance Scenarios**:
 
-1. **Given** user has selected 2-5 panelists, **When** user clicks "Generate Debate", **Then** debate generation begins and first response appears within 5 seconds
-2. **Given** debate is generating, **When** AI produces responses, **Then** each response appears progressively in a chat bubble with the speaking panelist's avatar and name
+1. **Given** user has selected 2-5 panelists, **When** user clicks "Generate Debate", **Then** debate generation begins with a neutral moderator introducing the topic and panelists, and first response appears within 5 seconds
+2. **Given** debate is generating, **When** AI produces responses, **Then** each response appears progressively in a chat bubble with the speaking panelist's avatar and name, or the moderator's avatar for moderation
 3. **Given** debate is streaming, **When** a panelist's turn begins, **Then** their chat bubble appears with loading indicator before text streams in
-4. **Given** debate is in progress, **When** user views the conversation, **Then** different panelists' responses are visually distinguishable by avatar and styling
-5. **Given** debate is generating, **When** an error occurs (API timeout, rate limit), **Then** user sees friendly error message with option to retry
+4. **Given** debate is in progress, **When** user views the conversation, **Then** different panelists' responses and moderator interventions are visually distinguishable by avatar and styling
+5. **Given** debate includes moderator, **When** moderator intervenes, **Then** moderator may redirect conversation, ask clarifying questions, highlight contrasts, or summarize progress
+6. **Given** debate is generating, **When** an error occurs (API timeout, rate limit), **Then** user sees friendly error message with option to retry
 
 ---
 
@@ -99,8 +100,10 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - **FR-006**: System MUST prevent debate generation unless at least 2 panelists are selected
 - **FR-007**: System MUST send debate configuration (topic + selected panelists) to Claude API via GCP function proxy
 - **FR-008**: System MUST stream debate responses progressively and display them in real-time
-- **FR-009**: System MUST parse streaming responses to identify which panelist is speaking
+- **FR-009**: System MUST parse streaming responses to identify which panelist or moderator is speaking
 - **FR-010**: System MUST display each panelist's response in a distinct chat bubble with their avatar
+- **FR-010a**: System MUST include a neutral moderator who introduces the debate, may intervene between exchanges, and provides conclusion
+- **FR-010b**: Moderator responses MUST be visually distinguished from panelist responses with unique avatar and styling
 - **FR-011**: System MUST show loading/typing indicators while waiting for next response
 - **FR-012**: System MUST handle API errors gracefully with user-friendly error messages
 - **FR-013**: System MUST provide retry mechanism for failed API calls
@@ -116,6 +119,7 @@ User exports completed debate as a formatted PDF document for offline reading, s
 
 - **Topic**: User-submitted debate subject; includes validation status and relevance indicator
 - **Panelist**: Historical figure with position on topic; attributes include unique handle/identifier (alphanumeric only), name, avatar URL, tagline (brief descriptor), biography (credentials and viewpoint)
+- **Moderator**: Neutral facilitator with ID "moderator"; introduces topic and panelists, may intervene to redirect/clarify/summarize, provides conclusion
 - **Debate Configuration**: Combination of validated topic and selected panelists (2-5); represents user's debate setup
 - **Debate Response**: Individual contribution from a panelist during debate generation; includes panelist identifier, response text, timestamp, and position in conversation
 - **Debate Session**: Complete generated debate; contains topic, panelist list, ordered responses, generation timestamp, and completion status
