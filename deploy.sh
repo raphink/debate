@@ -32,6 +32,14 @@ log_error() {
 check_prerequisites() {
     log_info "Checking prerequisites..."
     
+    # Load gcloud config from .gcloudrc if it exists
+    if [ -f .gcloudrc ]; then
+        log_info "Loading gcloud configuration from .gcloudrc"
+        set -a
+        source .gcloudrc
+        set +a
+    fi
+    
     # Check gcloud
     if ! command -v gcloud &> /dev/null; then
         log_error "gcloud CLI not found. Install from: https://cloud.google.com/sdk/docs/install"
