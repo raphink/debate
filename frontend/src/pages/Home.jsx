@@ -23,9 +23,10 @@ const Home = () => {
   // Debug logging
   console.log('Home render - validationResult:', validationResult, 'panelists count:', panelists.length, 'isValidating:', isValidating);
 
-  const handleSubmit = async (topic) => {
+  const handleSubmit = async (topic, suggestedNames = []) => {
+    console.log('Home handleSubmit - topic:', topic, 'suggestedNames:', suggestedNames);
     try {
-      await validate(topic);
+      await validate(topic, suggestedNames);
     } catch (err) {
       // Error is already set in the hook
       console.error('Validation error:', err);
