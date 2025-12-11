@@ -32,21 +32,29 @@ const useDebateStream = () => {
 
     // Handle incoming message chunks
     const handleMessage = (panelistId, text) => {
+      console.log('[DEBUG] Frontend received chunk:', { panelistId, text: text.substring(0, 100) });
       setCurrentPanelistId(panelistId);
       setMessages((prev) => {
-        // Check if we're continuing a message from the same panelist
+        // Check if this is a NEW message from same panelist (backend sends complete messages)
+        // Backend now sends complete messages, not incremental chunks
+        // So each call to handleMessage should create a new message entry
         const lastMessage = prev[prev.length - 1];
-        if (lastMessage && lastMessage.panelistId === panelistId) {
-          // Append to existing message
+        
+        // If it's the exact same panelist AND the text looks like a continuation (no [ID]:),
+        // it might be a streaming chunk (though backend should send complete messages now)
+        if (lastMessage && lastMessage.panelistId === panelistId && !text.includes('[') && !text.includes(']:')) {
+          // Treat as potential continuation for robustness
+          console.log('[DEBUG] Treating as continuation for', panelistId);
           return [
             ...prev.slice(0, -1),
             {
               panelistId,
-              text: lastMessage.text + ' ' + text,
+              text: lastMessage.text + text, // No space, direct append
             },
           ];
         } else {
-          // New message
+          // New message from this panelist
+          console.log('[DEBUG] New message from', panelistId);
           return [
             ...prev,
             {
