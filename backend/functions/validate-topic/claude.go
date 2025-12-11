@@ -211,7 +211,7 @@ func (c *ClaudeClient) parseValidationAndPanelistResponse(response string) (bool
 		if p.Name == "" || p.ID == "" {
 			continue
 		}
-		
+
 		// Limit field lengths
 		if len(p.Tagline) > 60 {
 			p.Tagline = p.Tagline[:57] + "..."
@@ -222,10 +222,9 @@ func (c *ClaudeClient) parseValidationAndPanelistResponse(response string) (bool
 		if len(p.Position) > 100 {
 			p.Position = p.Position[:97] + "..."
 		}
-		
+
 		validPanelists = append(validPanelists, p)
 	}
 
 	return result.IsRelevant, result.Message, validPanelists, nil
 }
-

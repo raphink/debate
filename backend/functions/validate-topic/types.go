@@ -18,9 +18,9 @@ type Panelist struct {
 // TopicValidationResponse represents the response after validating a topic
 // Now includes suggested panelists to reduce API calls and AI token usage
 type TopicValidationResponse struct {
-	IsRelevant       bool       `json:"isRelevant"`
-	Message          string     `json:"message"`
-	Topic            string     `json:"topic"`
+	IsRelevant         bool       `json:"isRelevant"`
+	Message            string     `json:"message"`
+	Topic              string     `json:"topic"`
 	SuggestedPanelists []Panelist `json:"suggestedPanelists,omitempty"` // Only populated if isRelevant=true
 }
 
