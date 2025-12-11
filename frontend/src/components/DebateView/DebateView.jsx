@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import DebateBubble from './DebateBubble';
 import TypingIndicator from './TypingIndicator';
+import PanelistModal from './PanelistModal';
 import styles from './DebateView.module.css';
 
 /**
@@ -18,6 +19,7 @@ const DebateView = ({ messages, panelists, isStreaming, currentPanelistId }) => 
   const messagesEndRef = useRef(null);
   const containerRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(false);
+  const [selectedPanelist, setSelectedPanelist] = useState(null);
 
   // Auto-scroll to latest message (only if enabled)
   useEffect(() => {
@@ -42,6 +44,14 @@ const DebateView = ({ messages, panelists, isStreaming, currentPanelistId }) => 
   });
 
   const currentPanelist = currentPanelistId ? panelistMap[currentPanelistId] : null;
+
+  const handleAvatarClick = (panelist) => {
+    setSelectedPanelist(panelist);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedPanelist(null);
+  };
 
   return (
     <div className={styles.container} ref={containerRef}>
@@ -75,6 +85,7 @@ const DebateView = ({ messages, panelists, isStreaming, currentPanelistId }) => 
               panelist={panelist}
               text={message.text}
               index={index}
+              onAvatarClick={handleAvatarClick}
             />
           );
         })}
@@ -83,6 +94,13 @@ const DebateView = ({ messages, panelists, isStreaming, currentPanelistId }) => 
 
         <div ref={messagesEndRef} />
       </div>
+
+      {selectedPanelist && (
+        <PanelistModal 
+          panelist={selectedPanelist} 
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };

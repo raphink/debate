@@ -149,6 +149,9 @@
 - [ ] T075 [US3] Create DebateGeneration page in frontend/src/pages/DebateGeneration.jsx (integrate DebateView, generate button, retry logic)
 - [ ] T076 [US3] Add message accumulation logic in useDebateStream hook (append chunks to correct message by panelistId)
 - [X] T077 [US3] Add auto-scroll toggle control in DebateView component (checkbox, disabled by default, conditional scrollIntoView)
+- [X] T077a [P] [US3] Create PanelistModal component in frontend/src/components/DebateView/PanelistModal.jsx (display name, tagline, bio, close controls)
+- [X] T077b [P] [US3] Create PanelistModal styles in frontend/src/components/DebateView/PanelistModal.module.css (overlay, centered modal, accessible focus trap)
+- [X] T077c [US3] Add clickable avatar handler in DebateBubble component (onClick opens modal with panelist data)
 - [ ] T078 [US3] Add DebateBubble component tests in frontend/src/components/DebateView/DebateBubble.test.jsx
 - [ ] T079 [US3] Add DebateView component tests in frontend/src/components/DebateView/DebateView.test.jsx
 - [ ] T080 [US3] Add useDebateStream hook tests in frontend/src/hooks/useDebateStream.test.js (SSE event handling, error states)

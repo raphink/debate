@@ -22,6 +22,30 @@
   flex-shrink: 0;
 }
 
+.avatarButton {
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: block;
+}
+
+.avatarButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.avatarButton:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.avatarButton:active {
+  transform: scale(0.98);
+}
+
 .bubble {
   max-width: 70%;
   background: #ffffff;
