@@ -97,7 +97,7 @@ func (c *ClaudeClient) GenerateDebate(ctx context.Context, req *DebateRequest, w
 func (c *ClaudeClient) buildDebatePrompt(req *DebateRequest) string {
 	var prompt strings.Builder
 
-	prompt.WriteString("You are orchestrating a theological/philosophical debate between historical figures.\n\n")
+	prompt.WriteString("You are a neutral moderator orchestrating a theological/philosophical debate between historical figures.\n\n")
 	prompt.WriteString(fmt.Sprintf("Topic: %s\n\n", req.Topic))
 	prompt.WriteString("Panelists:\n")
 
@@ -111,15 +111,27 @@ func (c *ClaudeClient) buildDebatePrompt(req *DebateRequest) string {
 		}
 	}
 
-	prompt.WriteString("\nGenerate a debate with 10-15 exchanges where each panelist speaks in turn.\n")
+	prompt.WriteString("\nGenerate a moderated debate with the following structure:\n")
+	prompt.WriteString("1. Start with the moderator (ID: moderator) introducing the topic and panelists\n")
+	prompt.WriteString("2. Include 12-18 exchanges between panelists\n")
+	prompt.WriteString("3. The moderator may occasionally intervene to:\n")
+	prompt.WriteString("   - Redirect the conversation\n")
+	prompt.WriteString("   - Ask clarifying questions\n")
+	prompt.WriteString("   - Highlight contrasting viewpoints\n")
+	prompt.WriteString("   - Summarize progress\n")
+	prompt.WriteString("4. End with the moderator providing a brief conclusion\n\n")
 	prompt.WriteString("Format each response as:\n")
-	prompt.WriteString("[PANELIST_ID]: Response text\n\n")
+	prompt.WriteString("[PANELIST_ID]: Response text\n")
+	prompt.WriteString("or\n")
+	prompt.WriteString("[moderator]: Moderator text\n\n")
 	prompt.WriteString("Guidelines:\n")
-	prompt.WriteString("- Each response should be 2-4 sentences (50-100 words)\n")
+	prompt.WriteString("- Moderator responses: 1-3 sentences, neutral and facilitating\n")
+	prompt.WriteString("- Panelist responses: 2-4 sentences (50-100 words)\n")
 	prompt.WriteString("- Maintain each panelist's historical perspective and known positions\n")
 	prompt.WriteString("- Create engaging exchanges with direct responses and counter-arguments\n")
-	prompt.WriteString("- Ensure philosophical depth while remaining accessible\n")
-	prompt.WriteString("- End with a thought-provoking conclusion\n\n")
+	prompt.WriteString("- Let panelists speak to each other directly, not just to the moderator\n")
+	prompt.WriteString("- Moderator should intervene naturally, not after every exchange\n")
+	prompt.WriteString("- Ensure philosophical depth while remaining accessible\n\n")
 	prompt.WriteString("Begin the debate:")
 
 	return prompt.String()
@@ -160,7 +172,7 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 						flusher.Flush()
 					}
 				}
-				
+
 				chunk := StreamChunk{
 					Type: "done",
 					Done: true,
