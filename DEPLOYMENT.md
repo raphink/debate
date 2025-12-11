@@ -106,6 +106,7 @@ gcloud functions deploy generate-debate \
    REACT_APP_VALIDATE_TOPIC_URL=https://europe-west1-debate-480911.cloudfunctions.net/validate-topic
    REACT_APP_SUGGEST_PANELISTS_URL=https://europe-west1-debate-480911.cloudfunctions.net/suggest-panelists
    REACT_APP_GENERATE_DEBATE_URL=https://europe-west1-debate-480911.cloudfunctions.net/generate-debate
+   REACT_APP_GET_PORTRAIT_URL=https://europe-west1-debate-480911.cloudfunctions.net/get-portrait
    EOF
    ```
 
@@ -116,6 +117,27 @@ gcloud functions deploy generate-debate \
    npm run build
    npm run deploy
    ```
+
+## CORS Configuration
+
+All backend services use the `ALLOWED_ORIGIN` environment variable for CORS:
+
+- **Development** (localhost): `http://localhost:3000` (default if not set)
+- **Production** (GitHub Pages): `https://raphink.github.io`
+
+Set during deployment:
+```bash
+# Deploying Cloud Functions with CORS configuration
+gcloud functions deploy validate-topic \
+  --set-env-vars ALLOWED_ORIGIN=https://raphink.github.io \
+  ...
+
+# Or update existing function
+gcloud functions deploy validate-topic \
+  --update-env-vars ALLOWED_ORIGIN=https://raphink.github.io
+```
+
+See `.env.production.example` for production configuration reference.
 
 ## Verify Deployment
 

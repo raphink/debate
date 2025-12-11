@@ -101,6 +101,7 @@ deploy_backend() {
         --trigger-http \
         --allow-unauthenticated \
         --set-secrets=ANTHROPIC_API_KEY=anthropic-api-key:latest \
+        --set-env-vars=ALLOWED_ORIGIN=https://raphink.github.io \
         --memory=256MB \
         --timeout=60s \
         --max-instances=100 \
@@ -124,6 +125,7 @@ deploy_backend() {
         --trigger-http \
         --allow-unauthenticated \
         --set-secrets=ANTHROPIC_API_KEY=anthropic-api-key:latest \
+        --set-env-vars=ALLOWED_ORIGIN=https://raphink.github.io \
         --memory=512MB \
         --timeout=300s \
         --max-instances=100 \

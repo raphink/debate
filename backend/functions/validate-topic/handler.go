@@ -4,14 +4,19 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 )
 
 // handleValidateTopicImpl is the HTTP handler for the validate-topic Cloud Function
-func handleValidateTopicImpl(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+func HandleValidateTopic(w http.ResponseWriter, r *http.Request) {
+	// Set CORS headers - allow configured origin or localhost for dev
+	allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
+	if allowedOrigin == "" {
+		allowedOrigin = "http://localhost:3000"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-API-Key")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 	// Set SSE headers for streaming
 	w.Header().Set("Content-Type", "text/event-stream")
