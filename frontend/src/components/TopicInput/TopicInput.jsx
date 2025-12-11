@@ -117,13 +117,6 @@ const TopicInput = ({ onSubmit, isLoading }) => {
         <label htmlFor="suggested-names" className={styles.label}>
           Suggest panelists (optional)
         </label>
-        <input
-          id="suggested-names"
-          type="text"
-      <div className={styles.inputGroup}>
-        <label htmlFor="suggested-names" className={styles.label}>
-          Suggest panelists (optional)
-        </label>
         <div className={styles.chipsContainer}>
           {suggestedNames.map((name) => (
             <div key={name} className={styles.chip}>
@@ -155,6 +148,13 @@ const TopicInput = ({ onSubmit, isLoading }) => {
           Type a name and press comma+space or Enter to add (up to 5). AI will prioritize them if relevant.
         </span>
       </div>
+
+      <button
+        type="submit"
+        className={styles.submitButton}
+        disabled={isLoading || topic.trim().length < MIN_TOPIC_LENGTH || isOverLimit}
+        aria-busy={isLoading}
+      >
         {isLoading ? 'Looking for Panelists...' : 'Find Panelists'}
       </button>
     </form>
