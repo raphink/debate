@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	funcframework.RegisterHTTPFunctionContext(nil, "GenerateDebate", HandleGenerateDebate)
+	funcframework.RegisterHTTPFunctionContext(nil, "/", HandleGenerateDebate)
 }
 
 func main() {
