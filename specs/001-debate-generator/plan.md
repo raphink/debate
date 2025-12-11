@@ -5,9 +5,11 @@
 
 ## Summary
 
-Build a web application that generates AI-powered theological/philosophical debates between historical figures. Users enter a topic, receive topic validation AND up to 20 panelist suggestions in a single Claude API call (through GCP Cloud Functions proxy in Go) for efficiency, select 2-5 panelists, then watch the debate stream in real-time as a chat-style conversation with avatars. A neutral moderator introduces the debate, may intervene between exchanges, and provides conclusion. Completed debates can be exported as PDF.
+Build a web application that generates AI-powered theological/philosophical debates between historical figures. Users enter a topic, optionally suggest up to 5 panelist names they'd like considered, receive topic validation AND up to 20 panelist suggestions in a single Claude API call (through GCP Cloud Functions proxy in Go) for efficiency, select 2-5 panelists, then watch the debate stream in real-time as a chat-style conversation with avatars. A neutral moderator introduces the debate, may intervene between exchanges, and provides conclusion. Completed debates can be exported as PDF.
 
 **Key Architecture Decision**: The validate-topic endpoint returns both validation result AND panelist suggestions in one API response to reduce AI token costs and improve UX responsiveness. The suggest-panelists endpoint is reserved for refresh/regenerate operations.
+
+**Suggested Names Feature**: Users can optionally propose up to 5 panelist names during topic entry. The backend sanitizes these names and includes them in the Claude API prompt. Claude evaluates whether the suggested individuals have known, documented positions on the topic and includes them in the panelist list if appropriate. This gives users more control while maintaining quality through AI validation.
 
 ## Technical Context
 

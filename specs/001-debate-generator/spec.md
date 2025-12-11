@@ -33,12 +33,14 @@ User browses AI-suggested historical figures with known positions on the topic a
 
 **Acceptance Scenarios**:
 
-1. **Given** topic has been validated as relevant, **When** validation response is received, **Then** user sees 8-20 historical figures with avatar, name, handle (id), tagline, and bio (returned in the same API call for efficiency)
-2. **Given** panelist list is displayed, **When** user reviews the suggestions, **Then** panelists represent diverse time periods across the last 2000 years (roughly 25% ancient/early church 0-500 AD, 25% medieval/reformation 500-1700 AD, 25% modern 1700-1950 AD, 25% contemporary 1950-present)
-3. **Given** user views panelist list, **When** user clicks on a panelist card, **Then** panelist is added to selection (maximum 5 total)
-4. **Given** user has selected 5 panelists, **When** user attempts to select another, **Then** system prevents selection and displays message "Maximum 5 panelists allowed"
-5. **Given** user has selected panelists, **When** user clicks a selected panelist again, **Then** panelist is deselected and removed from selection
-6. **Given** panelist list is displayed, **When** user reviews panelist details, **Then** each panelist shows relevant credentials, historical period, and known position on the topic
+1. **Given** user is entering a topic, **When** user wants to suggest specific panelists, **Then** user can enter up to 5 panelist names (comma-separated) in an optional input field
+2. **Given** topic has been validated as relevant, **When** validation response is received, **Then** user sees 8-20 historical figures with avatar, name, handle (id), tagline, and bio (returned in the same API call for efficiency)
+3. **Given** user suggested panelist names during topic entry, **When** validation response is received, **Then** AI evaluates suggested names and includes them in the panelist list if they have known, documented positions on the topic
+4. **Given** panelist list is displayed, **When** user reviews the suggestions, **Then** panelists represent diverse time periods across the last 2000 years (roughly 25% ancient/early church 0-500 AD, 25% medieval/reformation 500-1700 AD, 25% modern 1700-1950 AD, 25% contemporary 1950-present)
+5. **Given** user views panelist list, **When** user clicks on a panelist card, **Then** panelist is added to selection (maximum 5 total)
+6. **Given** user has selected 5 panelists, **When** user attempts to select another, **Then** system prevents selection and displays message "Maximum 5 panelists allowed"
+7. **Given** user has selected panelists, **When** user clicks a selected panelist again, **Then** panelist is deselected and removed from selection
+8. **Given** panelist list is displayed, **When** user reviews panelist details, **Then** each panelist shows relevant credentials, historical period, and known position on the topic
 
 ---
 
@@ -98,30 +100,33 @@ User exports completed debate as a formatted PDF document for offline reading, s
 
 - **FR-001**: System MUST accept text input for debate topics with minimum 10 characters
 - **FR-002**: System MUST validate topic relevance for theology/philosophy debates via Claude API through GCP function proxy
-- **FR-003**: System MUST request and display 8-20 panelist suggestions with complete profiles (name, avatar URL, handle (id), tagline, biography)
-- **FR-003a**: Panelist suggestions MUST represent diverse historical periods across 2000 years (approximately 25% ancient/early church 0-500 AD, 25% medieval/reformation 500-1700 AD, 25% modern 1700-1950 AD, 25% contemporary 1950-present)
-- **FR-004**: Users MUST be able to select between 2 and 5 panelists from the suggested list
-- **FR-005**: System MUST visually distinguish selected vs unselected panelists in the UI
-- **FR-006**: System MUST prevent debate generation unless at least 2 panelists are selected
-- **FR-007**: System MUST send debate configuration (topic + selected panelists) to Claude API via GCP function proxy
-- **FR-008**: System MUST stream debate responses progressively and display them in real-time
-- **FR-009**: System MUST parse streaming responses to identify which panelist or moderator is speaking
-- **FR-010**: System MUST display each panelist's response in a distinct chat bubble with their avatar
-- **FR-010a**: System MUST include a neutral moderator who introduces the debate, may intervene between exchanges, and provides conclusion
-- **FR-010b**: Moderator responses MUST be visually distinguished from panelist responses with unique avatar and styling
-- **FR-011**: System MUST show loading/typing indicators while waiting for next response
-- **FR-011a**: System MUST provide toggleable auto-scroll control for debate view (disabled by default)
-- **FR-011b**: System MUST make panelist avatars clickable to display panelist details in a modal
-- **FR-011c**: Modal MUST display panelist name, tagline, and biography with accessible close controls (X button, Escape key, click outside)
-- **FR-012**: System MUST handle API errors gracefully with user-friendly error messages
-- **FR-013**: System MUST provide retry mechanism for failed API calls
-- **FR-014**: System MUST allow PDF export of completed debates
-- **FR-015**: PDF export MUST include topic, panelist profiles, complete conversation, and generation timestamp
-- **FR-016**: System MUST sanitize all Claude API outputs before rendering to prevent XSS attacks (per Constitution Principle V)
-- **FR-017**: System MUST rate-limit API requests to prevent abuse (per Constitution Principle V)
-- **FR-018**: System MUST validate and sanitize user topic input before sending to Claude API (per Constitution Principle V)
-- **FR-019**: UI MUST be keyboard-navigable for accessibility (per Constitution Principle III)
-- **FR-020**: System MUST maintain minimum 4.5:1 contrast ratio for text (per Constitution Principle III)
+- **FR-003**: System MUST allow users to optionally suggest up to 5 panelist names during topic entry (comma-separated input)
+- **FR-003a**: System MUST send user-suggested panelist names to Claude API for evaluation during topic validation
+- **FR-003b**: Claude API MUST evaluate suggested names and include them in panelist list only if they have known, documented positions on the topic
+- **FR-004**: System MUST request and display 8-20 panelist suggestions with complete profiles (name, avatar URL, handle (id), tagline, biography)
+- **FR-004a**: Panelist suggestions MUST represent diverse historical periods across 2000 years (approximately 25% ancient/early church 0-500 AD, 25% medieval/reformation 500-1700 AD, 25% modern 1700-1950 AD, 25% contemporary 1950-present)
+- **FR-005**: Users MUST be able to select between 2 and 5 panelists from the suggested list
+- **FR-006**: System MUST visually distinguish selected vs unselected panelists in the UI
+- **FR-007**: System MUST prevent debate generation unless at least 2 panelists are selected
+- **FR-008**: System MUST send debate configuration (topic + selected panelists) to Claude API via GCP function proxy
+- **FR-009**: System MUST stream debate responses progressively and display them in real-time
+- **FR-010**: System MUST parse streaming responses to identify which panelist or moderator is speaking
+- **FR-011**: System MUST display each panelist's response in a distinct chat bubble with their avatar
+- **FR-011a**: System MUST include a neutral moderator who introduces the debate, may intervene between exchanges, and provides conclusion
+- **FR-011b**: Moderator responses MUST be visually distinguished from panelist responses with unique avatar and styling
+- **FR-012**: System MUST show loading/typing indicators while waiting for next response
+- **FR-012a**: System MUST provide toggleable auto-scroll control for debate view (disabled by default)
+- **FR-012b**: System MUST make panelist avatars clickable to display panelist details in a modal
+- **FR-012c**: Modal MUST display panelist name, tagline, and biography with accessible close controls (X button, Escape key, click outside)
+- **FR-013**: System MUST handle API errors gracefully with user-friendly error messages
+- **FR-014**: System MUST provide retry mechanism for failed API calls
+- **FR-015**: System MUST allow PDF export of completed debates
+- **FR-016**: PDF export MUST include topic, panelist profiles, complete conversation, and generation timestamp
+- **FR-017**: System MUST sanitize all Claude API outputs before rendering to prevent XSS attacks (per Constitution Principle V)
+- **FR-018**: System MUST rate-limit API requests to prevent abuse (per Constitution Principle V)
+- **FR-019**: System MUST validate and sanitize user topic input and suggested panelist names before sending to Claude API (per Constitution Principle V)
+- **FR-020**: UI MUST be keyboard-navigable for accessibility (per Constitution Principle III)
+- **FR-021**: System MUST maintain minimum 4.5:1 contrast ratio for text (per Constitution Principle III)
 
 ### Key Entities
 
@@ -169,6 +174,6 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - Real-time collaborative debate watching with multiple users
 - Editing or regenerating portions of completed debates
 - Audio/video generation of debates
-- Custom panelist creation by users (only AI-suggested panelists allowed)
+- Direct creation of custom panelists with user-defined bios (AI evaluates suggested names instead)
 - Payment or subscription features
 - Admin panel or content moderation tools

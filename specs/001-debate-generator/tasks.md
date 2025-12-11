@@ -65,9 +65,12 @@
 ### Backend Implementation for User Story 1
 
 - [X] T027 [P] [US1] Create Topic validation request/response structs in backend/functions/validate-topic/types.go
+- [X] T027a [P] [US1] Add SuggestedNames []string field to TopicValidationRequest struct in types.go
 - [X] T028 [P] [US1] Implement input validation in backend/functions/validate-topic/validator.go (10-500 chars, HTML stripping)
 - [X] T029 [US1] Implement Claude API client in backend/functions/validate-topic/claude.go (topic relevance check)
+- [X] T029a [US1] Update ValidateTopicAndSuggestPanelists in claude.go to accept suggestedNames parameter and include in prompt
 - [X] T030 [US1] Implement HTTP handler in backend/functions/validate-topic/handler.go (CORS, error handling, sanitization)
+- [X] T030a [US1] Update handler.go to sanitize and limit suggested names to 5 before passing to Claude client
 - [X] T031 [US1] Create main entry point in backend/functions/validate-topic/main.go (Cloud Function registration)
 - [X] T032 [US1] Add unit tests for validator in backend/functions/validate-topic/validator_test.go
 - [X] T033 [US1] Add integration tests for Claude API client in backend/functions/validate-topic/claude_test.go
@@ -75,11 +78,14 @@
 ### Frontend Implementation for User Story 1
 
 - [X] T034 [P] [US1] Create TopicInput component in frontend/src/components/TopicInput/TopicInput.jsx (form, character counter)
+- [X] T034a [P] [US1] Add suggested panelist names input field to TopicInput component (comma-separated, max 5, optional)
 - [X] T035 [P] [US1] Create TopicInput styles in frontend/src/components/TopicInput/TopicInput.module.css (mobile-first responsive)
 - [X] T036 [P] [US1] Create ValidationResult component in frontend/src/components/ValidationResult/ValidationResult.jsx (success/error display)
 - [X] T037 [P] [US1] Create ValidationResult styles in frontend/src/components/ValidationResult/ValidationResult.module.css
 - [X] T038 [US1] Implement topicService in frontend/src/services/topicService.js (API call to validate-topic function)
+- [X] T038a [US1] Update topicService to send suggested panelist names array to validate-topic endpoint
 - [X] T039 [US1] Create useTopicValidation custom hook in frontend/src/hooks/useTopicValidation.js (state management, API call)
+- [X] T039a [US1] Update useTopicValidation hook to accept and pass suggestedNames parameter to topicService
 - [X] T040 [US1] Create Home page in frontend/src/pages/Home.jsx (integrate TopicInput, ValidationResult, navigation)
 - [X] T041 [US1] Add client-side validation utilities in frontend/src/utils/validation.js (length check, sanitization)
 - [X] T042 [US1] Add TopicInput component tests in frontend/src/components/TopicInput/TopicInput.test.jsx (Jest, RTL)

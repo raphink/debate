@@ -15,6 +15,11 @@ Represents a user-submitted debate subject for theological/philosophical discuss
   - Min length: 10 characters
   - Max length: 500 characters
   - Validation: No HTML tags, trim whitespace
+- `suggestedNames` (array of strings, optional): User-suggested panelist names to consider
+  - Max length: 5 items
+  - Each name: max 100 characters
+  - Validation: Sanitized for HTML/script content
+  - Example: ["John MacArthur", "N.T. Wright", "Augustine of Hippo"]
 - `isRelevant` (boolean, required): Whether topic is suitable for theology/philosophy debate
   - Set by Claude API validation response
 - `validationMessage` (string, optional): Feedback message from validation
@@ -25,6 +30,8 @@ Represents a user-submitted debate subject for theological/philosophical discuss
 
 **Validation Rules**:
 - Topic text MUST NOT contain HTML tags or script content
+- Suggested names MUST be sanitized for HTML/script content
+- Suggested names array MUST be limited to 5 items maximum
 - Topic text MUST be trimmed of leading/trailing whitespace
 - Topic MUST be between 10-500 characters after sanitization
 - Topic MUST be validated before proceeding to panelist selection
@@ -128,7 +135,8 @@ Represents the complete setup for debate generation (sent to backend).
 {
   "topic": {
     "text": "Should Christians defy authorities when the law is unfair?",
-    "isRelevant": true
+    "isRelevant": true,
+    "suggestedNames": ["Martin Luther King Jr."]
   },
   "panelists": [
     {
