@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -107,6 +108,7 @@ Format: Each panelist on its own line as shown above. No other text.`, topic, na
 // streamPanelistResponse processes the stream and emits panelists or rejection incrementally
 func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic.MessageStreamEventUnion], writer io.Writer) error {
 	flusher, _ := writer.(http.Flusher)
+	var collectedPanelists []Panelist
 
 	sendChunk := func(chunkType, data string) {
 		chunk := map[string]string{
@@ -187,6 +189,9 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 						panelist.Position = panelist.Position[:97] + "..."
 					}
 
+					// Collect for later enrichment
+					collectedPanelists = append(collectedPanelists, panelist)
+
 					panelistData, _ := json.Marshal(panelist)
 					sendChunk("panelist", string(panelistData))
 				}
@@ -249,6 +254,14 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 
 	// Send done signal
 	sendChunk("done", "")
+
+	// Enrich panelists with Wikimedia portraits after streaming completes
+	if len(collectedPanelists) > 0 {
+		go func() {
+			enriched := EnrichPanelistsWithPortraits(collectedPanelists)
+			log.Printf("Enriched %d panelists with Wikimedia portraits", len(enriched))
+		}()
+	}
 
 	return nil
 }
