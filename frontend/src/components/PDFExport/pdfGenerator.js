@@ -109,7 +109,6 @@ export const generateDebatePDF = async (debateData) => {
     if (yPosition + neededSpace > pageHeight - margin) {
       pdf.addPage();
       yPosition = margin;
-      addPageNumber();
       return true;
     }
     return false;
@@ -274,12 +273,16 @@ export const generateDebatePDF = async (debateData) => {
 
     // Estimate space needed for this message
     const messageLines = pdf.splitTextToSize(message.text, contentWidth - 25);
-    const neededSpace = 15 + (messageLines.length * 5);
+    const bubbleHeight = 8 + (messageLines.length * 5);
+    const neededSpace = bubbleHeight + 5; // Include some padding
     
-    checkPageBreak(neededSpace);
+    // Check if we need a new page BEFORE starting to draw
+    if (yPosition + neededSpace > pageHeight - margin) {
+      pdf.addPage();
+      yPosition = margin;
+    }
 
     // Draw chat bubble background (light gray)
-    const bubbleHeight = 8 + (messageLines.length * 5);
     const bubbleWidth = contentWidth - 15;
     pdf.setFillColor(249, 250, 251); // gray-50
     pdf.setDrawColor(229, 231, 235); // gray-200
@@ -295,13 +298,13 @@ export const generateDebatePDF = async (debateData) => {
 
     // Speaker name
     pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(91, 138, 114); // green-700
+    pdf.setTextColor(16, 185, 129); // green-500 (brighter for better contrast)
     pdf.text(`${panelist.name}`, margin + 15, yPosition + 2);
     yPosition += 6;
 
     // Message text
     pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(44, 62, 80);
+    pdf.setTextColor(31, 41, 55); // gray-800 (darker for better contrast on light background)
     pdf.text(messageLines, margin + 15, yPosition);
     yPosition += (messageLines.length * 5) + 8;
 
