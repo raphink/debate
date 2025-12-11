@@ -21,9 +21,12 @@ const Home = () => {
   };
 
   const handleContinue = () => {
-    // Navigate to panelist selection with topic in state
+    // Navigate to panelist selection with topic and panelists in state
     navigate('/panelists', {
-      state: { topic: validationResult.topic },
+      state: {
+        topic: validationResult.topic,
+        panelists: validationResult.suggestedPanelists || [],
+      },
     });
   };
 

@@ -1,0 +1,130 @@
+.container {
+  min-height: 100vh;
+  background: #f5f7f9;
+}
+
+.header {
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1.5rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: #5b8a72;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  margin-bottom: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.backButton:hover {
+  color: #4a7060;
+}
+
+.backButton:focus {
+  outline: 2px solid #5b8a72;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.topicDisplay {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.topic {
+  margin: 0;
+  font-size: 1.125rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.topic em {
+  color: #5b8a72;
+  font-weight: 500;
+}
+
+.content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.gridSection {
+  min-width: 0; /* Allow grid to shrink properly */
+}
+
+.selectorSection {
+  /* Sticky positioning handled in PanelistSelector component */
+}
+
+/* Responsive layout */
+@media (max-width: 1024px) {
+  .content {
+    grid-template-columns: 1fr 300px;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .content {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .selectorSection {
+    order: -1; /* Move selector above grid on mobile */
+  }
+
+  .header {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .topic {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 0.75rem;
+  }
+
+  .header {
+    padding: 0.75rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .topic {
+    font-size: 0.938rem;
+  }
+}

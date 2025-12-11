@@ -1,0 +1,162 @@
+.container {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  position: sticky;
+  top: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.counter {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.count {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.count.valid {
+  color: #5b8a72;
+}
+
+.count.invalid {
+  color: #999;
+}
+
+.limit {
+  font-size: 1.125rem;
+  color: #666;
+}
+
+.selectedList {
+  margin-bottom: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.emptyMessage {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  color: #666;
+  font-size: 0.938rem;
+  margin: 0;
+}
+
+.selectedItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.selectedItem:last-child {
+  margin-bottom: 0;
+}
+
+.selectedAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #5b8a72;
+  flex-shrink: 0;
+}
+
+.selectedName {
+  font-size: 0.938rem;
+  font-weight: 500;
+  color: #2c3e50;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.warning {
+  background: #fff3cd;
+  border-left: 3px solid #ffc107;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+  color: #856404;
+  border-radius: 4px;
+}
+
+.info {
+  background: #d1ecf1;
+  border-left: 3px solid #17a2b8;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+  color: #0c5460;
+  border-radius: 4px;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.actions button {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .container {
+    position: static;
+    margin-bottom: 1.5rem;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .count {
+    font-size: 1.75rem;
+  }
+
+  .limit {
+    font-size: 1rem;
+  }
+}
