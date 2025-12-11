@@ -34,7 +34,7 @@ func NewClaudeClient() (*ClaudeClient, error) {
 
 	return &ClaudeClient{
 		apiKey: apiKey,
-		model:  "claude-3-5-sonnet-latest", // Latest Claude model
+		model:  "claude-haiku-4-5", // Latest Claude model
 		httpClient: &http.Client{
 			Timeout: 90 * time.Second, // Increased for panelist generation (8-20 detailed profiles)
 		},
