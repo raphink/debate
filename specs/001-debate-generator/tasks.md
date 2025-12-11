@@ -71,6 +71,9 @@
 - [X] T029a [US1] Update ValidateTopicAndSuggestPanelists in claude.go to accept suggestedNames parameter and include in prompt
 - [X] T029b [US1] Migrate validate-topic to Anthropic Go SDK v1.19.0 for reliable streaming (replaces manual HTTP/SSE)
 - [X] T029c [US1] Implement streamPanelistResponse in claude.go to parse streaming JSON and emit progressive panelist chunks
+- [X] T029d [US1] Fix line detection in streamPanelistResponse to only trigger on newline (not closing brace)
+- [X] T029e [US1] Add debug logging in claude.go and handler.go to track suggested names and streaming behavior
+- [X] T029f [US1] Add fallback parser in streamPanelistResponse for old single-JSON-object format
 - [X] T030 [US1] Implement HTTP handler in backend/functions/validate-topic/handler.go (CORS, error handling, sanitization)
 - [X] T030a [US1] Update handler.go to sanitize and limit suggested names to 5 before passing to Claude client
 - [X] T030b [US1] Update handler.go to support SSE streaming (set Content-Type: text/event-stream, flush chunks)
@@ -99,11 +102,13 @@
 - [X] T040a [US1] Update Home.jsx to display panelists progressively as they stream in (show loading until first panelist)
 - [X] T040b [US1] Update Home.jsx to hide input section when validation starts, show panelists with loading at bottom
 - [X] T040c [US1] Update Home.jsx handleSubmit to receive and pass suggestedNames array to validate function
+- [X] T040d [US1] Update Home.jsx to show PanelistSelector sidebar as soon as first panelist appears (not after streaming completes)
 - [X] T041 [US1] Add client-side validation utilities in frontend/src/utils/validation.js (length check, sanitization)
 - [X] T042 [US1] Add TopicInput component tests in frontend/src/components/TopicInput/TopicInput.test.jsx (Jest, RTL)
 - [X] T043 [US1] Add ValidationResult component tests in frontend/src/components/ValidationResult/ValidationResult.test.jsx
 - [X] T044 [US1] Add accessibility tests for topic validation flow in frontend/tests/accessibility/topic-validation.test.js (axe-core)
 - [ ] T044a [US1] Enhance LoadingSpinner component with more engaging animation in frontend/src/components/common/LoadingSpinner/LoadingSpinner.jsx
+- [X] T044b [US1] Fix Button component to use CSS Modules properly (import styles object, use styles.button classes)
 
 **Checkpoint**: User Story 1 complete - users can validate topics independently
 
