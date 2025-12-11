@@ -9,9 +9,10 @@ RUN go mod download
 
 # Copy source code
 COPY *.go ./
+COPY cmd/ ./cmd/
 
-# Build the function
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o get-portrait .
+# Build the function from cmd directory
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o get-portrait ./cmd
 
 # Final stage - minimal runtime image
 FROM gcr.io/distroless/static-debian11
