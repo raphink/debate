@@ -16,28 +16,35 @@
 }
 
 .backButton {
-  background: none;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
   border: none;
-  color: #5b8a72;
+  color: #374151;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  padding: 0.5rem 0;
+  padding: 0.625rem 1.25rem;
   margin-bottom: 0.75rem;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  transition: color 0.2s ease;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .backButton:hover {
-  color: #4a7060;
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.backButton:active {
+  transform: translateY(0);
 }
 
 .backButton:focus {
-  outline: 2px solid #5b8a72;
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.3);
 }
 
 .topicDisplay {

@@ -6,7 +6,8 @@ import styles from './TopicInput.module.css';
 
 const TopicInput = ({ onSubmit, isLoading }) => {
   const [topic, setTopic] = useState('');
-  const [suggestedNames, setSuggestedNames] = useState('');
+  const [suggestedNames, setSuggestedNames] = useState([]);
+  const [nameInput, setNameInput] = useState('');
   const [clientError, setClientError] = useState(null);
 
   const handleInputChange = (e) => {
@@ -15,9 +16,41 @@ const TopicInput = ({ onSubmit, isLoading }) => {
     setClientError(null);
   };
 
-  const handleNamesChange = (e) => {
+  const handleNameInputChange = (e) => {
     const value = e.target.value;
-    setSuggestedNames(value);
+    
+    // Check if user typed comma followed by space or just comma at the end
+    if (value.endsWith(', ') || (value.endsWith(',') && value.length > 1)) {
+      const newName = value.replace(/,\s*$/, '').trim();
+      if (newName && suggestedNames.length < 5 && !suggestedNames.includes(newName)) {
+        setSuggestedNames([...suggestedNames, newName]);
+        setNameInput('');
+      } else {
+        setNameInput('');
+      }
+    } else {
+      setNameInput(value);
+    }
+  };
+
+  const handleNameInputKeyDown = (e) => {
+    // Also handle Enter key to add a name
+    if (e.key === 'Enter' && nameInput.trim()) {
+      e.preventDefault();
+      const newName = nameInput.trim();
+      if (suggestedNames.length < 5 && !suggestedNames.includes(newName)) {
+        setSuggestedNames([...suggestedNames, newName]);
+        setNameInput('');
+      }
+    }
+    // Handle backspace on empty input to remove last chip
+    else if (e.key === 'Backspace' && !nameInput && suggestedNames.length > 0) {
+      setSuggestedNames(suggestedNames.slice(0, -1));
+    }
+  };
+
+  const removeNameChip = (nameToRemove) => {
+    setSuggestedNames(suggestedNames.filter(name => name !== nameToRemove));
   };
 
   const handleSubmit = (e) => {
@@ -35,16 +68,9 @@ const TopicInput = ({ onSubmit, isLoading }) => {
       return;
     }
 
-    // Parse suggested names (comma-separated, max 5)
-    const names = suggestedNames
-      .split(',')
-      .map(n => n.trim())
-      .filter(n => n.length > 0)
-      .slice(0, 5);
-
     // Clear error and submit
     setClientError(null);
-    onSubmit(topic, names);
+    onSubmit(topic, suggestedNames);
   };
 
   const charactersRemaining = MAX_TOPIC_LENGTH - topic.length;
@@ -94,24 +120,41 @@ const TopicInput = ({ onSubmit, isLoading }) => {
         <input
           id="suggested-names"
           type="text"
-          value={suggestedNames}
-          onChange={handleNamesChange}
-          placeholder="E.g., Martin Luther King Jr., Gandhi, Mother Teresa"
-          className={styles.input}
-          disabled={isLoading}
-          aria-describedby="names-help"
-        />
+      <div className={styles.inputGroup}>
+        <label htmlFor="suggested-names" className={styles.label}>
+          Suggest panelists (optional)
+        </label>
+        <div className={styles.chipsContainer}>
+          {suggestedNames.map((name) => (
+            <div key={name} className={styles.chip}>
+              <span className={styles.chipText}>{name}</span>
+              <button
+                type="button"
+                onClick={() => removeNameChip(name)}
+                className={styles.chipRemove}
+                aria-label={`Remove ${name}`}
+                disabled={isLoading}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          <input
+            id="suggested-names"
+            type="text"
+            value={nameInput}
+            onChange={handleNameInputChange}
+            onKeyDown={handleNameInputKeyDown}
+            placeholder={suggestedNames.length === 0 ? "E.g., Martin Luther King Jr., Gandhi, Mother Teresa" : "Add another..."}
+            className={styles.chipInput}
+            disabled={isLoading || suggestedNames.length >= 5}
+            aria-describedby="names-help"
+          />
+        </div>
         <span id="names-help" className={styles.help}>
-          Comma-separated names (up to 5). AI may include them if they have relevant views.
+          Type a name and press comma+space or Enter to add (up to 5). AI will prioritize them if relevant.
         </span>
       </div>
-
-      <button
-        type="submit"
-        className={styles.submitButton}
-        disabled={isLoading || topic.trim().length < MIN_TOPIC_LENGTH || isOverLimit}
-        aria-busy={isLoading}
-      >
         {isLoading ? 'Looking for Panelists...' : 'Find Panelists'}
       </button>
     </form>
