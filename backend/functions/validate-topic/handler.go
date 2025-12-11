@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -69,8 +68,7 @@ func HandleValidateTopic(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate topic with Claude
-	ctx := r.Context()
-	isRelevant, message, err := claudeClient.ValidateTopicRelevance(ctx, sanitizedTopic)
+	isRelevant, message, err := claudeClient.ValidateTopicRelevance(r.Context(), sanitizedTopic)
 	if err != nil {
 		log.Printf("Error validating topic with Claude: %v", err)
 		w.WriteHeader(http.StatusServiceUnavailable)

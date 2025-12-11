@@ -1,4 +1,5 @@
-import React from 'prop-types';
+import React from 'react';
+import PropTypes from 'prop-types';
 import styles from './ValidationResult.module.css';
 
 const ValidationResult = ({ isRelevant, message, topic, onContinue, onTryAgain }) => {
@@ -17,7 +18,7 @@ const ValidationResult = ({ isRelevant, message, topic, onContinue, onTryAgain }
         
         {topic && (
           <blockquote className={styles.topic}>
-            "{topic}"
+            &ldquo;{topic}&rdquo;
           </blockquote>
         )}
       </div>
