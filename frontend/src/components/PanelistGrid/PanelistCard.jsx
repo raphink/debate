@@ -46,7 +46,7 @@ const PanelistCard = ({ panelist, isSelected, onToggle, disabled }) => {
     >
       <div className={styles.header}>
         <img
-          src={`${process.env.PUBLIC_URL}/avatars/${avatarUrl}`}
+          src={avatarUrl.startsWith('http') || avatarUrl.startsWith('/') ? avatarUrl : `${process.env.PUBLIC_URL}/avatars/${avatarUrl}`}
           alt={`${name} avatar`}
           className={styles.avatar}
           onError={(e) => {
