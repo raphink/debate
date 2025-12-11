@@ -16,28 +16,13 @@ services:
       - debate-network
     restart: unless-stopped
 
-  # Panelist Suggestion Cloud Function (Port 8081)
-  suggest-panelists:
-    build:
-      context: ./backend/functions/suggest-panelists
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8080"
-    environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
-      - PORT=8080
-    networks:
-      - debate-network
-    restart: unless-stopped
-
-  # Debate Generation Cloud Function (Port 8082)
+  # Debate Generation Cloud Function (Port 8081)
   generate-debate:
     build:
       context: ./backend/functions/generate-debate
       dockerfile: Dockerfile
     ports:
-      - "8082:8080"
+      - "8081:8080"
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - GCP_PROJECT_ID=${GCP_PROJECT_ID}
@@ -55,13 +40,11 @@ services:
       - "3000:3000"
     environment:
       - REACT_APP_VALIDATE_TOPIC_URL=http://localhost:8080
-      - REACT_APP_SUGGEST_PANELISTS_URL=http://localhost:8081
-      - REACT_APP_GENERATE_DEBATE_URL=http://localhost:8082
+      - REACT_APP_GENERATE_DEBATE_URL=http://localhost:8081
     networks:
       - debate-network
     depends_on:
       - validate-topic
-      - suggest-panelists
       - generate-debate
     restart: unless-stopped
 
