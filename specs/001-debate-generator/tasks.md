@@ -79,6 +79,7 @@
 
 - [X] T034 [P] [US1] Create TopicInput component in frontend/src/components/TopicInput/TopicInput.jsx (form, character counter)
 - [X] T034a [P] [US1] Add suggested panelist names input field to TopicInput component (comma-separated, max 5, optional)
+- [X] T034b [US1] Update TopicInput submit button text from "Validate Topic" to "Find Panelists"
 - [X] T035 [P] [US1] Create TopicInput styles in frontend/src/components/TopicInput/TopicInput.module.css (mobile-first responsive)
 - [X] T036 [P] [US1] Create ValidationResult component in frontend/src/components/ValidationResult/ValidationResult.jsx (success/error display)
 - [X] T037 [P] [US1] Create ValidationResult styles in frontend/src/components/ValidationResult/ValidationResult.module.css
@@ -86,11 +87,13 @@
 - [X] T038a [US1] Update topicService to send suggested panelist names array to validate-topic endpoint
 - [X] T039 [US1] Create useTopicValidation custom hook in frontend/src/hooks/useTopicValidation.js (state management, API call)
 - [X] T039a [US1] Update useTopicValidation hook to accept and pass suggestedNames parameter to topicService
+- [X] T039b [US1] Update useTopicValidation hook loading message from "Validating..." to "Looking for Panelists"
 - [X] T040 [US1] Create Home page in frontend/src/pages/Home.jsx (integrate TopicInput, ValidationResult, navigation)
 - [X] T041 [US1] Add client-side validation utilities in frontend/src/utils/validation.js (length check, sanitization)
 - [X] T042 [US1] Add TopicInput component tests in frontend/src/components/TopicInput/TopicInput.test.jsx (Jest, RTL)
 - [X] T043 [US1] Add ValidationResult component tests in frontend/src/components/ValidationResult/ValidationResult.test.jsx
 - [X] T044 [US1] Add accessibility tests for topic validation flow in frontend/tests/accessibility/topic-validation.test.js (axe-core)
+- [ ] T044a [US1] Enhance LoadingSpinner component with more engaging animation in frontend/src/components/common/LoadingSpinner/LoadingSpinner.jsx
 
 **Checkpoint**: User Story 1 complete - users can validate topics independently
 
@@ -136,6 +139,7 @@
 - [ ] T059 [P] [US3] Create StreamChunk response structs in backend/functions/generate-debate/types.go (message, error, done events)
 - [ ] T060 [P] [US3] Implement input validation in backend/functions/generate-debate/validator.go (2-5 panelists, valid topic)
 - [ ] T061 [US3] Implement Claude API streaming client in backend/functions/generate-debate/claude.go (SSE with debate prompt)
+- [ ] T061a [US3] Update debate prompt in claude.go to ensure moderator provides concluding summary at end of debate
 - [ ] T062 [US3] Implement SSE stream handler in backend/functions/generate-debate/stream.go (chunk parsing, panelist identification)
 - [ ] T063 [US3] Implement HTTP handler in backend/functions/generate-debate/handler.go (SSE headers, flush chunks, error recovery)
 - [ ] T064 [US3] Create main entry point in backend/functions/generate-debate/main.go (Cloud Function registration)

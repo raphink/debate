@@ -17,9 +17,10 @@ User enters a debate topic and receives immediate feedback on whether it's suita
 
 **Acceptance Scenarios**:
 
-1. **Given** user is on the home page, **When** user enters "Should Christians defy authorities when the law is unfair?" and submits, **Then** system validates topic as relevant for theology/philosophy debate
+1. **Given** user is on the home page, **When** user enters "Should Christians defy authorities when the law is unfair?" and clicks "Find Panelists", **Then** system shows "Looking for Panelists" loading animation and validates topic as relevant for theology/philosophy debate
 2. **Given** user has entered a topic, **When** validation completes, **Then** system displays validation result with clear messaging within 3 seconds
-3. **Given** user enters an off-topic query like "Best pizza toppings", **When** validation runs, **Then** system politely indicates topic is not suitable for theological/philosophical debate and suggests refinement
+3. **Given** user is validating a topic, **When** waiting for response, **Then** system displays engaging loading animation with "Looking for Panelists" message
+4. **Given** user enters an off-topic query like "Best pizza toppings", **When** validation runs, **Then** system politely indicates topic is not suitable for theological/philosophical debate and suggests refinement
 
 ---
 
@@ -58,11 +59,12 @@ User launches debate generation and watches the conversation unfold in real-time
 2. **Given** debate is generating, **When** AI produces responses, **Then** each response appears progressively in a chat bubble with the speaking panelist's avatar and name, or the moderator's avatar for moderation
 3. **Given** debate is streaming, **When** a panelist's turn begins, **Then** their chat bubble appears with loading indicator before text streams in
 4. **Given** debate is in progress, **When** user views the conversation, **Then** different panelists' responses and moderator interventions are visually distinguishable by avatar and styling
-5. **Given** debate includes moderator, **When** moderator intervenes, **Then** moderator may redirect conversation, ask clarifying questions, highlight contrasts, or summarize progress
-6. **Given** debate is streaming, **When** user clicks on a panelist avatar, **Then** a modal opens displaying the panelist's name, tagline, and full biography
-7. **Given** panelist modal is open, **When** user clicks outside modal or presses Escape key, **Then** modal closes and returns focus to debate view
-8. **Given** debate is streaming, **When** user toggles auto-scroll, **Then** conversation view automatically follows new messages (when enabled) or remains at current scroll position (when disabled, default)
-9. **Given** debate is generating, **When** an error occurs (API timeout, rate limit), **Then** user sees friendly error message with option to retry
+5. **Given** debate includes moderator, **When** moderator intervenes, **Then** moderator may redirect conversation, ask clarifying questions, highlight contrasts, or summarize progress between panelist exchanges
+6. **Given** debate is nearing completion, **When** panelists have made their main arguments, **Then** moderator provides a concluding summary that synthesizes the key points and ends the debate
+7. **Given** debate is streaming, **When** user clicks on a panelist avatar, **Then** a modal opens displaying the panelist's name, tagline, and full biography
+8. **Given** panelist modal is open, **When** user clicks outside modal or presses Escape key, **Then** modal closes and returns focus to debate view
+9. **Given** debate is streaming, **When** user toggles auto-scroll, **Then** conversation view automatically follows new messages (when enabled) or remains at current scroll position (when disabled, default)
+10. **Given** debate is generating, **When** an error occurs (API timeout, rate limit), **Then** user sees friendly error message with option to retry
 
 ---
 
@@ -112,7 +114,7 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - **FR-009**: System MUST stream debate responses progressively and display them in real-time
 - **FR-010**: System MUST parse streaming responses to identify which panelist or moderator is speaking
 - **FR-011**: System MUST display each panelist's response in a distinct chat bubble with their avatar
-- **FR-011a**: System MUST include a neutral moderator who introduces the debate, may intervene between exchanges, and provides conclusion
+- **FR-011a**: System MUST include a neutral moderator who introduces the debate, may intervene between panelist exchanges, and provides a concluding summary at the end
 - **FR-011b**: Moderator responses MUST be visually distinguished from panelist responses with unique avatar and styling
 - **FR-012**: System MUST show loading/typing indicators while waiting for next response
 - **FR-012a**: System MUST provide toggleable auto-scroll control for debate view (disabled by default)
@@ -132,7 +134,7 @@ User exports completed debate as a formatted PDF document for offline reading, s
 
 - **Topic**: User-submitted debate subject; includes validation status and relevance indicator
 - **Panelist**: Historical figure with position on topic; attributes include unique handle/identifier (alphanumeric only), name, avatar URL, tagline (brief descriptor), biography (credentials and viewpoint)
-- **Moderator**: Neutral facilitator with ID "moderator"; introduces topic and panelists, may intervene to redirect/clarify/summarize, provides conclusion
+- **Moderator**: Neutral facilitator with ID "moderator"; introduces topic and panelists, may intervene between exchanges to redirect/clarify/summarize, MUST provide concluding summary at end of debate
 - **Debate Configuration**: Combination of validated topic and selected panelists (2-5); represents user's debate setup
 - **Debate Response**: Individual contribution from a panelist during debate generation; includes panelist identifier, response text, timestamp, and position in conversation
 - **Debate Session**: Complete generated debate; contains topic, panelist list, ordered responses, generation timestamp, and completion status
@@ -175,5 +177,6 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - Editing or regenerating portions of completed debates
 - Audio/video generation of debates
 - Direct creation of custom panelists with user-defined bios (AI evaluates suggested names instead)
+- User acting as moderator with ability to ask questions during debate (future enhancement)
 - Payment or subscription features
 - Admin panel or content moderation tools

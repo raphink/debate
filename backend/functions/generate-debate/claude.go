@@ -50,7 +50,7 @@ func (c *ClaudeClient) GenerateDebate(ctx context.Context, req *DebateRequest, w
 	// Create the request body with streaming enabled
 	requestBody := map[string]interface{}{
 		"model":      c.model,
-		"max_tokens": 4000,
+		"max_tokens": 4096,
 		"stream":     true,
 		"messages": []map[string]string{
 			{
@@ -114,12 +114,12 @@ func (c *ClaudeClient) buildDebatePrompt(req *DebateRequest) string {
 	prompt.WriteString("\nGenerate a moderated debate with the following structure:\n")
 	prompt.WriteString("1. FIRST MESSAGE MUST BE: [moderator]: (introducing the topic and panelists)\n")
 	prompt.WriteString("2. Include 12-18 exchanges between panelists\n")
-	prompt.WriteString("3. The moderator may occasionally intervene to:\n")
+	prompt.WriteString("3. The moderator may occasionally intervene between panelist exchanges to:\n")
 	prompt.WriteString("   - Redirect the conversation\n")
 	prompt.WriteString("   - Ask clarifying questions\n")
 	prompt.WriteString("   - Highlight contrasting viewpoints\n")
 	prompt.WriteString("   - Summarize progress\n")
-	prompt.WriteString("4. End with the moderator providing a brief conclusion\n\n")
+	prompt.WriteString("4. LAST MESSAGE MUST BE: [moderator]: (providing a concluding summary that synthesizes the key points, acknowledges different perspectives, and gracefully ends the debate - 3-5 sentences)\n\n")
 	prompt.WriteString("CRITICAL FORMAT REQUIREMENTS:\n")
 	prompt.WriteString("- Each response MUST start on a new line with the exact format: [ID]: text\n")
 	prompt.WriteString("- Use [moderator]: for moderator messages\n")

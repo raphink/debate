@@ -112,7 +112,7 @@ const TopicInput = ({ onSubmit, isLoading }) => {
         disabled={isLoading || topic.trim().length < MIN_TOPIC_LENGTH || isOverLimit}
         aria-busy={isLoading}
       >
-        {isLoading ? 'Validating...' : 'Validate Topic'}
+        {isLoading ? 'Looking for Panelists...' : 'Find Panelists'}
       </button>
     </form>
   );
