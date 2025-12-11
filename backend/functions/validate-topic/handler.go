@@ -68,7 +68,6 @@ func handleValidateTopicImpl(w http.ResponseWriter, r *http.Request) {
 			suggestedNames = append(suggestedNames, sanitized)
 		}
 	}
-	log.Printf("Received suggested names: %v, sanitized to: %v", req.SuggestedNames, suggestedNames)
 
 	// Create Claude client
 	claudeClient, err := NewClaudeClient()

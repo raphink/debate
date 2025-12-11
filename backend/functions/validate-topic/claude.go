@@ -59,9 +59,6 @@ For user-suggested panelists who qualify, infer their likely position based on t
 `
 	}
 
-	fmt.Printf("[DEBUG] Suggested names count: %d, names: %v\n", len(suggestedNames), suggestedNames)
-	fmt.Printf("[DEBUG] Names section in prompt:\n%s\n", namesSection)
-
 	// Build the combined prompt for Claude
 	prompt := fmt.Sprintf(`You are an expert in theology and philosophy. Your task is to evaluate if a topic is suitable for a theological or philosophical debate, and if so, suggest panelists.
 
@@ -134,7 +131,6 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 
 		text := event.Delta.Text
 		fullBuffer.WriteString(text)
-		fmt.Printf("[DEBUG] Received text chunk: %s\n", text)
 
 		// Process character by character to detect complete lines
 		for _, char := range text {
@@ -144,7 +140,6 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 			currentLine := lineBuffer.String()
 			if char == '\n' && strings.TrimSpace(currentLine) != "" {
 				line := strings.TrimSpace(currentLine)
-				fmt.Printf("[DEBUG] Newline detected, line: %s\n", line)
 				lineBuffer.Reset()
 
 				// Skip empty lines or standalone closing braces
@@ -160,11 +155,8 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 				}
 
 				if err := json.Unmarshal([]byte(line), &chunk); err != nil {
-					fmt.Printf("[DEBUG] Failed to parse line as chunk: %v (line was: %s)\n", err, line)
 					continue // Skip malformed lines
 				}
-
-				fmt.Printf("[DEBUG] Parsed chunk type: %s\n", chunk.Type)
 
 				if chunk.Type == "rejection" {
 					// Send rejection message
@@ -178,11 +170,8 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 					// Parse and send panelist immediately
 					var panelist Panelist
 					if err := json.Unmarshal(chunk.Data, &panelist); err != nil {
-						fmt.Printf("[DEBUG] Failed to parse panelist data: %v\n", err)
 						continue
 					}
-
-					fmt.Printf("[DEBUG] Parsed panelist: %s\n", panelist.Name)
 
 					// Validate and sanitize
 					if panelist.Name == "" || panelist.ID == "" {
@@ -208,7 +197,6 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 	// After stream completes, check if we accumulated text but didn't emit anything via line parsing
 	// This handles the case where Claude returns the old format instead of line-delimited
 	fullText := fullBuffer.String()
-	fmt.Printf("[DEBUG] Full accumulated text: %s\n", fullText)
 
 	// Strip markdown code blocks if present
 	fullText = strings.TrimSpace(fullText)
@@ -219,7 +207,6 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 			// Remove first line (```json) and last line (```)
 			fullText = strings.Join(lines[1:len(lines)-1], "\n")
 			fullText = strings.TrimSpace(fullText)
-			fmt.Printf("[DEBUG] Stripped markdown code blocks, result: %s\n", fullText)
 		}
 	}
 
@@ -238,8 +225,6 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 		}
 
 		if err := json.Unmarshal([]byte(fullText), &oldFormat); err == nil {
-			fmt.Printf("[DEBUG] Parsed as old format - isRelevant: %v, panelists: %d\n", oldFormat.IsRelevant, len(oldFormat.Panelists))
-
 			// Send validation result
 			validationData, _ := json.Marshal(map[string]interface{}{
 				"isRelevant": oldFormat.IsRelevant,
@@ -253,16 +238,12 @@ func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic
 				sendChunk("panelist", string(panelistJSON))
 			}
 		} else if err := json.Unmarshal([]byte(fullText), &rejectionFormat); err == nil && rejectionFormat.Type == "rejection" {
-			fmt.Printf("[DEBUG] Parsed as rejection format - message: %s\n", rejectionFormat.Message)
-
 			// Send rejection as validation result
 			validationData, _ := json.Marshal(map[string]interface{}{
 				"isRelevant": false,
 				"message":    rejectionFormat.Message,
 			})
 			sendChunk("validation", string(validationData))
-		} else {
-			fmt.Printf("[DEBUG] Failed to parse accumulated text in any known format\n")
 		}
 	}
 
