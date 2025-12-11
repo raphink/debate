@@ -60,7 +60,7 @@ const Home = () => {
           {isValidating && (
             <div className={styles.loadingContainer}>
               <LoadingSpinner />
-              <p className={styles.loadingText}>Validating your topic...</p>
+              <p className={styles.loadingText}>Looking for panelists...</p>
             </div>
           )}
         </div>
