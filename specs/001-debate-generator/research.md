@@ -21,6 +21,13 @@
 - Frontend: EventSource API to consume SSE stream from GCP Cloud Function
 - Message format: JSON-encoded events with `{panelist_id, text_chunk, done}` structure
 - Chunking strategy: Stream by sentence boundaries to maintain readability
+- **Claude Response Format**: Claude streams responses using `[ID]: text` pattern where ID is panelist handle or "moderator"
+  - Format: `[moderator]: Welcome to the debate\n[Augustine354]: Thank you`
+  - Backend parses this format to extract speaker ID and message text
+  - **Edge Case Handling**: Single SSE chunk may contain multiple `[ID]:` patterns if Claude sends rapid speaker changes
+  - Solution: `findNextPattern()` helper scans for subsequent patterns after current message start
+  - Each complete message is sent as separate chunk when new speaker detected
+  - Final message in buffer flushed when stream ends or next speaker starts
 
 **Alternatives Considered**:
 - WebSockets: Rejected due to unnecessary complexity for one-way streaming
