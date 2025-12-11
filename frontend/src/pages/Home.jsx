@@ -20,6 +20,9 @@ const Home = () => {
     isValidSelection,
   } = usePanelistSelection();
 
+  // Debug logging
+  console.log('Home render - validationResult:', validationResult, 'panelists count:', panelists.length, 'isValidating:', isValidating);
+
   const handleSubmit = async (topic) => {
     try {
       await validate(topic);

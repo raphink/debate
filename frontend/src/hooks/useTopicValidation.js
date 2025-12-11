@@ -28,6 +28,7 @@ const useTopicValidation = () => {
         suggestedNames,
         // onValidation callback
         (data) => {
+          console.log('Setting validation result:', data);
           setValidationResult({
             isRelevant: data.isRelevant,
             message: data.message,
@@ -36,7 +37,12 @@ const useTopicValidation = () => {
         },
         // onPanelist callback
         (panelist) => {
-          setPanelists(prev => [...prev, panelist]);
+          console.log('Adding panelist to state:', panelist);
+          setPanelists(prev => {
+            const updated = [...prev, panelist];
+            console.log('Panelists state updated, count:', updated.length);
+            return updated;
+          });
         },
         // onError callback
         (err) => {
