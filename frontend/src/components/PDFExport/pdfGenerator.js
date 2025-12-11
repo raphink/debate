@@ -271,10 +271,13 @@ export const generateDebatePDF = async (debateData) => {
     const panelist = panelistMap[message.panelistId];
     if (!panelist) return;
 
+    const isModerator = panelist.id === 'moderator';
+    
     // Estimate space needed for this message
-    const messageLines = pdf.splitTextToSize(message.text, contentWidth - 25);
-    const bubbleHeight = 8 + (messageLines.length * 5);
-    const neededSpace = bubbleHeight + 5; // Include some padding
+    const bubbleWidth = contentWidth * 0.7; // Use 70% of page width
+    const messageLines = pdf.splitTextToSize(message.text, bubbleWidth - 12);
+    const bubbleHeight = 12 + (messageLines.length * 5.5); // Increased line height
+    const neededSpace = bubbleHeight + 6; // More spacing between bubbles
     
     // Check if we need a new page BEFORE starting to draw
     if (yPosition + neededSpace > pageHeight - margin) {
@@ -282,31 +285,54 @@ export const generateDebatePDF = async (debateData) => {
       yPosition = margin;
     }
 
-    // Draw chat bubble background (light gray)
-    const bubbleWidth = contentWidth - 15;
-    pdf.setFillColor(249, 250, 251); // gray-50
-    pdf.setDrawColor(229, 231, 235); // gray-200
-    pdf.setLineWidth(0.1);
-    pdf.roundedRect(margin + 12, yPosition - 2, bubbleWidth, bubbleHeight, 2, 2, 'FD');
+    // Alternate bubble position for visual variety (except moderator - always centered)
+    const bubbleX = isModerator 
+      ? margin + (contentWidth - bubbleWidth) / 2 // Center moderator
+      : (index % 2 === 0) 
+        ? margin + 15 // Left-aligned for even messages
+        : margin + contentWidth - bubbleWidth - 15; // Right-aligned for odd
+    
+    // Avatar position
+    const avatarX = bubbleX - 8;
+    const avatarY = yPosition + 3;
+
+    // Draw chat bubble background with subtle shadow effect
+    // Shadow
+    pdf.setFillColor(220, 220, 220);
+    pdf.roundedRect(bubbleX + 0.5, yPosition + 0.5, bubbleWidth, bubbleHeight, 3, 3, 'F');
+    
+    // Main bubble
+    if (isModerator) {
+      pdf.setFillColor(237, 233, 254); // purple-100 for moderator
+    } else {
+      pdf.setFillColor(249, 250, 251); // gray-50 for panelists
+    }
+    pdf.setDrawColor(209, 213, 219); // gray-300
+    pdf.setLineWidth(0.3);
+    pdf.roundedRect(bubbleX, yPosition, bubbleWidth, bubbleHeight, 3, 3, 'FD');
 
     // Draw circular avatar
     const avatarUrl = panelist.avatarUrl || defaultAvatar;
     const avatarData = portraitCache[avatarUrl] || portraitCache[defaultAvatar];
     if (avatarData) {
-      drawCircularAvatar(avatarData, margin + 5, yPosition + 2, avatarSize / 2);
+      drawCircularAvatar(avatarData, avatarX, avatarY, avatarSize / 2);
     }
 
     // Speaker name
     pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(16, 185, 129); // green-500 (brighter for better contrast)
-    pdf.text(`${panelist.name}`, margin + 15, yPosition + 2);
-    yPosition += 6;
-
+    if (isModerator) {
+      pdf.setTextColor(109, 40, 217); // purple-700 for moderator
+    } else {
+      pdf.setTextColor(5, 150, 105); // green-600 for panelists
+    }
+    pdf.text(panelist.name, bubbleX + 5, yPosition + 5);
+    
     // Message text
     pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(31, 41, 55); // gray-800 (darker for better contrast on light background)
-    pdf.text(messageLines, margin + 15, yPosition);
-    yPosition += (messageLines.length * 5) + 8;
+    pdf.setTextColor(31, 41, 55); // gray-800
+    pdf.text(messageLines, bubbleX + 5, yPosition + 10);
+    
+    yPosition += bubbleHeight + 6; // More spacing between messages
 
     pdf.setTextColor(31, 41, 55);
   });
