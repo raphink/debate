@@ -14,13 +14,13 @@ const PDFExport = ({ topic, panelists, messages }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     setIsExporting(true);
     setError(null);
 
     try {
       const debateData = { topic, panelists, messages };
-      const result = exportDebatePDF(debateData);
+      const result = await exportDebatePDF(debateData);
       
       if (!result.success) {
         setError('Failed to generate PDF. Please try again.');

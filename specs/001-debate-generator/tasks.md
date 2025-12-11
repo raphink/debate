@@ -233,8 +233,11 @@
 - [X] T082 [P] [US4] Create pdfGenerator utility in frontend/src/components/PDFExport/pdfGenerator.js (jsPDF integration, debate formatting)
 - [X] T083 [P] [US4] Create PDFExport component in frontend/src/components/PDFExport/PDFExport.jsx (export button, download trigger)
 - [X] T084 [US4] Add PDF header generation in pdfGenerator.js (debate topic, timestamp, page numbers)
-- [X] T085 [US4] Add panelist profile section in pdfGenerator.js (avatars, names, bios)
-- [X] T086 [US4] Add debate conversation rendering in pdfGenerator.js (chat bubbles with avatars, proper page breaks)
+- [X] T085 [US4] Add panelist profile section in pdfGenerator.js (circular portrait avatars, names, bios)
+- [X] T086 [US4] Add debate conversation rendering in pdfGenerator.js (chat bubbles with circular portrait avatars, proper page breaks)
+- [X] T086a [US4] Implement image loading utility in pdfGenerator.js (fetch and convert portrait URLs to base64 data URLs for PDF embedding)
+- [X] T086b [US4] Add CORS proxy support for Wikimedia portrait URLs in PDF generation (handle cross-origin image loading)
+- [X] T086c [US4] Implement circular avatar cropping in PDF using jsPDF ellipse clipping path
 - [X] T087 [US4] Integrate PDFExport component in DebateGeneration page (show after debate completes)
 - [X] T088 [US4] Add error handling for PDF generation failures in PDFExport component
 - [ ] T089 [US4] Add pdfGenerator unit tests in frontend/src/components/PDFExport/pdfGenerator.test.js (content formatting, page breaks)
@@ -356,7 +359,7 @@ Each phase must pass these gates before proceeding:
 
 ## Task Statistics
 
-- **Total Tasks**: 107 (includes portrait service enhancement with URL handling fix)
+- **Total Tasks**: 110 (includes portrait service and enhanced PDF export)
 - **Setup Phase**: 14 tasks (T001-T014)
 - **Foundational Phase**: 13 tasks (T015-T027, BLOCKING - includes CORS configuration)
 - **User Story 1**: 18 tasks (T027-T044: 7 backend + 11 frontend)
@@ -364,14 +367,18 @@ Each phase must pass these gates before proceeding:
   - Original panelist selection: 13 tasks (T045-T057: frontend only, panelists come from validate-topic)
   - Portrait enhancement: 9 tasks (T054a-T054m: 5 backend + 4 frontend, async Wikimedia integration)
 - **User Story 3**: 24 tasks (T058-T081: 9 backend + 15 frontend)
-- **User Story 4**: 9 tasks (T082-T090: frontend only)
+- **User Story 4**: 12 tasks (T082-T090 + T086a-T086c: frontend only, includes enhanced PDF with portraits)
+  - Original PDF export: 9 tasks (T082-T090)
+  - Portrait embedding: 3 tasks (T086a-T086c: image loading, CORS, circular cropping)
 - **Polish Phase**: 16 tasks (T091-T106)
 
 **Parallel Opportunities**: ~65% of tasks can run in parallel after foundational phase completes
 
-**MVP Tasks**: 88 tasks (Phases 1-5 including portrait service, excludes US4 and Polish)
+**MVP Tasks**: 91 tasks (Phases 1-5 including portrait service and enhanced PDF, excludes Polish)
 
 **Architecture Notes**: 
 - Portrait service (get-portrait) runs as independent Cloud Function with async frontend integration
 - All three backend services (validate-topic, get-portrait, generate-debate) use ALLOWED_ORIGIN environment variable for CORS security
 - Frontend avatar components check for absolute URLs before prepending local path prefix
+- PDF export uses async image loading with CORS-enabled fetch, converts portraits to base64 data URLs for embedding
+- Chat bubble format in PDF matches web UI with circular portrait avatars and rounded rectangles

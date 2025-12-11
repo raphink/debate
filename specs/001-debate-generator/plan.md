@@ -57,7 +57,14 @@ Build a web application that generates AI-powered theological/philosophical deba
 - First debate response: <5s
 - Streaming chunk intervals: <500ms
 - UI interaction response: <100ms
-- PDF generation: <2s for 5000 words
+- PDF generation: <2s for 5000 words (with portrait embedding)
+**PDF Export Strategy**:
+- Client-side generation using jsPDF library
+- Chat bubble format matching web UI styling
+- Circular portrait images embedded from avatarUrl (Wikimedia URLs and local avatars)
+- Portrait images converted to base64 data URLs for embedding
+- CORS proxy for cross-origin Wikimedia images
+- Automatic page breaks between messages to avoid splitting bubbles
 **Constraints**: 
 - No database/persistence (stateless MVP)
 - Claude API rate limits (per Anthropic tier)

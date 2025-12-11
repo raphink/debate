@@ -1,14 +1,53 @@
 import { jsPDF } from 'jspdf';
 
 /**
+ * Load an image from URL and convert to base64 data URL
+ * @param {string} url - Image URL (absolute or relative)
+ * @returns {Promise<string>} Base64 data URL
+ */
+const loadImageAsDataURL = (url) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous'; // Enable CORS for Wikimedia images
+    
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      try {
+        const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(dataURL);
+      } catch (error) {
+        console.error('Failed to convert image to data URL:', error);
+        reject(error);
+      }
+    };
+    
+    img.onerror = (error) => {
+      console.error('Failed to load image:', url, error);
+      reject(error);
+    };
+    
+    // Handle relative paths
+    if (url.startsWith('http') || url.startsWith('//')) {
+      img.src = url;
+    } else {
+      img.src = `${window.location.origin}${url.startsWith('/') ? '' : '/'}${url}`;
+    }
+  });
+};
+
+/**
  * Generates a PDF document from debate data
  * @param {Object} debateData - The debate data to export
  * @param {string} debateData.topic - The debate topic
- * @param {Array} debateData.panelists - Array of panelist objects
+ * @param {Array} debateData.panelists - Array of panelist objects with avatarUrl
  * @param {Array} debateData.messages - Array of message objects {panelistId, text}
- * @returns {jsPDF} The generated PDF document
+ * @returns {Promise<jsPDF>} The generated PDF document
  */
-export const generateDebatePDF = (debateData) => {
+export const generateDebatePDF = async (debateData) => {
   const { topic, panelists, messages } = debateData;
   
   // Create new PDF document (A4 size)
@@ -22,7 +61,33 @@ export const generateDebatePDF = (debateData) => {
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 20;
   const contentWidth = pageWidth - (2 * margin);
+  const avatarSize = 10; // Circular avatar diameter in mm
   let yPosition = margin;
+
+  // Load all portrait images upfront
+  const portraitCache = {};
+  const defaultAvatar = `${window.location.origin}/avatars/placeholder-avatar.svg`;
+  
+  // Collect all unique avatar URLs
+  const avatarUrls = new Set();
+  panelists.forEach(p => {
+    if (p.avatarUrl) avatarUrls.add(p.avatarUrl);
+  });
+  avatarUrls.add(defaultAvatar); // Always load placeholder
+  
+  // Load all images
+  for (const url of avatarUrls) {
+    try {
+      portraitCache[url] = await loadImageAsDataURL(url);
+    } catch (error) {
+      console.warn(`Failed to load portrait ${url}, using placeholder`);
+      try {
+        portraitCache[url] = await loadImageAsDataURL(defaultAvatar);
+      } catch (fallbackError) {
+        console.error('Failed to load placeholder avatar');
+      }
+    }
+  }
 
   // Create panelist lookup map
   const panelistMap = panelists.reduce((acc, panelist) => {
@@ -63,6 +128,37 @@ export const generateDebatePDF = (debateData) => {
       pageHeight - 10,
       { align: 'center' }
     );
+  };
+
+  /**
+   * Draw circular avatar image
+   * @param {string} imageData - Base64 image data URL
+   * @param {number} x - X position (center of circle)
+   * @param {number} y - Y position (center of circle)
+   * @param {number} radius - Radius of circle
+   */
+  const drawCircularAvatar = (imageData, x, y, radius) => {
+    if (!imageData) return;
+    
+    // Save graphics state
+    pdf.saveGraphicsState();
+    
+    // Create circular clipping path
+    pdf.circle(x, y, radius);
+    pdf.clip();
+    
+    // Draw image (square, will be clipped to circle)
+    const size = radius * 2;
+    pdf.addImage(imageData, 'JPEG', x - radius, y - radius, size, size);
+    
+    // Restore graphics state
+    pdf.restoreGraphicsState();
+    
+    // Draw circle border
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.2);
+    pdf.circle(x, y, radius);
+    pdf.stroke();
   };
 
   // ========== HEADER ==========
@@ -120,12 +216,20 @@ export const generateDebatePDF = (debateData) => {
   pdf.setFont('helvetica', 'normal');
 
   panelists.forEach((panelist) => {
-    checkPageBreak(20);
+    checkPageBreak(25);
 
-    // Panelist name
+    // Draw avatar
+    const avatarUrl = panelist.avatarUrl || defaultAvatar;
+    const avatarData = portraitCache[avatarUrl] || portraitCache[defaultAvatar];
+    if (avatarData) {
+      drawCircularAvatar(avatarData, margin + 5, yPosition + 2, avatarSize / 2);
+    }
+
+    // Panelist name (next to avatar)
     pdf.setFont('helvetica', 'bold');
-    pdf.text(panelist.name, margin + 5, yPosition);
-    yPosition += 5;
+    pdf.setTextColor(31, 41, 55);
+    pdf.text(panelist.name, margin + 5 + avatarSize + 3, yPosition + 4);
+    yPosition += 7;
 
     // Tagline
     if (panelist.tagline) {
@@ -169,21 +273,36 @@ export const generateDebatePDF = (debateData) => {
     if (!panelist) return;
 
     // Estimate space needed for this message
-    const messageLines = pdf.splitTextToSize(message.text, contentWidth - 15);
-    const neededSpace = 10 + (messageLines.length * 5);
+    const messageLines = pdf.splitTextToSize(message.text, contentWidth - 25);
+    const neededSpace = 15 + (messageLines.length * 5);
     
     checkPageBreak(neededSpace);
+
+    // Draw chat bubble background (light gray)
+    const bubbleHeight = 8 + (messageLines.length * 5);
+    const bubbleWidth = contentWidth - 15;
+    pdf.setFillColor(249, 250, 251); // gray-50
+    pdf.setDrawColor(229, 231, 235); // gray-200
+    pdf.setLineWidth(0.1);
+    pdf.roundedRect(margin + 12, yPosition - 2, bubbleWidth, bubbleHeight, 2, 2, 'FD');
+
+    // Draw circular avatar
+    const avatarUrl = panelist.avatarUrl || defaultAvatar;
+    const avatarData = portraitCache[avatarUrl] || portraitCache[defaultAvatar];
+    if (avatarData) {
+      drawCircularAvatar(avatarData, margin + 5, yPosition + 2, avatarSize / 2);
+    }
 
     // Speaker name
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(91, 138, 114); // green-700
-    pdf.text(`${panelist.name}:`, margin, yPosition);
+    pdf.text(`${panelist.name}`, margin + 15, yPosition + 2);
     yPosition += 6;
 
     // Message text
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(44, 62, 80);
-    pdf.text(messageLines, margin + 5, yPosition);
+    pdf.text(messageLines, margin + 15, yPosition);
     yPosition += (messageLines.length * 5) + 8;
 
     pdf.setTextColor(31, 41, 55);
@@ -213,9 +332,9 @@ export const downloadPDF = (pdf, filename = 'debate.pdf') => {
  * @param {Object} debateData - The debate data to export
  * @param {string} filename - Optional filename for the PDF
  */
-export const exportDebatePDF = (debateData, filename) => {
+export const exportDebatePDF = async (debateData, filename) => {
   try {
-    const pdf = generateDebatePDF(debateData);
+    const pdf = await generateDebatePDF(debateData);
     const sanitizedTopic = debateData.topic
       .substring(0, 50)
       .replace(/[^a-z0-9]/gi, '-')

@@ -83,8 +83,10 @@ User exports completed debate as a formatted PDF document for offline reading, s
 **Acceptance Scenarios**:
 
 1. **Given** debate generation has completed, **When** user clicks "Export as PDF", **Then** PDF download begins within 2 seconds
-2. **Given** PDF is generated, **When** user opens the PDF, **Then** document includes debate topic, panelist profiles, complete conversation with avatars, and timestamp
-3. **Given** user exports PDF, **When** PDF renders, **Then** text is readable, avatars display correctly, and page breaks don't split individual responses awkwardly
+2. **Given** PDF is generated, **When** user opens the PDF, **Then** document includes debate topic, panelist profiles with circular portrait avatars, complete conversation in chat bubble format with portraits, and timestamp
+3. **Given** user exports PDF, **When** PDF renders, **Then** text is readable, portrait images are embedded correctly (both Wikimedia URLs and local avatars), chat bubbles match web UI styling, and page breaks don't split individual responses awkwardly
+4. **Given** PDF includes panelist portraits, **When** portrait is from Wikimedia Commons (absolute URL), **Then** image is fetched and embedded in PDF
+5. **Given** PDF includes panelist portraits, **When** portrait is local avatar (relative path), **Then** image is correctly resolved and embedded in PDF
 
 ---
 
@@ -136,8 +138,10 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - **FR-012c**: Modal MUST display panelist name, tagline, and biography with accessible close controls (X button, Escape key, click outside)
 - **FR-013**: System MUST handle API errors gracefully with user-friendly error messages
 - **FR-014**: System MUST provide retry mechanism for failed API calls
-- **FR-015**: System MUST allow PDF export of completed debates
-- **FR-016**: PDF export MUST include topic, panelist profiles, complete conversation, and generation timestamp
+- **FR-015**: System MUST allow PDF export of completed debates with chat bubble formatting and panelist portraits
+- **FR-016**: PDF export MUST include topic, panelist profiles with circular portrait avatars, complete conversation in chat bubble format with portraits, and generation timestamp
+- **FR-016a**: PDF export MUST embed portrait images from avatarUrl (both absolute Wikimedia URLs and relative local paths) as circular avatars in chat bubbles
+- **FR-016b**: PDF export MUST render messages in chat bubble format matching the web UI, with speaker identification and visual distinction
 - **FR-017**: System MUST sanitize all Claude API outputs before rendering to prevent XSS attacks (per Constitution Principle V)
 - **FR-018**: System MUST rate-limit API requests to prevent abuse (per Constitution Principle V)
 - **FR-019**: System MUST validate and sanitize user topic input and suggested panelist names before sending to Claude API (per Constitution Principle V)
