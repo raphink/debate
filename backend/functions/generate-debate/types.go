@@ -1,4 +1,4 @@
-package main
+package generatedebate
 
 // Panelist represents a debate participant
 type Panelist struct {

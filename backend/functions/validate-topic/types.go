@@ -1,4 +1,4 @@
-package main
+package validatetopic
 
 // TopicValidationRequest represents the incoming request to validate a topic
 type TopicValidationRequest struct {

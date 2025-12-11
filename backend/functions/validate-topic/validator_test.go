@@ -1,5 +1,4 @@
-package main
-package main
+package validatetopic
 
 import (
 	"errors"
