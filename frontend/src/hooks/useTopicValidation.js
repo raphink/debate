@@ -34,10 +34,20 @@ const useTopicValidation = () => {
             message: data.message,
             topic: topic,
           });
+          // If not relevant, stop loading immediately
+          if (!data.isRelevant) {
+            setIsValidating(false);
+          }
         },
         // onPanelist callback
         (panelist) => {
           console.log('Adding panelist to state:', panelist);
+          // First panelist means validation passed
+          setValidationResult(prev => prev || {
+            isRelevant: true,
+            message: '',
+            topic: topic,
+          });
           setPanelists(prev => {
             const updated = [...prev, panelist];
             console.log('Panelists state updated, count:', updated.length);
