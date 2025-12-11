@@ -63,11 +63,11 @@ func TestParseMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			id, message := client.parseMessage(tt.input)
-			
+
 			if id != tt.expectedID {
 				t.Errorf("parseMessage() id = %q, want %q", id, tt.expectedID)
 			}
-			
+
 			if message != tt.expectedMessage {
 				t.Errorf("parseMessage() message = %q, want %q", message, tt.expectedMessage)
 			}
@@ -86,11 +86,11 @@ func TestParseMessageMultiplePanelists(t *testing.T) {
 		desc     string
 	}{
 		{
-			name: "Single complete message",
-			input: `[moderator]: Welcome to the debate`,
+			name:     "Single complete message",
+			input:    `[moderator]: Welcome to the debate`,
 			wantID:   "moderator",
 			wantText: "Welcome to the debate",
-			desc: "Should extract first message",
+			desc:     "Should extract first message",
 		},
 		{
 			name: "Two complete messages - returns first with rest of text",
@@ -98,7 +98,7 @@ func TestParseMessageMultiplePanelists(t *testing.T) {
 [Augustine354]: I believe divine law supersedes human law.`,
 			wantID:   "moderator",
 			wantText: "Welcome to the debate\n[Augustine354]: I believe divine law supersedes human law.",
-			desc: "parseMessage extracts first ID and returns ALL remaining text (including next [ID]:)",
+			desc:     "parseMessage extracts first ID and returns ALL remaining text (including next [ID]:)",
 		},
 		{
 			name: "Three panelists - returns first with all text",
@@ -107,18 +107,18 @@ func TestParseMessageMultiplePanelists(t *testing.T) {
 [MLKJr]: I respectfully disagree`,
 			wantID:   "moderator",
 			wantText: "Let's begin\n[Augustine354]: My position is clear\n[MLKJr]: I respectfully disagree",
-			desc: "parseMessage returns first ID and all text including subsequent patterns",
+			desc:     "parseMessage returns first ID and all text including subsequent patterns",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			id, text := client.parseMessage(tt.input)
-			
+
 			if id != tt.wantID {
 				t.Errorf("parseMessage() id = %q, want %q (%s)", id, tt.wantID, tt.desc)
 			}
-			
+
 			if text != tt.wantText {
 				t.Errorf("parseMessage() text = %q, want %q (%s)", text, tt.wantText, tt.desc)
 			}
@@ -128,7 +128,7 @@ func TestParseMessageMultiplePanelists(t *testing.T) {
 
 func TestFindNextPanelistInText(t *testing.T) {
 	client := &ClaudeClient{}
-	
+
 	// Test that we can detect a second [ID]: pattern within already-extracted text
 	tests := []struct {
 		name         string
@@ -177,7 +177,7 @@ func TestFindNextPanelistInText(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			nextID, _ := client.parseMessage(tt.messageText)
-			
+
 			if tt.expectSplit {
 				if nextID != tt.expectNextID {
 					t.Errorf("Expected to find next ID %q in text, got %q", tt.expectNextID, nextID)
@@ -198,17 +198,17 @@ func TestParseMessageStreamingBehavior(t *testing.T) {
 	// The key insight: parseMessage only finds the FIRST [ID]: pattern
 	// The streaming loop handles detecting when a NEW pattern starts
 	// and sends the accumulated message before starting the next one
-	
+
 	t.Run("Returns only first message from block", func(t *testing.T) {
 		input := `[moderator]: Welcome
 [Augustine354]: Thank you`
-		
+
 		id, text := client.parseMessage(input)
-		
+
 		if id != "moderator" {
 			t.Errorf("Expected first panelist 'moderator', got %q", id)
 		}
-		
+
 		if text != "Welcome\n[Augustine354]: Thank you" {
 			t.Errorf("Expected full text after first ID, got %q", text)
 		}
@@ -217,7 +217,7 @@ func TestParseMessageStreamingBehavior(t *testing.T) {
 
 func TestStreamResponseMultipleSpeakers(t *testing.T) {
 	client := &ClaudeClient{}
-	
+
 	tests := []struct {
 		name           string
 		mockSSEData    string
@@ -225,18 +225,26 @@ func TestStreamResponseMultipleSpeakers(t *testing.T) {
 	}{
 		{
 			name: "Single speaker in one chunk",
+			// This simulates Claude sending: [moderator]: Welcome to the debate
+			// in a SINGLE SSE event
 			mockSSEData: `data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"[moderator]: Welcome to the debate"}}
 
 `,
+			// We expect ONE output chunk (one speech bubble)
 			expectedChunks: []StreamChunk{
 				{Type: "message", PanelistID: "moderator", Text: "Welcome to the debate", Done: false},
 			},
 		},
 		{
 			name: "Two speakers in one chunk",
+			// ⭐ KEY TEST: Claude sends TWO speaker patterns in ONE SSE event:
+			//    "[moderator]: Welcome\n[Augustine354]: Thank you"
+			// This is the edge case we're testing!
 			mockSSEData: `data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"[moderator]: Welcome\n[Augustine354]: Thank you"}}
 
 `,
+			// ⭐ We expect TWO output chunks (two separate speech bubbles)
+			// even though it came in ONE SSE chunk from Claude
 			expectedChunks: []StreamChunk{
 				{Type: "message", PanelistID: "moderator", Text: "Welcome", Done: false},
 				{Type: "message", PanelistID: "Augustine354", Text: "Thank you", Done: false},
@@ -244,9 +252,13 @@ func TestStreamResponseMultipleSpeakers(t *testing.T) {
 		},
 		{
 			name: "Three speakers in one chunk",
+			// ⭐ EXTREME CASE: THREE speakers in ONE SSE chunk
+			//    "[moderator]: Let's begin\n[Augustine354]: I believe in divine law\n[MLKJr]: I advocate nonviolence"
 			mockSSEData: `data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"[moderator]: Let's begin\n[Augustine354]: I believe in divine law\n[MLKJr]: I advocate nonviolence"}}
 
 `,
+			// ⭐ We expect THREE output chunks (three separate speech bubbles)
+			// The loop in streamResponse must iterate to find ALL patterns
 			expectedChunks: []StreamChunk{
 				{Type: "message", PanelistID: "moderator", Text: "Let's begin", Done: false},
 				{Type: "message", PanelistID: "Augustine354", Text: "I believe in divine law", Done: false},
@@ -254,7 +266,22 @@ func TestStreamResponseMultipleSpeakers(t *testing.T) {
 			},
 		},
 		{
+			name: "Two speakers with empty line between them",
+			// Real-world case: Claude sometimes adds blank lines between speakers
+			mockSSEData: `data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"[moderator]: Welcome to today's debate.\n\n[john-macarthur]: This tithe is important."}}
+
+`,
+			expectedChunks: []StreamChunk{
+				{Type: "message", PanelistID: "moderator", Text: "Welcome to today's debate.", Done: false},
+				{Type: "message", PanelistID: "john-macarthur", Text: "This tithe is important.", Done: false},
+			},
+		},
+		{
 			name: "Speaker change across chunks",
+			// This tests speaker changes across MULTIPLE SSE events (normal case)
+			// Event 1: "[moderator]: Welcome to "
+			// Event 2: "the debate\n[Augustine354]: "
+			// Event 3: "Thank you moderator"
 			mockSSEData: `data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"[moderator]: Welcome to "}}
 
 data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"the debate\n[Augustine354]: "}}
@@ -268,57 +295,71 @@ data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Thank y
 			},
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create a mock reader
+			// Create a mock reader with SSE data
 			reader := strings.NewReader(tt.mockSSEData)
-			
+
 			// Create a buffer to capture output
+			// streamResponse will write JSON-encoded StreamChunk objects here,
+			// one per line, for each separate message it detects
 			var output bytes.Buffer
-			
-			// Call streamResponse
+
+			// Call streamResponse - this is where the magic happens!
+			// It reads the SSE data, detects speaker patterns, and writes
+			// separate StreamChunk objects for each speaker
+			// Call streamResponse - this is where the magic happens!
+			// It reads the SSE data, detects speaker patterns, and writes
+			// separate StreamChunk objects for each speaker
 			err := client.streamResponse(reader, &output, []Panelist{})
 			if err != nil {
 				t.Fatalf("streamResponse failed: %v", err)
 			}
-			
+
 			// Parse output into chunks
+			// The output buffer now contains JSON lines like:
+			// {"type":"message","panelistId":"moderator","text":"Welcome","done":false}
+			// {"type":"message","panelistId":"Augustine354","text":"Thank you","done":false}
+			// Each line represents ONE speech bubble that should appear in the UI
 			lines := strings.Split(output.String(), "\n")
 			var gotChunks []StreamChunk
-			
+
 			for _, line := range lines {
 				if line == "" {
 					continue
 				}
-				
+
 				var chunk StreamChunk
 				if err := json.Unmarshal([]byte(line), &chunk); err != nil {
 					continue
 				}
-				
+
 				// Skip "done" chunks for this test
 				if chunk.Type == "done" {
 					continue
 				}
-				
+
 				gotChunks = append(gotChunks, chunk)
 			}
-			
-			// Compare chunks
+
+			// ⭐ THE KEY ASSERTION: Compare number of chunks
+			// If we sent "[moderator]: A\n[Augustine354]: B" (TWO speakers in ONE SSE event)
+			// we should get TWO StreamChunks in the output (TWO speech bubbles)
 			if len(gotChunks) != len(tt.expectedChunks) {
 				t.Errorf("Expected %d chunks, got %d", len(tt.expectedChunks), len(gotChunks))
 				t.Logf("Got chunks: %+v", gotChunks)
 				return
 			}
-			
+
+			// Verify each chunk has correct speaker ID and text
 			for i, expected := range tt.expectedChunks {
 				got := gotChunks[i]
-				
+
 				if got.PanelistID != expected.PanelistID {
 					t.Errorf("Chunk %d: expected PanelistID=%q, got %q", i, expected.PanelistID, got.PanelistID)
 				}
-				
+
 				if got.Text != expected.Text {
 					t.Errorf("Chunk %d: expected Text=%q, got %q", i, expected.Text, got.Text)
 				}

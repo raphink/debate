@@ -166,7 +166,7 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 					chunk := StreamChunk{
 						Type:       "message",
 						PanelistID: currentPanelistID,
-						Text:       strings.TrimSpace(currentMessage.String()),
+						Text:       stripTrailingPatterns(currentMessage.String()),
 						Done:       false,
 					}
 					json.NewEncoder(writer).Encode(chunk)
@@ -205,7 +205,7 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 							chunk := StreamChunk{
 								Type:       "message",
 								PanelistID: currentPanelistID,
-								Text:       strings.TrimSpace(currentMessage.String()),
+								Text:       stripTrailingPatterns(currentMessage.String()),
 								Done:       false,
 							}
 							json.NewEncoder(writer).Encode(chunk)
@@ -219,7 +219,7 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 						currentMessage.Reset()
 						currentMessage.WriteString(messageText)
 						currentText.Reset()
-						
+
 						// Check if the messageText itself contains ANOTHER [ID]: pattern
 						// This handles cases where Claude sends multiple messages in one chunk
 						for {
@@ -276,7 +276,7 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 		chunk := StreamChunk{
 			Type:       "message",
 			PanelistID: currentPanelistID,
-			Text:       strings.TrimSpace(currentMessage.String()),
+			Text:       stripTrailingPatterns(currentMessage.String()),
 			Done:       false,
 		}
 		json.NewEncoder(writer).Encode(chunk)
@@ -292,7 +292,7 @@ func (c *ClaudeClient) streamResponse(reader io.Reader, writer io.Writer, paneli
 // Returns the position of '[', the panelist ID, and the message text after the pattern
 func (c *ClaudeClient) findNextPattern(text string, start int) (pos int, panelistID, messageText string) {
 	searchText := text[start:]
-	
+
 	// Look for '[' character
 	for i := 1; i < len(searchText); i++ {
 		if searchText[i] == '[' {
@@ -303,8 +303,34 @@ func (c *ClaudeClient) findNextPattern(text string, start int) (pos int, panelis
 			}
 		}
 	}
-	
+
 	return -1, "", ""
+}
+
+// stripTrailingPatterns removes any [ID]: patterns from the end of the text
+// This handles cases where we've accumulated text that includes the start of the next speaker's message
+func stripTrailingPatterns(text string) string {
+	// Look for any [ID]: pattern in the text
+	for i := 0; i < len(text); i++ {
+		if text[i] == '[' {
+			// Check if this looks like a pattern
+			testText := text[i:]
+			// Try to parse from this position
+			if idx := strings.Index(testText, "]: "); idx != -1 {
+				if startIdx := strings.LastIndex(testText[:idx], "["); startIdx == 0 {
+					// Found a pattern! Return everything before it
+					return strings.TrimSpace(text[:i])
+				}
+			}
+			if idx := strings.Index(testText, "]:"); idx != -1 {
+				if startIdx := strings.LastIndex(testText[:idx], "["); startIdx == 0 {
+					// Found a pattern! Return everything before it
+					return strings.TrimSpace(text[:i])
+				}
+			}
+		}
+	}
+	return text
 }
 
 // parseMessage extracts panelist ID and message text from formatted response
@@ -318,7 +344,7 @@ func (c *ClaudeClient) parseMessage(text string) (panelistID, messageText string
 			return panelistID, messageText
 		}
 	}
-	
+
 	// Fallback to no space after colon
 	if idx := strings.Index(text, "]:"); idx != -1 {
 		if startIdx := strings.LastIndex(text[:idx], "["); startIdx != -1 {
@@ -327,6 +353,6 @@ func (c *ClaudeClient) parseMessage(text string) (panelistID, messageText string
 			return panelistID, messageText
 		}
 	}
-	
+
 	return "", ""
 }
