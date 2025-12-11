@@ -106,7 +106,6 @@ Format: Each panelist on its own line as shown above. No other text.`, topic, na
 
 // streamPanelistResponse processes the stream and emits panelists or rejection incrementally
 func (c *ClaudeClient) streamPanelistResponse(stream *ssestream.Stream[anthropic.MessageStreamEventUnion], writer io.Writer) error {
-	var buffer strings.Builder
 	flusher, _ := writer.(http.Flusher)
 
 	sendChunk := func(chunkType, data string) {
