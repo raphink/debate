@@ -1,11 +1,11 @@
 import React from 'react';
-import { Button } from '../Button/Button';
+import Button from '../Button/Button';
 import './ErrorMessage.module.css';
 
 /**
  * Error message component with optional retry button
  */
-export const ErrorMessage = ({ 
+const ErrorMessage = ({ 
   message, 
   onRetry, 
   retryable = true,

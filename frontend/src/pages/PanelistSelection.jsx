@@ -60,7 +60,7 @@ const PanelistSelection = () => {
         </button>
         <div className={styles.topicDisplay}>
           <h1 className={styles.title}>Select Debate Panelists</h1>
-          <p className={styles.topic}>Topic: <em>"{topic}"</em></p>
+          <p className={styles.topic}>Topic: <em>&ldquo;{topic}&rdquo;</em></p>
         </div>
       </div>
 

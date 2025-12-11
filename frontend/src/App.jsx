@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ErrorBoundary } from './components/common/ErrorBoundary/ErrorBoundary';
+import ErrorBoundary from './components/common/ErrorBoundary/ErrorBoundary';
 import Home from './pages/Home';
 import PanelistSelection from './pages/PanelistSelection';
 import DebateGeneration from './pages/DebateGeneration';

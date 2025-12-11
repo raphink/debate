@@ -4,7 +4,7 @@ import './Button.module.css';
 /**
  * Accessible button component with keyboard navigation support
  */
-export const Button = ({ 
+const Button = ({ 
   children, 
   onClick, 
   disabled = false, 
@@ -28,3 +28,5 @@ export const Button = ({
     </button>
   );
 };
+
+export default Button;

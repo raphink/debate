@@ -4,7 +4,7 @@ import './LoadingSpinner.module.css';
 /**
  * Loading spinner component for async operations
  */
-export const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
+const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
   const sizeClass = `spinner-${size}`;
   
   return (
