@@ -58,15 +58,12 @@ const Home = () => {
       </header>
 
       <main className={styles.main}>
-        <div className={styles.inputSection}>
-          <TopicInput onSubmit={handleSubmit} isLoading={isValidating} />
-          {isValidating && (
-            <div className={styles.loadingContainer}>
-              <LoadingSpinner />
-              <p className={styles.loadingText}>Looking for panelists...</p>
-            </div>
-          )}
-        </div>
+        {/* Show input section only if not validating and no results yet */}
+        {!isValidating && !validationResult && (
+          <div className={styles.inputSection}>
+            <TopicInput onSubmit={handleSubmit} isLoading={isValidating} />
+          </div>
+        )}
 
         {error && (
           <div className={styles.errorContainer}>
@@ -87,23 +84,18 @@ const Home = () => {
           />
         )}
 
-        {validationResult && validationResult.isRelevant && (
+        {(isValidating || (validationResult && validationResult.isRelevant)) && (
           <div className={styles.panelistSection}>
             <div className={styles.topicDisplay}>
               <h2 className={styles.sectionTitle}>Select Debate Panelists</h2>
-              <p className={styles.validatedTopic}>
-                Topic: <em>&ldquo;{validationResult.topic}&rdquo;</em>
-              </p>
+              {validationResult && (
+                <p className={styles.validatedTopic}>
+                  Topic: <em>&ldquo;{validationResult.topic}&rdquo;</em>
+                </p>
+              )}
             </div>
 
-            {isValidating && panelists.length === 0 && (
-              <div className={styles.loadingContainer}>
-                <LoadingSpinner />
-                <p className={styles.loadingText}>Looking for panelists...</p>
-              </div>
-            )}
-
-            {!isValidating && panelists.length < 5 && (
+            {!isValidating && panelists.length < 5 && panelists.length > 0 && (
               <ErrorMessage
                 message={`Only ${panelists.length} panelists were suggested for this topic. You may want to refine your topic to get more diverse perspectives.`}
                 type="warning"
@@ -118,15 +110,33 @@ const Home = () => {
                     selectedPanelists={selectedPanelists}
                     onToggleSelection={toggleSelection}
                   />
+                  
+                  {/* Show loading animation at the end of the list while streaming */}
+                  {isValidating && (
+                    <div className={styles.loadingAtEnd}>
+                      <LoadingSpinner />
+                      <p className={styles.loadingText}>Looking for more panelists...</p>
+                    </div>
+                  )}
                 </div>
 
-                <aside className={styles.selectorSection}>
-                  <PanelistSelector
-                    selectedPanelists={selectedPanelists}
-                    onClear={clearSelection}
-                    onProceed={handleProceedToDebate}
-                  />
-                </aside>
+                {!isValidating && (
+                  <aside className={styles.selectorSection}>
+                    <PanelistSelector
+                      selectedPanelists={selectedPanelists}
+                      onClear={clearSelection}
+                      onProceed={handleProceedToDebate}
+                    />
+                  </aside>
+                )}
+              </div>
+            )}
+
+            {/* Show loading when no panelists yet */}
+            {isValidating && panelists.length === 0 && (
+              <div className={styles.loadingContainer}>
+                <LoadingSpinner />
+                <p className={styles.loadingText}>Looking for panelists...</p>
               </div>
             )}
           </div>

@@ -43,6 +43,15 @@
   margin-top: 2rem;
 }
 
+.loadingAtEnd {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2rem;
+  padding: 2rem;
+  animation: fadeIn 0.3s ease-in;
+}
+
 .loadingText {
   margin-top: 1rem;
   font-size: 1rem;
