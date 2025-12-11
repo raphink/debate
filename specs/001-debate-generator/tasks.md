@@ -16,14 +16,14 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create project directory structure per plan.md (backend/functions/, frontend/src/, shared/)
-- [ ] T002 Initialize Go modules for each Cloud Function (validate-topic, suggest-panelists, generate-debate)
-- [ ] T003 [P] Initialize React 18 project with package.json and dependencies (react-router, axios, jspdf, dompurify)
-- [ ] T004 [P] Create .gitignore for Node modules, Go binaries, and .env files
-- [ ] T005 [P] Setup ESLint configuration in frontend/.eslintrc.json per plan.md code quality standards
-- [ ] T006 [P] Setup golangci-lint configuration in backend/.golangci.yml
-- [ ] T007 Create environment variable template (.env.example) with ANTHROPIC_API_KEY and GCP_PROJECT_ID
-- [ ] T008 [P] Create README.md with quick start instructions per quickstart.md
+- [X] T001 Create project directory structure per plan.md (backend/functions/, frontend/src/, shared/)
+- [X] T002 Initialize Go modules for each Cloud Function (validate-topic, suggest-panelists, generate-debate)
+- [X] T003 [P] Initialize React 18 project with package.json and dependencies (react-router, axios, jspdf, dompurify)
+- [X] T004 [P] Create .gitignore for Node modules, Go binaries, and .env files
+- [X] T005 [P] Setup ESLint configuration in frontend/.eslintrc.json per plan.md code quality standards
+- [X] T006 [P] Setup golangci-lint configuration in backend/.golangci.yml
+- [X] T007 Create environment variable template (.env.example) with ANTHROPIC_API_KEY and GCP_PROJECT_ID
+- [X] T008 [P] Create README.md with quick start instructions per quickstart.md
 
 ---
 
@@ -33,18 +33,18 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T009 Create shared sanitization utility in backend/shared/sanitize/sanitizer.go (HTML tag removal, XSS prevention)
-- [ ] T010 [P] Create shared error handling utilities in backend/shared/errors/errors.go (user-friendly error types)
-- [ ] T011 [P] Create shared rate limiting utility in backend/shared/ratelimit/ratelimit.go (per Constitution Principle V)
-- [ ] T012 [P] Create shared API key management in backend/shared/auth/keys.go (GCP Secret Manager integration)
-- [ ] T013 [P] Setup React Router configuration in frontend/src/App.jsx (routes for Home, PanelistSelection, DebateGeneration)
-- [ ] T014 [P] Create constants file in frontend/src/utils/constants.js (MAX_PANELISTS=5, MIN_TOPIC_LENGTH=10, etc.)
-- [ ] T015 [P] Create DOMPurify wrapper in frontend/src/services/sanitizer.js (client-side XSS prevention)
-- [ ] T016 [P] Create Axios HTTP client configuration in frontend/src/services/api.js (base URLs, timeout settings)
-- [ ] T017 [P] Create common Button component in frontend/src/components/common/Button/Button.jsx (keyboard accessible)
-- [ ] T018 [P] Create common LoadingSpinner component in frontend/src/components/common/LoadingSpinner/LoadingSpinner.jsx
-- [ ] T019 [P] Create common ErrorMessage component in frontend/src/components/common/ErrorMessage/ErrorMessage.jsx
-- [ ] T020 [P] Create ErrorBoundary component in frontend/src/components/common/ErrorBoundary/ErrorBoundary.jsx
+- [X] T009 Create shared sanitization utility in backend/shared/sanitize/sanitizer.go (HTML tag removal, XSS prevention)
+- [X] T010 [P] Create shared error handling utilities in backend/shared/errors/errors.go (user-friendly error types)
+- [X] T011 [P] Create shared rate limiting utility in backend/shared/ratelimit/ratelimit.go (per Constitution Principle V)
+- [X] T012 [P] Create shared API key management in backend/shared/auth/keys.go (GCP Secret Manager integration)
+- [X] T013 [P] Setup React Router configuration in frontend/src/App.jsx (routes for Home, PanelistSelection, DebateGeneration)
+- [X] T014 [P] Create constants file in frontend/src/utils/constants.js (MAX_PANELISTS=5, MIN_TOPIC_LENGTH=10, etc.)
+- [X] T015 [P] Create DOMPurify wrapper in frontend/src/services/sanitizer.js (client-side XSS prevention)
+- [X] T016 [P] Create Axios HTTP client configuration in frontend/src/services/api.js (base URLs, timeout settings)
+- [X] T017 [P] Create common Button component in frontend/src/components/common/Button/Button.jsx (keyboard accessible)
+- [X] T018 [P] Create common LoadingSpinner component in frontend/src/components/common/LoadingSpinner/LoadingSpinner.jsx
+- [X] T019 [P] Create common ErrorMessage component in frontend/src/components/common/ErrorMessage/ErrorMessage.jsx
+- [X] T020 [P] Create ErrorBoundary component in frontend/src/components/common/ErrorBoundary/ErrorBoundary.jsx
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
