@@ -99,6 +99,8 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - How does system handle rate limiting from Claude API during high usage?
 - What happens when GCP function proxy returns malformed JSON?
 - How does system handle panelist avatars that fail to load?
+- What happens when Wikimedia API returns 403 Forbidden (requires proper User-Agent header)?
+- How does frontend distinguish between absolute portrait URLs and relative avatar paths?
 
 ## Requirements *(mandatory)*
 
@@ -114,10 +116,11 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - **FR-004a**: Panelist suggestions MUST represent diverse historical periods across 2000 years (approximately 25% ancient/early church 0-500 AD, 25% medieval/reformation 500-1700 AD, 25% modern 1700-1950 AD, 25% contemporary 1950-present)
 - **FR-004b**: System MUST stream panelists incrementally - each panelist emitted as a complete JSON line as soon as Claude generates it (character-by-character parsing to detect complete lines)
 - **FR-004c**: If topic is not relevant, Claude returns rejection JSON instead of panelists, eliminating validation/panelist race condition
-- **FR-004d**: System MUST provide separate async portrait service to fetch panelist portrait URLs from Wikimedia Commons API after panelists stream in
-- **FR-004e**: Portrait service MUST fetch 300px portrait images suitable for 48x48px circular display with proper User-Agent header
-- **FR-004f**: Portrait service MUST fall back to placeholder avatar if Wikimedia API fails or returns no suitable image
-- **FR-004g**: Portrait URLs MUST be cached in-memory to avoid redundant API calls during debate generation
+- **FR-004d**: System MUST provide separate async portrait service (get-portrait Cloud Function) to fetch panelist portrait URLs from Wikimedia Commons API after panelists stream in, keeping validation fast and non-blocking
+- **FR-004e**: Portrait service MUST fetch 300px portrait images suitable for 48x48px circular display with proper User-Agent header "DebateApp/1.0" to avoid 403 Forbidden errors
+- **FR-004f**: Portrait service MUST fall back to placeholder avatar (placeholder-avatar.svg) if Wikimedia API fails or returns no suitable image
+- **FR-004g**: Portrait URLs MUST be cached in thread-safe in-memory map (sync.RWMutex) to avoid redundant API calls during debate generation
+- **FR-004h**: Frontend MUST check if portrait URLs are absolute (http/https prefix) before prepending PUBLIC_URL/avatars/ path to avoid treating Wikimedia URLs as relative paths
 - **FR-005**: Users MUST be able to select between 2 and 5 panelists from the suggested list
 - **FR-006**: System MUST visually distinguish selected vs unselected panelists in the UI
 - **FR-007**: System MUST prevent debate generation unless at least 2 panelists are selected

@@ -9,7 +9,17 @@ Build a web application that generates AI-powered theological/philosophical deba
 
 **Key Architecture Decision**: The validate-topic endpoint uses character-by-character streaming to detect complete JSON lines as Claude generates them. Response format changed from single JSON object to line-by-line format: `{"type":"rejection","message":"..."}` OR multiple `{"type":"panelist","data":{...}}` lines. This eliminates the validation/panelist race condition and provides true incremental streaming. The backend strips markdown code blocks (```json...```) from responses to handle Claude's formatting variations. Both backend services (validate-topic and generate-debate) use the official Anthropic Go SDK (v1.19.0) for reliable streaming.
 
-**Panelist Portrait Service**: A separate async endpoint (get-portrait) fetches real portrait images from Wikimedia Commons API after panelists stream in. The service requests 300px thumbnails (suitable for 48x48px circular display), includes proper User-Agent headers to avoid 403 errors, falls back to placeholder on failure, and caches portrait URLs in-memory to avoid redundant API calls during debate generation. This keeps validation streaming fast and non-blocking while progressively enhancing avatars.
+**Panelist Portrait Service**: A separate async endpoint (get-portrait) fetches real portrait images from Wikimedia Commons API after panelists stream in. The service runs as an independent Cloud Function (port 8082/8083) to keep validation streaming fast and non-blocking.
+
+**Implementation Details**:
+- **Wikimedia API Client** (wikimedia.go): Queries Wikipedia API with action=query, prop=pageimages, pithumbsize=300 to fetch 300px thumbnails suitable for 48x48px circular display
+- **User-Agent Requirement**: All Wikimedia API requests MUST include User-Agent header "DebateApp/1.0 (https://github.com/raphink/debate; debate@example.com)" to avoid 403 Forbidden errors (Wikimedia policy)
+- **In-Memory Cache** (cache.go): Thread-safe map using sync.RWMutex to cache portrait URLs per session, preventing redundant API calls when same panelists appear in debate generation
+- **Fallback Strategy**: Returns empty string on Wikimedia failure, frontend falls back to placeholder-avatar.svg
+- **Frontend Integration**: portraitService.js calls get-portrait endpoint asynchronously when panelists arrive via useTopicValidation hook, updates avatarUrl in state progressively
+- **URL Handling Fix**: All avatar display components (PanelistCard, DebateBubble, PanelistModal, PanelistSelector) check if avatarUrl starts with 'http' or '/' before prepending PUBLIC_URL/avatars/ path, enabling both absolute Wikimedia URLs and relative local paths to work correctly
+- **CORS Security**: get-portrait handler uses ALLOWED_ORIGIN environment variable (http://localhost:3000 for dev, https://raphink.github.io for prod) matching validate-topic and generate-debate services
+- **Local Development**: cmd/main.go provides standalone HTTP server for testing portrait service locally on port 8083
 
 **User-Suggested Panelists**: Treated as PRIORITY requests - included unless clearly invalid (fictional, non-existent, or completely unrelated to intellectual discourse). Claude infers positions from known works/tradition even if they never directly addressed the specific topic.
 
@@ -127,12 +137,15 @@ backend/
 │   │   ├── validator.go         # Input validation
 │   │   ├── types.go
 │   │   └── go.mod
-│   ├── get-portrait/            # GCP Cloud Function: Async portrait fetching
-│   │   ├── main.go
-│   │   ├── handler.go
+│   ├── get-portrait/            # GCP Cloud Function: Async portrait fetching from Wikimedia Commons
+│   │   ├── main.go              # Cloud Functions init (functions.HTTP)
+│   │   ├── cmd/
+│   │   │   └── main.go          # Local dev HTTP server (port 8083)
+│   │   ├── handler.go           # HTTP handler with CORS and validation
 │   │   ├── wikimedia.go         # Wikimedia Commons API client
-│   │   ├── cache.go             # In-memory URL cache
-│   │   ├── types.go
+│   │   ├── cache.go             # Thread-safe in-memory URL cache
+│   │   ├── types.go             # Request/response structs
+│   │   ├── Dockerfile           # Multi-stage build from ./cmd
 │   │   └── go.mod
 │   └── generate-debate/         # GCP Cloud Function: Debate generation with streaming
 │       ├── main.go
@@ -186,6 +199,7 @@ frontend/
 │   │   ├── api.js               # Axios HTTP client configuration
 │   │   ├── topicService.js      # Topic validation API calls
 │   │   ├── panelistService.js   # Panelist suggestion API calls
+│   │   ├── portraitService.js   # Async portrait URL fetching from get-portrait
 │   │   ├── debateService.js     # Debate generation API calls (SSE)
 │   │   └── sanitizer.js         # DOMPurify wrapper for XSS prevention
 │   ├── hooks/

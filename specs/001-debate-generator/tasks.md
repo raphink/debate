@@ -169,6 +169,7 @@
 - [X] T054j [US2] Update useTopicValidation hook to fetch portraits when panelists arrive and update avatarUrl state
 - [ ] T054k [US2] Add loading shimmer effect to avatars while portraits are being fetched
 - [ ] T054l [US2] Ensure portraits are cached in React state to avoid redundant fetches during debate generation
+- [X] T054m [US2] Fix PanelistCard.jsx avatar URL handling to check for absolute URLs (http/https prefix) before prepending PUBLIC_URL/avatars/ path, matching pattern from DebateBubble, PanelistModal, and PanelistSelector components
 
 **Checkpoint**: Panelist avatars progressively enhanced with real portraits
 
@@ -355,17 +356,22 @@ Each phase must pass these gates before proceeding:
 
 ## Task Statistics
 
-- **Total Tasks**: 106 (reduced from 108 due to architecture simplification)
+- **Total Tasks**: 107 (includes portrait service enhancement with URL handling fix)
 - **Setup Phase**: 14 tasks (T001-T014)
-- **Foundational Phase**: 12 tasks (T015-T026, BLOCKING)
+- **Foundational Phase**: 13 tasks (T015-T027, BLOCKING - includes CORS configuration)
 - **User Story 1**: 18 tasks (T027-T044: 7 backend + 11 frontend)
-- **User Story 2**: 13 tasks (T045-T057: frontend only, panelists come from validate-topic)
+- **User Story 2**: 22 tasks (T045-T057 + T054a-T054m: 13 frontend + 9 portrait service)
+  - Original panelist selection: 13 tasks (T045-T057: frontend only, panelists come from validate-topic)
+  - Portrait enhancement: 9 tasks (T054a-T054m: 5 backend + 4 frontend, async Wikimedia integration)
 - **User Story 3**: 24 tasks (T058-T081: 9 backend + 15 frontend)
 - **User Story 4**: 9 tasks (T082-T090: frontend only)
 - **Polish Phase**: 16 tasks (T091-T106)
 
 **Parallel Opportunities**: ~65% of tasks can run in parallel after foundational phase completes
 
-**MVP Tasks**: 79 tasks (Phases 1-5, excludes US4 and Polish)
+**MVP Tasks**: 88 tasks (Phases 1-5 including portrait service, excludes US4 and Polish)
 
-**Architecture Note**: Removed 7 backend tasks for suggest-panelists function (original T045-T051) since panelists are returned by validate-topic endpoint per plan.md architectural decision.
+**Architecture Notes**: 
+- Portrait service (get-portrait) runs as independent Cloud Function with async frontend integration
+- All three backend services (validate-topic, get-portrait, generate-debate) use ALLOWED_ORIGIN environment variable for CORS security
+- Frontend avatar components check for absolute URLs before prepending local path prefix
