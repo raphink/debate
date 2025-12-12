@@ -150,10 +150,10 @@ export const generateDebatePDF = async (debateData) => {
     const size = radius * 2;
     pdf.addImage(imageData, 'JPEG', x - radius, y - radius, size, size);
     
-    // Restore graphics state
+    // Restore graphics state (removes clipping path)
     pdf.restoreGraphicsState();
     
-    // Draw circle border
+    // Draw circle border AFTER restoring (outside clipping context)
     pdf.setDrawColor(200, 200, 200);
     pdf.setLineWidth(0.2);
     pdf.circle(x, y, radius);
@@ -215,26 +215,30 @@ export const generateDebatePDF = async (debateData) => {
   pdf.setFont('helvetica', 'normal');
 
   panelists.forEach((panelist) => {
-    checkPageBreak(25);
+    const bioLines = panelist.bio ? pdf.splitTextToSize(panelist.bio, contentWidth - 20) : [];
+    const neededSpace = 15 + (panelist.tagline ? 5 : 0) + (bioLines.length * 5);
+    
+    checkPageBreak(neededSpace);
 
     // Draw avatar
     const avatarUrl = panelist.avatarUrl || defaultAvatar;
     const avatarData = portraitCache[avatarUrl] || portraitCache[defaultAvatar];
     if (avatarData) {
-      drawCircularAvatar(avatarData, margin + 5, yPosition + 2, avatarSize / 2);
+      drawCircularAvatar(avatarData, margin + 5, yPosition + 3, avatarSize / 2);
     }
 
-    // Panelist name (next to avatar)
+    // Panelist name (aligned with top of avatar)
+    const textStartX = margin + avatarSize + 8;
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(31, 41, 55);
-    pdf.text(panelist.name, margin + 5 + avatarSize + 3, yPosition + 4);
-    yPosition += 7;
+    pdf.text(panelist.name, textStartX, yPosition + 4);
+    yPosition += 6;
 
     // Tagline
     if (panelist.tagline) {
       pdf.setFont('helvetica', 'italic');
       pdf.setTextColor(107, 114, 128);
-      pdf.text(panelist.tagline, margin + 5, yPosition);
+      pdf.text(panelist.tagline, textStartX, yPosition);
       yPosition += 5;
     }
 
@@ -242,10 +246,11 @@ export const generateDebatePDF = async (debateData) => {
     if (panelist.bio) {
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(75, 85, 99);
-      const bioLines = pdf.splitTextToSize(panelist.bio, contentWidth - 10);
-      pdf.text(bioLines, margin + 5, yPosition);
-      yPosition += (bioLines.length * 5) + 5;
+      pdf.text(bioLines, textStartX, yPosition);
+      yPosition += (bioLines.length * 5);
     }
+    
+    yPosition += 8; // Spacing between panelists
 
     pdf.setTextColor(31, 41, 55);
   });
