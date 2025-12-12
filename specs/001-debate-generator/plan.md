@@ -232,9 +232,10 @@ frontend/
 │   │   ├── useDebateStream.js   # Custom hook for SSE streaming + Firestore save
 │   │   ├── usePanelistSelection.js
 │   │   ├── useTopicValidation.js
-│   │   └── useDebateLoader.js   # Load debate from Firestore by UUID
+│   │   ├── useDebateLoader.js   # Load debate from Firestore by UUID
+│   │   └── useRecentDebates.js  # US6: Load recent debates list
 │   ├── pages/
-│   │   ├── Home.jsx             # Topic entry page
+│   │   ├── Home.jsx             # Topic entry page + recent debates list (US6)
 │   │   ├── PanelistSelection.jsx
 │   │   ├── DebateGeneration.jsx # Live debate generation (/d/:uuid)
 │   │   ├── DebateViewer.jsx     # US5: Load cached debate from Firestore

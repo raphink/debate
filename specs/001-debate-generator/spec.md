@@ -111,7 +111,24 @@ User shares completed debate via URL that loads from cached storage, allowing de
 8. **Given** debate is loaded from cache, **When** user views page, **Then** PDF export and share functions work identically to freshly generated debates
 
 ---
+### User Story 6 - Recent Debates Discovery (Priority: P3)
 
+User browses a subtle suggestion list of recent debates on the home page, providing inspiration and quick access to previously generated content.
+
+**Why this priority**: Nice-to-have feature that improves discoverability and encourages exploration, but not essential for core debate generation functionality. Users can still generate and view debates without this feature.
+
+**Independent Test**: Can be tested by generating several debates, returning to home page, and verifying recent debates list displays with topic previews and panelist avatars.
+
+**Acceptance Scenarios**:
+
+1. **Given** user is on home page, **When** recent debates exist in Firestore, **Then** system displays subtle suggestion UI showing up to 10 recent debates below topic input
+2. **Given** recent debates list is displayed, **When** user views a debate entry, **Then** entry shows topic text (truncated to 60 characters if longer) and circular avatars of all panelists
+3. **Given** recent debates list is displayed, **When** user clicks a debate entry, **Then** system navigates to /d/{uuid} to load the cached debate
+4. **Given** recent debates are loading, **When** API call is in progress, **Then** system shows subtle loading indicator without blocking topic input
+5. **Given** no recent debates exist or Firestore read fails, **When** user views home page, **Then** recent debates section is hidden (graceful degradation)
+6. **Given** recent debates list is displayed, **When** user scrolls page, **Then** list remains non-intrusive and doesn't interfere with primary topic input workflow
+
+---
 ### Edge Cases
 
 - What happens when Claude API is unavailable or times out during topic validation?
@@ -204,6 +221,13 @@ User shares completed debate via URL that loads from cached storage, allowing de
 - **FR-028a**: Backend API MUST validate debate ID format before querying Firestore
 - **FR-028b**: Backend API MUST return 404 for non-existent debates and 500 for Firestore errors
 - **FR-028c**: Firestore documents MUST be immutable (no updates or deletes after creation)
+- **FR-029**: System MUST provide recent debates list endpoint: GET /api/list-debates?limit=10 (US6)
+- **FR-029a**: Recent debates endpoint MUST return debates ordered by creation timestamp descending (newest first)
+- **FR-029b**: Recent debates response MUST include: debate ID, topic text, panelist avatars array, created timestamp
+- **FR-029c**: Recent debates list MUST be displayed subtly on home page below topic input, not interfering with primary workflow
+- **FR-029d**: Recent debates list items MUST show topic (truncated to 60 chars) and circular panelist avatars
+- **FR-029e**: Clicking recent debate item MUST navigate to /d/{uuid} to load cached debate
+- **FR-029f**: Recent debates section MUST hide gracefully if no debates exist or API fails (no error shown to user)
 
 ### Key Entities
 

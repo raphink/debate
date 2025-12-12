@@ -318,6 +318,44 @@
 
 ---
 
+## Phase 11: Recent Debates Discovery (User Story 6)
+
+**Goal**: Display subtle list of recent debates on home page for discovery and quick access
+
+**Independent Test**: Generate multiple debates, return to home page, verify recent debates list displays with topic and avatars
+
+### Backend: List Debates Endpoint
+
+- [ ] T144 [P] [US6] Create list-debates function in backend/shared/firebase/debates.go (query Firestore, order by createdAt desc, limit param)
+- [ ] T145 [P] [US6] Create new Cloud Function backend/functions/list-debates/ (HTTP GET handler)
+- [ ] T146 [P] [US6] Implement list-debates handler (parse limit from query param, default 10, max 20)
+- [ ] T147 [P] [US6] Return minimal debate data: {id, topic, panelistAvatars[], createdAt}
+- [ ] T148 [P] [US6] Add CORS headers to list-debates response
+- [ ] T149 [P] [US6] Create Dockerfile for list-debates function (multi-stage build, minimal runtime)
+- [ ] T150 [P] [US6] Add list-debates deployment to deploy.sh script
+
+### Frontend: Recent Debates Component
+
+- [ ] T151 [P] [US6] Add listRecentDebates method to frontend/src/services/api.js (GET /api/list-debates?limit=10)
+- [ ] T152 [P] [US6] Create useRecentDebates hook in frontend/src/hooks/useRecentDebates.js (fetch recent debates, loading/error states)
+- [ ] T153 [P] [US6] Create RecentDebates component in frontend/src/components/RecentDebates/RecentDebates.jsx (subtle list UI)
+- [ ] T154 [P] [US6] Create DebateListItem component (topic truncated to 60 chars, circular panelist avatars, onClick navigate)
+- [ ] T155 [P] [US6] Add RecentDebates to Home page below topic input
+- [ ] T156 [P] [US6] Style RecentDebates as subtle suggestion UI (muted colors, not prominent)
+- [ ] T157 [P] [US6] Hide RecentDebates gracefully if empty or API fails (no error shown)
+
+### Testing
+
+- [ ] T158 [US6] Backend test: Call list-debates → verify returns debates ordered by createdAt descending
+- [ ] T159 [US6] Backend test: Call list-debates with limit=5 → verify returns max 5 debates
+- [ ] T160 [US6] Frontend test: Load home page → verify recent debates list renders if debates exist
+- [ ] T161 [US6] Frontend test: Click recent debate item → verify navigates to /d/{uuid}
+- [ ] T162 [US6] Frontend test: Topic truncation works correctly (60 char limit with ellipsis)
+
+**Checkpoint**: User Story 6 complete - users can discover and access recent debates from home page
+
+---
+
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 **Purpose**: Final touches, performance optimization, and comprehensive quality assurance
