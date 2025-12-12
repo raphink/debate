@@ -118,7 +118,7 @@ func queryDebates(ctx context.Context, queryStr string, limit int) ([]DebateSumm
 		if strings.Contains(topicLower, q) {
 			summary := transformToSummary(doc.Ref.ID, &debate)
 			results = append(results, summary)
-			
+
 			// Stop once we have enough results
 			if len(results) >= limit {
 				break

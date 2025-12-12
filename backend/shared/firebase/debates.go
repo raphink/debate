@@ -2,7 +2,6 @@ package firebase
 
 import (
 	"context"
-	"strings"
 	"time"
 )
 
