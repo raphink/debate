@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import DebateView from '../components/DebateView/DebateView';
+import PanelistModal from '../components/DebateView/PanelistModal';
 import PDFExport from '../components/PDFExport/PDFExport';
 import Button from '../components/common/Button/Button';
 import ErrorMessage from '../components/common/ErrorMessage/ErrorMessage';
@@ -15,6 +16,7 @@ const DebateGeneration = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { topic, selectedPanelists } = location.state || {};
+  const [selectedPanelistForModal, setSelectedPanelistForModal] = useState(null);
 
   const {
     messages,
@@ -50,6 +52,14 @@ const DebateGeneration = () => {
     retry(topic, selectedPanelists);
   };
 
+  const handlePanelistClick = (panelist) => {
+    setSelectedPanelistForModal(panelist);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedPanelistForModal(null);
+  };
+
   if (!topic || !selectedPanelists) {
     return null; // Will redirect in useEffect
   }
@@ -70,9 +80,15 @@ const DebateGeneration = () => {
           <div className={styles.panelists}>
             <span className={styles.panelistsLabel}>Panelists:</span>
             {selectedPanelists.map((p, idx) => (
-              <span key={p.id} className={styles.panelistName}>
-                {p.name}{idx < selectedPanelists.length - 1 ? ', ' : ''}
-              </span>
+              <React.Fragment key={p.id}>
+                <button
+                  className={styles.panelistName}
+                  onClick={() => handlePanelistClick(p)}
+                >
+                  {p.name}
+                </button>
+                {idx < selectedPanelists.length - 1 && <span className={styles.separator}>, </span>}
+              </React.Fragment>
             ))}
           </div>
         </div>
@@ -96,6 +112,7 @@ const DebateGeneration = () => {
           currentPanelistId={currentPanelistId}
           debateId={debateId}
           isComplete={isComplete}
+          mode="generation"
         />
 
         {isComplete && (
@@ -114,6 +131,13 @@ const DebateGeneration = () => {
           </div>
         )}
       </div>
+
+      {selectedPanelistForModal && (
+        <PanelistModal 
+          panelist={selectedPanelistForModal} 
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };

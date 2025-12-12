@@ -86,6 +86,42 @@
   border-radius: 0 0 8px 8px;
 }
 
+.newDebateButtonContainer {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+  margin-top: 2rem;
+  background: #ffffff;
+  border-top: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+.newDebateButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.newDebateButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+}
+
+.newDebateButton:active {
+  transform: translateY(0);
+}
+
+.newDebateButton:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 640px) {
   .messageList {
@@ -95,5 +131,14 @@
 
   .emptyState p {
     font-size: 1rem;
+  }
+
+  .newDebateButton {
+    font-size: 0.9rem;
+    padding: 0.6rem 1.5rem;
+  }
+
+  .newDebateButtonContainer {
+    padding: 1.5rem 1rem;
   }
 }

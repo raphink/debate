@@ -85,7 +85,25 @@
 }
 
 .panelistName {
-  color: #2c3e50;
+  background: none;
+  border: none;
+  color: #667eea;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  transition: all 0.2s ease;
+}
+
+.panelistName:hover {
+  color: #764ba2;
+  text-decoration-style: solid;
+}
+
+.separator {
+  color: #666;
 }
 
 .errorContainer {

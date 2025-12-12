@@ -1,4 +1,108 @@
 .container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7f9;
+}
+
+.header {
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1.5rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.backButton {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border: none;
+  color: #374151;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.625rem 1.25rem;
+  margin-bottom: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.backButton:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.backButton:active {
+  transform: translateY(0);
+}
+
+.backButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.3);
+}
+
+.topicDisplay {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.panelists {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.938rem;
+}
+
+.panelistsLabel {
+  color: #666;
+  font-weight: 500;
+}
+
+.panelistName {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  transition: all 0.2s ease;
+}
+
+.panelistName:hover {
+  color: #764ba2;
+  text-decoration-style: solid;
+}
+
+.separator {
+  color: #666;
+}
+
+.viewerContainer {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  width: 100%;
+}
+
+.errorContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -27,15 +131,20 @@
   justify-content: center;
 }
 
-.viewerContainer {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
 @media (max-width: 768px) {
-  .container {
+  .header {
+    padding: 1rem 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .panelists {
+    font-size: 0.875rem;
+  }
+
+  .errorContainer {
     padding: 1rem;
   }
 
