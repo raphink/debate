@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "AI-Powered Theology/Philosophy Debate Generator - Frontend",
   "private": true,
-  "homepage": "https://raphink.github.io/debate",
+  "homepage": "https://debates.jollygood.ch",
   "dependencies": {
     "axios": "^1.6.2",
     "dompurify": "^3.0.6",
