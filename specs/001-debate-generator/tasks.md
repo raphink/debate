@@ -247,17 +247,76 @@
 
 ---
 
+## Phase 6.5: User Story 5 - Debate Sharing and Caching (Priority: P2)
+
+**Goal**: User shares completed debate via URL that loads from cached storage, allowing debates to be revisited and shared without regeneration
+
+**Independent Test**: Generate a debate, copy share URL, open in new browser/incognito, verify debate loads from Firestore with identical content
+
+### UUID Generation
+
+- [ ] T107 [P] [US5] Create UUID generation utility in frontend/src/utils/uuid.js using Web Crypto API (v4, cryptographically random)
+- [ ] T108 [P] [US5] Add UUID generation tests in frontend/src/utils/uuid.test.js (verify format, uniqueness, randomness)
+
+### Firestore Service
+
+- [ ] T109 [P] [US5] Install firebase package in frontend (firebase@10+, firestore SDK)
+- [ ] T110 [P] [US5] Create Firebase configuration in frontend/src/firebase.js (initialize app, export db instance from environment variables)
+- [ ] T111 [P] [US5] Create Firestore service in frontend/src/services/firestoreService.js (saveDebate, getDebate, error handling)
+- [ ] T112 [P] [US5] Add Firestore service tests in frontend/src/services/firestoreService.test.js (mock Firebase SDK, test save/read/error flows)
+
+### Debate Stream Hook Enhancement
+
+- [ ] T113 [US5] Update useDebateStream hook to generate UUID on startDebate (before SSE connection)
+- [ ] T114 [US5] Update useDebateStream to navigate to /d/{uuid} when debate starts
+- [ ] T115 [US5] Update useDebateStream to save complete debate to Firestore after generation completes (non-blocking, catch and log errors)
+
+### Debate Viewer Page
+
+- [ ] T116 [P] [US5] Create useDebateLoader hook in frontend/src/hooks/useDebateLoader.js (fetch debate from Firestore by UUID parameter)
+- [ ] T117 [P] [US5] Create DebateViewer page in frontend/src/pages/DebateViewer.jsx (load and display cached debate, handle loading/error states)
+- [ ] T118 [P] [US5] Add /d/:uuid route in App.jsx routing to DebateViewer component
+- [ ] T119 [P] [US5] Add "Debate not found" error state in DebateViewer for 404s with link to create new debate
+
+### Share Functionality
+
+- [ ] T120 [P] [US5] Create ShareButton component in frontend/src/components/DebateView/ShareButton.jsx (copy debate URL to clipboard)
+- [ ] T121 [P] [US5] Add ShareButton to DebateView component with success/failure notifications
+- [ ] T122 [P] [US5] Style ShareButton with gradient and hover effects matching app design system
+
+### Firestore Security
+
+- [ ] T123 [P] [US5] Create firestore.rules with public reads, authenticated Cloud Function writes, no updates/deletes
+- [ ] T124 [P] [US5] Create .firebaserc with Firebase project ID configuration
+- [ ] T125 [P] [US5] Create firebase.json with Firestore rules deployment configuration
+
+### Environment Configuration
+
+- [ ] T126 [P] [US5] Add Firebase config environment variables to .env.example (REACT_APP_FIREBASE_API_KEY, PROJECT_ID, etc.)
+- [ ] T127 [P] [US5] Update DEPLOYMENT.md with Firebase project creation, configuration, and security rules deployment
+
+### Testing
+
+- [ ] T128 [US5] End-to-end test: Generate debate → verify Firestore save → visit shareable URL → verify identical content loads
+- [ ] T129 [US5] Test Firestore save failure handling (graceful degradation, debate still viewable/exportable)
+- [ ] T130 [US5] Test share button copy-to-clipboard functionality with success notification
+- [ ] T131 [US5] Test 404 handling for non-existent debate UUIDs
+
+**Checkpoint**: User Story 5 complete - users can share debates via URLs and view cached debates
+
+---
+
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 **Purpose**: Final touches, performance optimization, and comprehensive quality assurance
 
-- [ ] T091 [P] Add loading states to all async operations (topic validation, panelist loading, debate generation)
-- [ ] T092 [P] Add error retry mechanisms with exponential backoff for all API calls
-- [ ] T093 [P] Optimize React component re-renders with React.memo for chat bubbles
-- [ ] T094 [P] Add session storage persistence for topic and panelist selection (prevent loss on refresh)
-- [ ] T095 [P] Add analytics/logging for user flow completion rates (optional, privacy-preserving)
-- [ ] T096 [P] Create 404 NotFound page in frontend/src/pages/NotFound.jsx
-- [ ] T097 [P] Add global CSS styles in frontend/src/index.css (typography, color scheme, responsive breakpoints)
+- [ ] T132 [P] Add loading states to all async operations (topic validation, panelist loading, debate generation)
+- [ ] T133 [P] Add error retry mechanisms with exponential backoff for all API calls
+- [ ] T134 [P] Optimize React component re-renders with React.memo for chat bubbles
+- [ ] T135 [P] Add session storage persistence for topic and panelist selection (prevent loss on refresh)
+- [ ] T136 [P] Add analytics/logging for user flow completion rates (optional, privacy-preserving)
+- [ ] T137 [P] Create 404 NotFound page in frontend/src/pages/NotFound.jsx
+- [ ] T138 [P] Add global CSS styles in frontend/src/index.css (typography, color scheme, responsive breakpoints)
 - [X] T098 [P] Add PWA manifest and meta tags in frontend/public/ (mobile installation support)
 - [X] T098a [P] Create manifest.json with app name, description, icons, theme colors, and standalone display mode
 - [X] T098b [P] Create app icons in multiple sizes (192x192, 512x512) for iOS and Android
@@ -265,14 +324,14 @@
 - [X] T098d [P] Create markdown utility in frontend/src/utils/markdown.js for parsing inline formatting
 - [X] T098e [P] Update DebateBubble component to render Markdown formatting with dangerouslySetInnerHTML
 - [X] T098f [P] Update PDF generator to render Markdown formatting with appropriate font styles (bold, italic, bold-italic)
-- [ ] T099 Perform full accessibility audit with axe-core across all pages (verify WCAG 2.1 Level AA)
-- [ ] T100 Perform performance audit with Lighthouse (verify SC-007: <100ms UI response)
-- [ ] T101 Test complete user journey end-to-end (topic → validation → panelist selection → debate → PDF export)
-- [ ] T102 Add comprehensive error scenarios testing (API failures, network timeouts, invalid responses)
-- [ ] T103 Review all user-facing text for clarity and Constitution Principle I compliance
-- [ ] T104 Security review of all API key handling and XSS prevention measures
-- [ ] T105 Setup GitHub Actions CI workflow in .github/workflows/frontend-ci.yml (lint, test, build)
-- [ ] T106 Setup GitHub Actions CI workflow in .github/workflows/backend-ci.yml (Go tests, linting)
+- [ ] T139 Perform full accessibility audit with axe-core across all pages (verify WCAG 2.1 Level AA)
+- [ ] T140 Perform performance audit with Lighthouse (verify SC-007: <100ms UI response)
+- [ ] T141 Test complete user journey end-to-end (topic → validation → panelist selection → debate → PDF export → share)
+- [ ] T142 Add comprehensive error scenarios testing (API failures, network timeouts, invalid responses)
+- [ ] T143 Review all user-facing text for clarity and Constitution Principle I compliance
+- [ ] T144 Security review of all API key handling and XSS prevention measures
+- [ ] T145 Setup GitHub Actions CI workflow in .github/workflows/frontend-ci.yml (lint, test, build)
+- [ ] T146 Setup GitHub Actions CI workflow in .github/workflows/backend-ci.yml (Go tests, linting)
 
 ---
 
@@ -365,7 +424,7 @@ Each phase must pass these gates before proceeding:
 
 ## Task Statistics
 
-- **Total Tasks**: 116 (includes portrait service, enhanced PDF export, PWA support, and Markdown rendering)
+- **Total Tasks**: 146 (includes portrait service, enhanced PDF export, PWA support, Markdown rendering, and Firestore storage)
 - **Setup Phase**: 14 tasks (T001-T014)
 - **Foundational Phase**: 13 tasks (T015-T027, BLOCKING - includes CORS configuration)
 - **User Story 1**: 18 tasks (T027-T044: 7 backend + 11 frontend)
@@ -376,14 +435,23 @@ Each phase must pass these gates before proceeding:
 - **User Story 4**: 12 tasks (T082-T090 + T086a-T086c: frontend only, includes enhanced PDF with portraits)
   - Original PDF export: 9 tasks (T082-T090)
   - Portrait embedding: 3 tasks (T086a-T086c: image loading, CORS, circular cropping)
-- **Polish Phase**: 22 tasks (T091-T106 + T098a-T098f: includes PWA manifest and Markdown rendering)
-  - Original polish: 16 tasks (T091-T106)
+- **User Story 5**: 25 tasks (T107-T131: frontend Firestore integration, UUID-based shareable URLs)
+  - UUID generation: 2 tasks (T107-T108)
+  - Firestore service: 4 tasks (T109-T112)
+  - Debate stream enhancement: 3 tasks (T113-T115)
+  - Debate viewer: 4 tasks (T116-T119)
+  - Share functionality: 3 tasks (T120-T122)
+  - Security rules: 3 tasks (T123-T125)
+  - Configuration: 2 tasks (T126-T127)
+  - Testing: 4 tasks (T128-T131)
+- **Polish Phase**: 22 tasks (T132-T146 + T098a-T098f: includes PWA manifest and Markdown rendering)
+  - Original polish: 16 tasks (T132-T146, renumbered from T091-T106)
   - PWA support: 3 tasks (T098a-T098c: manifest, icons, meta tags)
   - Markdown rendering: 3 tasks (T098d-T098f: utility, web UI, PDF export)
 
-**Parallel Opportunities**: ~65% of tasks can run in parallel after foundational phase completes
+**Parallel Opportunities**: ~70% of tasks can run in parallel after foundational phase completes
 
-**MVP Tasks**: 97 tasks (Phases 1-5 including portrait service, enhanced PDF, PWA, and Markdown, excludes remaining Polish)
+**MVP Tasks**: 122 tasks (Phases 1-6.5 including portrait service, enhanced PDF, PWA, Markdown, and Firestore storage, excludes remaining Polish)
 
 **Architecture Notes**: 
 - Portrait service (get-portrait) runs as independent Cloud Function with async frontend integration
@@ -395,3 +463,6 @@ Each phase must pass these gates before proceeding:
 - Icon generation automated via generate-icons.sh script using librsvg or ImageMagick
 - Inline Markdown formatting (*italic*, **bold**, ***bold italic***) rendered in web UI via dangerouslySetInnerHTML (HTML-escaped)
 - PDF export renders Markdown with jsPDF font styles (normal, bold, italic, bolditalic)
+- Firestore integration: UUID v4 generated at debate start using Web Crypto API, complete debate saved after generation
+- Shareable URLs: /d/{uuid} pattern loads debates from Firestore cache, public reads with no client writes
+- Graceful degradation: Firestore save failures don't block viewing/exporting debates

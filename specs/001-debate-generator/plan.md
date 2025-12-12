@@ -52,6 +52,7 @@ Build a web application that generates AI-powered theological/philosophical deba
 - Frontend: Modern browsers (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
 - Backend: Google Cloud Functions (Gen 2), serverless runtime
 - Mobile: PWA installable on iOS (Safari 14+) and Android (Chrome 90+) with standalone display mode
+- Storage: Cloud Firestore (NoSQL document database) for debate caching
 **Project Type**: Web application (frontend + backend)  
 **Performance Goals**: 
 - Topic validation response: <3s
@@ -59,6 +60,8 @@ Build a web application that generates AI-powered theological/philosophical deba
 - Streaming chunk intervals: <500ms
 - UI interaction response: <100ms
 - PDF generation: <2s for 5000 words (with portrait embedding)
+- Firestore save: <1s (non-blocking, happens after debate completion)
+- Firestore read: <2s (debate loading from shareable URL)
 **PDF Export Strategy**:
 - Client-side generation using jsPDF library
 - Chat bubble format matching web UI styling
@@ -66,13 +69,24 @@ Build a web application that generates AI-powered theological/philosophical deba
 - Portrait images converted to base64 data URLs for embedding
 - CORS proxy for cross-origin Wikimedia images
 - Automatic page breaks between messages to avoid splitting bubbles
+**Firestore Storage Strategy**:
+- UUID v4 generated at debate start using Web Crypto API
+- Debate saved to Firestore after generation completes
+- Document structure: {id, topic, panelists, messages, status, timestamps, metadata}
+- Public read access (anyone with UUID can view)
+- Write-only from authenticated Cloud Functions (no client writes)
+- Graceful degradation: Firestore save failures don't block viewing/export
+- Average document size: ~25 KB (topic + 3 panelists + 15 messages)
+- Free tier capacity: ~40,000 debates (1 GB storage)
 **Constraints**: 
-- No database/persistence (stateless MVP)
+- No user authentication (debates are public via UUID URLs)
+- No database persistence for user sessions (stateless MVP, but debates cached in Firestore)
 - Claude API rate limits (per Anthropic tier)
 - GCP Cloud Functions timeout: 60s max per request
 - Client-side PDF generation to avoid server overhead
 - Mobile-first responsive design (≥375px width)
 - PWA manifest for mobile installation (no service worker for MVP - online-only)
+- Firestore free tier limits: 50K reads/day, 20K writes/day, 10 GB egress/month
 **Scale/Scope**: 
 - MVP: Single-user sessions, no concurrent debate limit
 - Expected load: <100 concurrent users initially
@@ -174,6 +188,7 @@ backend/
 frontend/
 ├── public/
 │   ├── index.html
+│   ├── manifest.json            # PWA manifest for mobile installation
 │   └── avatars/                 # Historical figure avatars
 ├── src/
 │   ├── components/
@@ -195,6 +210,7 @@ frontend/
 │   │   │   ├── DebateView.jsx
 │   │   │   ├── DebateBubble.jsx
 │   │   │   ├── TypingIndicator.jsx
+│   │   │   ├── ShareButton.jsx  # US5: Share debate URL
 │   │   │   └── DebateView.module.css
 │   │   ├── PDFExport/           # US4: PDF generation
 │   │   │   ├── PDFExport.jsx
@@ -210,20 +226,26 @@ frontend/
 │   │   ├── panelistService.js   # Panelist suggestion API calls
 │   │   ├── portraitService.js   # Async portrait URL fetching from get-portrait
 │   │   ├── debateService.js     # Debate generation API calls (SSE)
+│   │   ├── firestoreService.js  # Firestore read/write operations
 │   │   └── sanitizer.js         # DOMPurify wrapper for XSS prevention
 │   ├── hooks/
-│   │   ├── useDebateStream.js   # Custom hook for SSE streaming
+│   │   ├── useDebateStream.js   # Custom hook for SSE streaming + Firestore save
 │   │   ├── usePanelistSelection.js
-│   │   └── useTopicValidation.js
+│   │   ├── useTopicValidation.js
+│   │   └── useDebateLoader.js   # Load debate from Firestore by UUID
 │   ├── pages/
 │   │   ├── Home.jsx             # Topic entry page
 │   │   ├── PanelistSelection.jsx
-│   │   ├── DebateGeneration.jsx
+│   │   ├── DebateGeneration.jsx # Live debate generation (/d/:uuid)
+│   │   ├── DebateViewer.jsx     # US5: Load cached debate from Firestore
 │   │   └── NotFound.jsx
 │   ├── utils/
 │   │   ├── validation.js        # Client-side input validation
 │   │   ├── constants.js         # App constants (max panelists, etc.)
+│   │   ├── uuid.js              # UUID v4 generation using Web Crypto API
+│   │   ├── markdown.js          # Markdown parsing for *italic*, **bold**, etc.
 │   │   └── accessibility.js     # A11y utilities
+│   ├── firebase.js              # Firebase SDK initialization
 │   ├── App.jsx
 │   ├── App.test.jsx
 │   ├── index.jsx
@@ -238,6 +260,11 @@ frontend/
 ├── nginx.conf                   # Nginx config for production
 └── README.md
 
+# Configuration files
+firestore.rules                  # Firestore security rules (public reads, no client writes)
+.firebaserc                      # Firebase project configuration
+firebase.json                    # Firebase deployment config
+
 # Docker/DevOps files
 docker-compose.yml               # Local development orchestration
 .dockerignore                    # Docker build exclusions
@@ -247,7 +274,338 @@ start-local.sh                   # Quick start script
 └── workflows/
     ├── frontend-ci.yml          # Frontend lint, test, build
     ├── backend-ci.yml           # Backend Go tests
-    └── deploy.yml               # Deploy to GCP
+    └── deploy.yml               # Deploy to GCP + Firestore rules
 ```
 
-**Structure Decision**: Web application architecture selected due to separate frontend (React SPA) and backend (GCP Cloud Functions). Frontend handles all UI/UX concerns including streaming display and PDF export. Backend provides three focused functions acting as a secure proxy to Claude API, implementing rate limiting and input validation. No shared state between components - each function is independently deployable.
+**Structure Decision**: Web application architecture selected due to separate frontend (React SPA) and backend (GCP Cloud Functions). Frontend handles all UI/UX concerns including streaming display, PDF export, and Firestore integration. Backend provides three focused functions acting as a secure proxy to Claude API, implementing rate limiting and input validation. Firestore provides debate caching for shareable URLs without requiring user authentication or complex session management. Each function is independently deployable.
+
+---
+
+## Firestore Integration Details
+
+### Backend-Managed Persistence
+
+**Architecture Decision**: Backend (Cloud Functions) manages all Firestore operations. Frontend never directly accesses Firestore - all reads/writes go through backend API endpoints. This provides:
+- Centralized access control
+- Prevents client-side spam/abuse
+- Simplified frontend (no Firebase SDK required)
+- Better security (service account credentials only in backend)
+- Consistent error handling
+
+### UUID Generation
+- **Location**: Backend (`generate-debate` Cloud Function)
+- **Library**: Google UUID (`github.com/google/uuid`)
+- **Format**: UUID v4 (128-bit, cryptographically random)
+- **Generation point**: When backend receives debate generation request
+- **Delivery**: Returned in HTTP header `X-Debate-Id: {uuid}`
+- **URL pattern**: `/d/{uuid}` (e.g., `/d/550e8400-e29b-41d4-a716-446655440000`)
+- **Uniqueness**: ~10^36 combinations, collision probability negligible
+
+### Data Flow
+
+#### Generation Flow
+```
+1. Frontend POST /api/generate-debate {topic, panelists}
+   → Backend generates UUID
+   → Backend starts SSE stream with header: X-Debate-Id: {uuid}
+   
+2. Frontend extracts UUID from response headers
+   → Updates browser URL to /d/{uuid} (History API, no page reload)
+   → Continues receiving SSE messages
+   
+3. Backend accumulates messages during streaming
+   → Builds complete debate object in memory
+   → On final "done" event, writes to Firestore: debates/{uuid}
+   → Non-blocking write (debate success independent of Firestore)
+   
+4. If Firestore write fails
+   → Backend logs error
+   → Debate stream continues normally
+   → User can still view/export, just can't share
+```
+
+#### Retrieval Flow
+```
+1. User visits /d/{uuid} (shared URL)
+   → Frontend calls GET /api/get-debate?id={uuid}
+   → Backend reads Firestore: debates/{uuid}
+   
+2. If document exists
+   → Backend returns JSON with complete debate data
+   → Frontend renders DebateView (no streaming needed)
+   
+3. If document not found
+   → Backend returns 404 Not Found
+   → Frontend shows "Debate not found" message
+   
+4. If Firestore error
+   → Backend returns 500 Internal Error
+   → Frontend shows retry button
+```
+
+### Data Model
+
+**Firestore Collection**: `debates`
+
+**Document Structure**:
+```javascript
+{
+  // Document ID is the UUID
+  id: "550e8400-e29b-41d4-a716-446655440000",
+  
+  topic: {
+    text: "Should Christians defy authorities when the law is unfair?",
+    suggestedNames: ["Martin Luther King Jr."],
+    isRelevant: true,
+    validationMessage: "This topic is well-suited..."
+  },
+  
+  panelists: [
+    {
+      id: "Augustine354",
+      name: "Augustine of Hippo",
+      tagline: "4th-5th century theologian...",
+      biography: "Early Christian theologian...",
+      avatarUrl: "/avatars/Augustine354-avatar.png",
+      position: "Would argue that Christians..."
+    }
+    // ... 1-4 more panelists
+  ],
+  
+  messages: [
+    {
+      id: "moderator-0",
+      panelistId: "moderator",
+      panelistName: "Moderator",
+      avatarUrl: "/avatars/moderator-avatar.png",
+      text: "Welcome to today's debate...",
+      timestamp: "2025-12-12T10:30:00Z",
+      sequence: 0,
+      isComplete: true
+    }
+    // ... 10-20 more messages
+  ],
+  
+  status: "complete",
+  startedAt: "2025-12-12T10:30:00Z",
+  completedAt: "2025-12-12T10:32:30Z",
+  
+  metadata: {
+    createdBy: "anonymous",
+    userAgent: request.Header.Get("User-Agent"),
+    version: "1.0",
+    generatedBy: "backend"
+  }
+}
+```
+
+**Size Estimates**:
+- Small debate (2 panelists, 10 messages): ~15 KB
+- Average debate (3 panelists, 15 messages): ~20 KB
+- Large debate (5 panelists, 25 messages): ~35 KB
+
+### Backend Implementation
+
+**New Cloud Function**: `get-debate`
+```
+Endpoint: GET /api/get-debate?id={uuid}
+Purpose: Retrieve saved debate from Firestore
+Response: 200 OK with debate JSON, 404 Not Found, or 500 Error
+```
+
+**Modified Cloud Function**: `generate-debate`
+```
+Changes:
+1. Generate UUID at start
+2. Include X-Debate-Id header in SSE response
+3. Accumulate messages during streaming
+4. Write to Firestore on completion
+5. Non-blocking save (don't fail debate if Firestore down)
+```
+
+**Firebase Admin SDK** (`backend/shared/firebase/`):
+```go
+// client.go
+package firebase
+
+import (
+    "context"
+    "cloud.google.com/go/firestore"
+    firebase "firebase.google.com/go"
+)
+
+var client *firestore.Client
+
+func InitFirestore(ctx context.Context) error {
+    app, err := firebase.NewApp(ctx, nil)
+    if err != nil {
+        return err
+    }
+    
+    client, err = app.Firestore(ctx)
+    return err
+}
+
+func GetClient() *firestore.Client {
+    return client
+}
+```
+
+**Debate Storage** (`backend/shared/firebase/debates.go`):
+```go
+type DebateDocument struct {
+    ID          string    `firestore:"id"`
+    Topic       Topic     `firestore:"topic"`
+    Panelists   []Panelist `firestore:"panelists"`
+    Messages    []Message `firestore:"messages"`
+    Status      string    `firestore:"status"`
+    StartedAt   time.Time `firestore:"startedAt"`
+    CompletedAt time.Time `firestore:"completedAt"`
+    Metadata    Metadata  `firestore:"metadata"`
+}
+
+func SaveDebate(ctx context.Context, uuid string, debate DebateDocument) error {
+    _, err := GetClient().Collection("debates").Doc(uuid).Set(ctx, debate)
+    return err
+}
+
+func GetDebate(ctx context.Context, uuid string) (*DebateDocument, error) {
+    doc, err := GetClient().Collection("debates").Doc(uuid).Get(ctx)
+    if err != nil {
+        return nil, err
+    }
+    
+    var debate DebateDocument
+    if err := doc.DataTo(&debate); err != nil {
+        return nil, err
+    }
+    return &debate, nil
+}
+```
+
+### Security Rules
+
+**File**: `firestore.rules`
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /debates/{debateId} {
+      // NO direct client access - all operations via backend API
+      allow read, write: if false;
+    }
+  }
+}
+```
+
+**Security Notes**:
+- Frontend NEVER accesses Firestore directly
+- All reads go through `get-debate` API endpoint
+- All writes handled by `generate-debate` backend
+- Backend uses Firebase Admin SDK (full access via service account)
+- No Firebase SDK in frontend (reduced bundle size)
+- No sensitive data stored (historical debates are educational content)
+- Client cannot write directly (prevents spam/abuse)
+- Cloud Functions use service account for authenticated writes
+- UUID obscurity provides practical privacy (128-bit unguessable)
+
+### Frontend Changes
+
+**New API Client Methods** (`src/services/api.js`):
+```javascript
+// Fetch saved debate by UUID
+export const getDebateById = async (uuid) => {
+  const response = await fetch(`${API_BASE_URL}/get-debate?id=${uuid}`);
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('Debate not found');
+    }
+    throw new Error('Failed to load debate');
+  }
+  return response.json();
+};
+```
+
+**New Route** (`src/App.jsx`):
+```jsx
+<Route path="/d/:uuid" element={<DebateViewer />} />
+```
+
+**New Component**: `src/pages/DebateViewer.jsx`
+- Extracts UUID from URL params
+- Calls `getDebateById(uuid)` API
+- Shows loading spinner while fetching
+- Renders `DebateView` with loaded debate data
+- Displays error message if not found or failed
+
+**Modified Hook**: `src/hooks/useDebateStream.js`
+- Extract `X-Debate-Id` header from SSE response
+- Store UUID in state
+- Call `history.pushState()` to update URL to `/d/{uuid}`
+- No Firestore interaction (backend handles it)
+
+**New Component**: Share button in `DebateView`
+- Copy current URL to clipboard
+- Toast notification: "Link copied!"
+- Only shown when UUID is available
+
+### Environment Configuration
+
+**Backend** (Cloud Functions deployment):
+- Uses Application Default Credentials (ADC)
+- No explicit service account key needed
+- Firestore automatically initialized from GCP project
+
+**Frontend** (no Firebase SDK):
+- No Firebase configuration needed
+- No environment variables for Firestore
+- Reduced bundle size
+
+**Firestore Rules Deployment**:
+```bash
+firebase deploy --only firestore:rules
+```
+
+### Cost Optimization
+
+**Free Tier Capacity** (per FIRESTORE_PRICING.md):
+- Storage: 1 GB = ~40,000 debates
+- Reads: 50K/day = 1.5M/month (via backend API)
+- Writes: 20K/day = 600K/month (backend only)
+- Egress: 10 GB/month = ~400K views
+
+**Expected Usage**:
+- MVP: <100 debates/month, <1000 views/month
+- Cost: $0/month (well within free tier)
+
+**Future Optimizations** (if needed):
+- TTL policy: Auto-delete debates >90 days old
+- Compression: Gzip message text (~60% size reduction)
+- Deduplication: Hash topic+panelist IDs to detect duplicates
+
+### Error Handling
+
+**Backend Firestore Write Failures** (during generation):
+- Non-blocking: SSE stream continues normally
+- Logged to Cloud Logging for monitoring
+- Debate still viewable/exportable, just not shareable
+- No user-facing error message (graceful degradation)
+
+**Backend Firestore Read Failures** (when loading `/d/{uuid}`):
+- Return 500 Internal Server Error status
+- Include error message in response body
+- Frontend shows friendly error with retry button
+- Logged to Cloud Logging for debugging
+
+**Frontend Network Failures**:
+- Fetch timeout: 10 seconds
+- Show loading spinner during fetch
+- Display error message with retry button
+- Log to console for debugging
+
+**404 Not Found** (debate doesn't exist):
+- Backend returns 404 status
+- Frontend shows "Debate not found or expired"
+- Provide button to create new debate
+- Log UUID for investigation

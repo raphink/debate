@@ -91,13 +91,34 @@ User exports completed debate as a formatted PDF document for offline reading, s
 
 ---
 
+### User Story 5 - Debate Sharing and Caching (Priority: P2)
+
+User shares completed debate via URL that loads from cached storage, allowing debates to be revisited and shared with others without regeneration.
+
+**Why this priority**: Adds significant value for sharing and persistence but is not required for core debate generation. Users can still generate and view debates without sharing capability.
+
+**Independent Test**: Can be tested by completing a debate, copying share URL, opening in new browser/incognito, and verifying debate loads from Firestore with identical content.
+
+**Acceptance Scenarios**:
+
+1. **Given** user starts debate generation, **When** "Generate Debate" is clicked, **Then** system generates unique UUID and updates browser URL to /d/{uuid}
+2. **Given** debate generation completes successfully, **When** final message streams in, **Then** system automatically saves complete debate to Firestore with UUID as document ID
+3. **Given** debate is saved to Firestore, **When** save operation fails, **Then** user can still view and export debate (Firestore save is non-blocking enhancement)
+4. **Given** debate is displayed, **When** user clicks "Share" button, **Then** debate URL (https://domain/d/{uuid}) is copied to clipboard and confirmation appears
+5. **Given** user has debate URL, **When** user visits URL in new browser or shares with others, **Then** debate loads from Firestore cache within 2 seconds showing complete conversation
+6. **Given** debate loads from Firestore, **When** page renders, **Then** all panelist avatars, message formatting, and metadata display identically to original generation
+7. **Given** user visits shared debate URL, **When** debate doesn't exist in Firestore (404), **Then** system shows friendly "Debate not found" message with link to create new debate
+8. **Given** debate is loaded from cache, **When** user views page, **Then** PDF export and share functions work identically to freshly generated debates
+
+---
+
 ### Edge Cases
 
 - What happens when Claude API is unavailable or times out during topic validation?
 - What happens when Claude API fails mid-stream during debate generation?
 - How does system handle topics in non-English languages?
 - What happens when Claude suggests fewer than 5 panelists for an obscure topic?
-- How does system handle extremely long debate responses that exceed typical length?
+- What happens when extremely long debate responses that exceed typical length?
 - What happens when user closes browser during active debate generation?
 - How does system handle rate limiting from Claude API during high usage?
 - What happens when GCP function proxy returns malformed JSON?
@@ -106,6 +127,11 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - How does frontend distinguish between absolute portrait URLs and relative avatar paths?
 - What happens when user installs PWA on mobile and launches offline without service worker?
 - How does PWA manifest handle different screen sizes and orientations?
+- What happens when Firestore save fails after debate generation completes?
+- How does system handle loading debate from Firestore when document doesn't exist?
+- What happens when Firestore read operation times out or fails?
+- How does system prevent duplicate debate saves for the same UUID?
+- What happens when user navigates away during Firestore save operation?
 
 ## Requirements *(mandatory)*
 
@@ -156,6 +182,24 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - **FR-023b**: Application MUST use standalone display mode to provide app-like experience when installed
 - **FR-024**: System MUST render inline Markdown formatting (*italic*, **bold**, ***bold italic***) in debate messages for both web UI and PDF export
 - **FR-024a**: Markdown rendering MUST properly escape HTML to prevent XSS attacks while preserving formatting
+- **FR-025**: Backend MUST generate a unique UUID (v4) when receiving debate generation request to identify the debate session
+- **FR-025a**: UUID MUST be cryptographically random using Go's uuid.New() to ensure uniqueness and unpredictability
+- **FR-025b**: Backend MUST include generated UUID in SSE response header: X-Debate-Id
+- **FR-026**: Backend MUST save completed debates to Firestore with UUID as document ID for caching and sharing
+- **FR-026a**: Firestore document MUST include complete debate data: topic, panelists, messages, status, timestamps, and metadata
+- **FR-026b**: Backend MUST write to Firestore automatically after debate generation completes successfully
+- **FR-026c**: Firestore save failures MUST NOT prevent user from viewing the debate (graceful degradation, logged only)
+- **FR-026d**: Backend MUST use Firebase Admin SDK for all Firestore operations (no client-side Firestore access)
+- **FR-027**: System MUST provide shareable URLs in format /d/{uuid} that load debates via backend API
+- **FR-027a**: Backend MUST provide GET /api/get-debate?id={uuid} endpoint to retrieve saved debates
+- **FR-027b**: Frontend MUST display complete debate with all original formatting, avatars, and metadata when loading from backend
+- **FR-027c**: System MUST provide "Share" button that copies debate URL to clipboard with visual confirmation
+- **FR-027d**: Loading debate from backend API MUST complete within 2 seconds on stable connection
+- **FR-027e**: Frontend MUST update browser URL to /d/{uuid} after receiving debate ID from backend (History API, no page reload)
+- **FR-028**: Firestore security rules MUST prevent all direct client access (read/write)
+- **FR-028a**: Backend API MUST validate debate ID format before querying Firestore
+- **FR-028b**: Backend API MUST return 404 for non-existent debates and 500 for Firestore errors
+- **FR-028c**: Firestore documents MUST be immutable (no updates or deletes after creation)
 
 ### Key Entities
 
@@ -195,15 +239,19 @@ User exports completed debate as a formatted PDF document for offline reading, s
 
 ## Out of Scope *(explicit boundaries)*
 
-- User authentication and account management
-- Saving/persisting debates to database for later retrieval
-- Sharing debates via social media or public links
+- User authentication and account management (debates are public via UUID URLs)
+- User-specific debate history or saved debates (no user accounts)
+- Editing or regenerating portions of completed debates
+- Deleting or modifying debates after creation (Firestore documents are immutable)
+- Debate analytics or usage tracking beyond basic metadata
+- Sharing debates via social media integrations (users can copy/paste URLs manually)
 - User customization of panelist avatars or bios
 - Multi-language support (non-English topics)
 - Real-time collaborative debate watching with multiple users
-- Editing or regenerating portions of completed debates
 - Audio/video generation of debates
 - Direct creation of custom panelists with user-defined bios (AI evaluates suggested names instead)
 - User acting as moderator with ability to ask questions during debate (future enhancement)
 - Payment or subscription features
 - Admin panel or content moderation tools
+- Debate search or discovery features
+- TTL (Time-To-Live) policies for auto-deleting old debates (relying on Firestore free tier capacity)
