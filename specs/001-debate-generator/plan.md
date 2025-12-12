@@ -299,7 +299,8 @@ start-local.sh                   # Quick start script
 
 **Authentication Setup**:
 - **Local Development**: Run `gcloud auth application-default login` to create ADC
-- **Docker/Production**: Mount service account key JSON or set `GOOGLE_APPLICATION_CREDENTIALS` env var
+- **Docker Compose**: Credentials automatically mounted from `~/.config/gcloud/application_default_credentials.json` to container
+- **Production**: Use GCP service account attached to Cloud Run/Cloud Functions (automatic ADC)
 - **Service Account Permissions**: Requires `Cloud Datastore User` role (or `roles/datastore.user`) for Firestore access
 
 ### UUID Generation

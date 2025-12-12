@@ -29,6 +29,9 @@ services:
       - GCP_PROJECT_ID=${GCP_PROJECT_ID}
       - PORT=8080
       - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:-http://localhost:3000}
+      - GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/gcloud-adc.json
+    volumes:
+      - ${HOME}/.config/gcloud/application_default_credentials.json:/tmp/keys/gcloud-adc.json:ro
     networks:
       - debate-network
     restart: unless-stopped
@@ -58,6 +61,9 @@ services:
       - GCP_PROJECT_ID=${GCP_PROJECT_ID}
       - PORT=8080
       - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:-http://localhost:3000}
+      - GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/gcloud-adc.json
+    volumes:
+      - ${HOME}/.config/gcloud/application_default_credentials.json:/tmp/keys/gcloud-adc.json:ro
     networks:
       - debate-network
     restart: unless-stopped
