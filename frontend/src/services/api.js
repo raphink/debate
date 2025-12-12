@@ -70,8 +70,8 @@ apiClient.interceptors.response.use(
  * @returns {Promise<Object>} The debate data
  */
 export const getDebateById = async (uuid) => {
-  const baseURL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
-  const response = await fetch(`${baseURL}/get-debate?id=${uuid}`);
+  const baseURL = process.env.REACT_APP_GET_DEBATE_URL || 'http://localhost:8084';
+  const response = await fetch(`${baseURL}?id=${uuid}`);
   
   if (!response.ok) {
     if (response.status === 404) {
