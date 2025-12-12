@@ -4,6 +4,7 @@ import ErrorBoundary from './components/common/ErrorBoundary/ErrorBoundary';
 import Home from './pages/Home';
 import PanelistSelection from './pages/PanelistSelection';
 import DebateGeneration from './pages/DebateGeneration';
+import DebateViewer from './pages/DebateViewer';
 import NotFound from './pages/NotFound';
 import './App.css';
 
@@ -21,6 +22,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/select-panelists" element={<PanelistSelection />} />
               <Route path="/debate" element={<DebateGeneration />} />
+              <Route path="/d/:uuid" element={<DebateViewer />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

@@ -249,60 +249,69 @@
 
 ## Phase 6.5: User Story 5 - Debate Sharing and Caching (Priority: P2)
 
-**Goal**: User shares completed debate via URL that loads from cached storage, allowing debates to be revisited and shared without regeneration
+**Goal**: User shares completed debate via URL that loads from backend-cached storage (Firestore), allowing debates to be revisited and shared without regeneration
 
-**Independent Test**: Generate a debate, copy share URL, open in new browser/incognito, verify debate loads from Firestore with identical content
+**Independent Test**: Generate a debate, verify URL updates to /d/{uuid}, copy URL, open in new browser/incognito, verify debate loads from backend with identical content
 
-### UUID Generation
+### Backend: Firestore Integration
 
-- [ ] T107 [P] [US5] Create UUID generation utility in frontend/src/utils/uuid.js using Web Crypto API (v4, cryptographically random)
-- [ ] T108 [P] [US5] Add UUID generation tests in frontend/src/utils/uuid.test.js (verify format, uniqueness, randomness)
+- [ ] T107 [P] [US5] Add Firebase Admin SDK dependency to backend/go.mod (cloud.google.com/go/firestore, firebase.google.com/go)
+- [ ] T108 [P] [US5] Create Firestore client in backend/shared/firebase/client.go (initialize with Application Default Credentials)
+- [ ] T109 [P] [US5] Create debate storage service in backend/shared/firebase/debates.go (SaveDebate, GetDebate with DebateDocument struct)
+- [ ] T110 [P] [US5] Add UUID generation to backend/functions/generate-debate/handler.go using github.com/google/uuid
+- [ ] T111 [P] [US5] Modify generate-debate to include X-Debate-Id header in SSE response with generated UUID
+- [ ] T112 [P] [US5] Modify generate-debate to accumulate messages during streaming and save to Firestore on completion (non-blocking)
+- [ ] T113 [P] [US5] Add error handling for Firestore save failures (log error, don't fail debate stream)
 
-### Firestore Service
+### Backend: Get Debate Function
 
-- [ ] T109 [P] [US5] Install firebase package in frontend (firebase@10+, firestore SDK)
-- [ ] T110 [P] [US5] Create Firebase configuration in frontend/src/firebase.js (initialize app, export db instance from environment variables)
-- [ ] T111 [P] [US5] Create Firestore service in frontend/src/services/firestoreService.js (saveDebate, getDebate, error handling)
-- [ ] T112 [P] [US5] Add Firestore service tests in frontend/src/services/firestoreService.test.js (mock Firebase SDK, test save/read/error flows)
-
-### Debate Stream Hook Enhancement
-
-- [ ] T113 [US5] Update useDebateStream hook to generate UUID on startDebate (before SSE connection)
-- [ ] T114 [US5] Update useDebateStream to navigate to /d/{uuid} when debate starts
-- [ ] T115 [US5] Update useDebateStream to save complete debate to Firestore after generation completes (non-blocking, catch and log errors)
-
-### Debate Viewer Page
-
-- [ ] T116 [P] [US5] Create useDebateLoader hook in frontend/src/hooks/useDebateLoader.js (fetch debate from Firestore by UUID parameter)
-- [ ] T117 [P] [US5] Create DebateViewer page in frontend/src/pages/DebateViewer.jsx (load and display cached debate, handle loading/error states)
-- [ ] T118 [P] [US5] Add /d/:uuid route in App.jsx routing to DebateViewer component
-- [ ] T119 [P] [US5] Add "Debate not found" error state in DebateViewer for 404s with link to create new debate
-
-### Share Functionality
-
-- [ ] T120 [P] [US5] Create ShareButton component in frontend/src/components/DebateView/ShareButton.jsx (copy debate URL to clipboard)
-- [ ] T121 [P] [US5] Add ShareButton to DebateView component with success/failure notifications
-- [ ] T122 [P] [US5] Style ShareButton with gradient and hover effects matching app design system
+- [ ] T114 [P] [US5] Create new Cloud Function backend/functions/get-debate/ (HTTP GET handler)
+- [ ] T115 [P] [US5] Implement get-debate handler in main.go (parse UUID from query param, validate format, query Firestore)
+- [ ] T116 [P] [US5] Add error responses for get-debate (404 Not Found, 400 Bad Request, 500 Internal Error)
+- [ ] T117 [P] [US5] Add CORS headers to get-debate response for cross-origin requests
+- [ ] T118 [P] [US5] Create Dockerfile for get-debate function (multi-stage build, minimal runtime)
+- [ ] T119 [P] [US5] Add get-debate deployment configuration to deploy.sh script
 
 ### Firestore Security
 
-- [ ] T123 [P] [US5] Create firestore.rules with public reads, authenticated Cloud Function writes, no updates/deletes
-- [ ] T124 [P] [US5] Create .firebaserc with Firebase project ID configuration
-- [ ] T125 [P] [US5] Create firebase.json with Firestore rules deployment configuration
+- [ ] T120 [P] [US5] Create firestore.rules with deny all direct client access (read/write: false)
+- [ ] T121 [P] [US5] Create .firebaserc with Firebase project ID configuration
+- [ ] T122 [P] [US5] Create firebase.json with Firestore rules deployment configuration
+- [ ] T123 [P] [US5] Update DEPLOYMENT.md with Firebase project setup and security rules deployment instructions
 
-### Environment Configuration
+### Frontend: API Integration
 
-- [ ] T126 [P] [US5] Add Firebase config environment variables to .env.example (REACT_APP_FIREBASE_API_KEY, PROJECT_ID, etc.)
-- [ ] T127 [P] [US5] Update DEPLOYMENT.md with Firebase project creation, configuration, and security rules deployment
+- [ ] T124 [P] [US5] Add getDebateById method to frontend/src/services/api.js (GET /api/get-debate?id={uuid})
+- [ ] T125 [P] [US5] Update useDebateStream hook to extract X-Debate-Id header from SSE response
+- [ ] T126 [P] [US5] Update useDebateStream to update browser URL to /d/{uuid} using History API (pushState, no page reload)
+
+### Frontend: Debate Viewer Page
+
+- [ ] T127 [P] [US5] Create useDebateLoader hook in frontend/src/hooks/useDebateLoader.js (fetch debate from backend by UUID parameter)
+- [ ] T128 [P] [US5] Create DebateViewer page in frontend/src/pages/DebateViewer.jsx (load and display cached debate, handle loading/error states)
+- [ ] T129 [P] [US5] Add /d/:uuid route in App.jsx routing to DebateViewer component
+- [ ] T130 [P] [US5] Add "Debate not found" error state in DebateViewer for 404s with link to create new debate
+- [ ] T131 [P] [US5] Add retry button for 500 errors in DebateViewer
+
+### Frontend: Share Functionality
+
+- [ ] T132 [P] [US5] Create ShareButton component in frontend/src/components/DebateView/ShareButton.jsx (copy current URL to clipboard)
+- [ ] T133 [P] [US5] Add ShareButton to DebateView component with success/failure toast notifications
+- [ ] T134 [P] [US5] Style ShareButton with gradient and hover effects matching app design system
+- [ ] T135 [P] [US5] Show ShareButton only when debate ID is available (hide during initial generation before UUID received)
 
 ### Testing
 
-- [ ] T128 [US5] End-to-end test: Generate debate → verify Firestore save → visit shareable URL → verify identical content loads
-- [ ] T129 [US5] Test Firestore save failure handling (graceful degradation, debate still viewable/exportable)
-- [ ] T130 [US5] Test share button copy-to-clipboard functionality with success notification
-- [ ] T131 [US5] Test 404 handling for non-existent debate UUIDs
+- [ ] T136 [US5] Backend test: Generate debate → verify Firestore document created → verify document structure matches DebateDocument
+- [ ] T137 [US5] Backend test: Call get-debate with valid UUID → verify JSON response matches saved debate
+- [ ] T138 [US5] Backend test: Call get-debate with invalid UUID → verify 400 Bad Request response
+- [ ] T139 [US5] Backend test: Call get-debate with non-existent UUID → verify 404 Not Found response
+- [ ] T140 [US5] Frontend test: Generate debate → verify URL updates to /d/{uuid} → verify share button appears
+- [ ] T141 [US5] End-to-end test: Generate debate → copy share URL → open in new browser/incognito → verify identical content loads from backend
+- [ ] T142 [US5] Test Firestore save failure handling (graceful degradation, debate still viewable/exportable, just not shareable)
+- [ ] T143 [US5] Test share button copy-to-clipboard functionality with success notification
 
-**Checkpoint**: User Story 5 complete - users can share debates via URLs and view cached debates
+**Checkpoint**: User Story 5 complete - users can share debates via URLs and backend serves cached debates
 
 ---
 
@@ -424,7 +433,7 @@ Each phase must pass these gates before proceeding:
 
 ## Task Statistics
 
-- **Total Tasks**: 146 (includes portrait service, enhanced PDF export, PWA support, Markdown rendering, and Firestore storage)
+- **Total Tasks**: 154 (includes portrait service, enhanced PDF export, PWA support, Markdown rendering, and backend-managed Firestore storage)
 - **Setup Phase**: 14 tasks (T001-T014)
 - **Foundational Phase**: 13 tasks (T015-T027, BLOCKING - includes CORS configuration)
 - **User Story 1**: 18 tasks (T027-T044: 7 backend + 11 frontend)
@@ -435,29 +444,31 @@ Each phase must pass these gates before proceeding:
 - **User Story 4**: 12 tasks (T082-T090 + T086a-T086c: frontend only, includes enhanced PDF with portraits)
   - Original PDF export: 9 tasks (T082-T090)
   - Portrait embedding: 3 tasks (T086a-T086c: image loading, CORS, circular cropping)
-- **User Story 5**: 25 tasks (T107-T131: frontend Firestore integration, UUID-based shareable URLs)
-  - UUID generation: 2 tasks (T107-T108)
-  - Firestore service: 4 tasks (T109-T112)
-  - Debate stream enhancement: 3 tasks (T113-T115)
-  - Debate viewer: 4 tasks (T116-T119)
-  - Share functionality: 3 tasks (T120-T122)
-  - Security rules: 3 tasks (T123-T125)
-  - Configuration: 2 tasks (T126-T127)
-  - Testing: 4 tasks (T128-T131)
-- **Polish Phase**: 22 tasks (T132-T146 + T098a-T098f: includes PWA manifest and Markdown rendering)
-  - Original polish: 16 tasks (T132-T146, renumbered from T091-T106)
+- **User Story 5**: 37 tasks (T107-T143: backend-managed Firestore integration, UUID-based shareable URLs)
+  - Backend Firestore integration: 7 tasks (T107-T113: Firebase Admin SDK, UUID generation, persistence)
+  - Backend get-debate function: 6 tasks (T114-T119: new HTTP endpoint for debate retrieval)
+  - Firestore security: 4 tasks (T120-T123: rules, configuration, deployment docs)
+  - Frontend API integration: 3 tasks (T124-T126: backend API client, URL updates)
+  - Frontend debate viewer: 5 tasks (T127-T131: loading, error handling, routing)
+  - Frontend share functionality: 4 tasks (T132-T135: copy to clipboard, notifications)
+  - Testing: 8 tasks (T136-T143: backend + frontend + end-to-end)
+- **Polish Phase**: 22 tasks (T144-T158 + T098a-T098f: includes PWA manifest and Markdown rendering)
+  - Original polish: 16 tasks (renumbered T144-T158 from T132-T146)
   - PWA support: 3 tasks (T098a-T098c: manifest, icons, meta tags)
   - Markdown rendering: 3 tasks (T098d-T098f: utility, web UI, PDF export)
 
 **Parallel Opportunities**: ~70% of tasks can run in parallel after foundational phase completes
 
-**MVP Tasks**: 122 tasks (Phases 1-6.5 including portrait service, enhanced PDF, PWA, Markdown, and Firestore storage, excludes remaining Polish)
+**MVP Tasks**: 130 tasks (Phases 1-6.5 including portrait service, enhanced PDF, PWA, Markdown, and backend-managed Firestore storage, excludes remaining Polish)
 
 **Architecture Notes**: 
 - Portrait service (get-portrait) runs as independent Cloud Function with async frontend integration
-- All three backend services (validate-topic, get-portrait, generate-debate) use ALLOWED_ORIGIN environment variable for CORS security
+- Firestore operations managed entirely by backend (generate-debate saves, get-debate retrieves) using Firebase Admin SDK
+- Frontend has NO direct Firestore access - all operations via backend API endpoints for security and control
+- All backend services use ALLOWED_ORIGIN environment variable for CORS security
 - Frontend avatar components check for absolute URLs before prepending local path prefix
 - PDF export uses async image loading with CORS-enabled fetch, converts portraits to base64 data URLs for embedding
+- Firestore security rules deny all direct client access (read/write: false), enforcing API-only pattern
 - Chat bubble format in PDF matches web UI with circular portrait avatars and rounded rectangles
 - PWA manifest enables mobile installation with standalone display mode (iOS Safari 14+, Android Chrome 90+)
 - Icon generation automated via generate-icons.sh script using librsvg or ImageMagick

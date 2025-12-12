@@ -22,6 +22,7 @@ const DebateGeneration = () => {
     error,
     isComplete,
     currentPanelistId,
+    debateId,
     startDebate,
     retry,
     reset,
@@ -93,6 +94,8 @@ const DebateGeneration = () => {
           panelists={selectedPanelists}
           isStreaming={isStreaming}
           currentPanelistId={currentPanelistId}
+          debateId={debateId}
+          isComplete={isComplete}
         />
 
         {isComplete && (

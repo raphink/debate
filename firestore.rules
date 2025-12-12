@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Debates collection - all access via backend API only
+    match /debates/{debateId} {
+      // NO direct client access - all reads/writes through backend
+      allow read, write: if false;
+    }
+  }
+}

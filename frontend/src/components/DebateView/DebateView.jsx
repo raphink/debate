@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import DebateBubble from './DebateBubble';
 import TypingIndicator from './TypingIndicator';
 import PanelistModal from './PanelistModal';
+import ShareButton from '../common/ShareButton/ShareButton';
 import styles from './DebateView.module.css';
 
 /**
@@ -14,8 +15,10 @@ import styles from './DebateView.module.css';
  * @param {Array} props.panelists - Array of panelist objects
  * @param {boolean} props.isStreaming - Whether debate is currently streaming
  * @param {string} props.currentPanelistId - ID of panelist currently responding
+ * @param {string} props.debateId - UUID of the debate (for sharing)
+ * @param {boolean} props.isComplete - Whether debate generation is complete
  */
-const DebateView = ({ messages, panelists, isStreaming, currentPanelistId }) => {
+const DebateView = ({ messages, panelists, isStreaming, currentPanelistId, debateId, isComplete }) => {
   const messagesEndRef = useRef(null);
   const containerRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(false);
@@ -95,6 +98,12 @@ const DebateView = ({ messages, panelists, isStreaming, currentPanelistId }) => 
         <div ref={messagesEndRef} />
       </div>
 
+      {isComplete && debateId && (
+        <div className={styles.shareSection}>
+          <ShareButton debateId={debateId} />
+        </div>
+      )}
+
       {selectedPanelist && (
         <PanelistModal 
           panelist={selectedPanelist} 
@@ -121,11 +130,15 @@ DebateView.propTypes = {
   ).isRequired,
   isStreaming: PropTypes.bool,
   currentPanelistId: PropTypes.string,
+  debateId: PropTypes.string,
+  isComplete: PropTypes.bool,
 };
 
 DebateView.defaultProps = {
   isStreaming: false,
   currentPanelistId: null,
+  debateId: null,
+  isComplete: false,
 };
 
 export default DebateView;

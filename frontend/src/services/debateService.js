@@ -8,9 +8,10 @@ import apiClient from './api';
  * @param {Function} onMessage - Callback for each message chunk: (panelistId, text) => void
  * @param {Function} onError - Callback for errors: (error) => void
  * @param {Function} onComplete - Callback when streaming completes
+ * @param {Function} onDebateId - Callback when debate ID is received: (debateId) => void
  * @returns {Function} Cleanup function to abort the stream
  */
-export const generateDebateStream = (topic, selectedPanelists, onMessage, onError, onComplete) => {
+export const generateDebateStream = (topic, selectedPanelists, onMessage, onError, onComplete, onDebateId) => {
   const baseURL = process.env.REACT_APP_GENERATE_DEBATE_URL || 'http://localhost:8081';
   const url = `${baseURL}/GenerateDebate`;
 
@@ -41,6 +42,12 @@ export const generateDebateStream = (topic, selectedPanelists, onMessage, onErro
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to generate debate');
+      }
+
+      // Extract debate ID from header
+      const debateId = response.headers.get('X-Debate-Id');
+      if (debateId && onDebateId) {
+        onDebateId(debateId);
       }
 
       const reader = response.body.getReader();

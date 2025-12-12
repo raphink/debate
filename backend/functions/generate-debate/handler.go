@@ -1,10 +1,14 @@
 package generatedebate
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/google/uuid"
+	"github.com/raphink/debate/shared/firebase"
 )
 
 // handleGenerateDebateImpl handles debate generation requests with SSE streaming
@@ -41,6 +45,19 @@ func handleGenerateDebateImpl(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Generate UUID for this debate
+	debateID := uuid.New().String()
+	log.Printf("Generated debate ID: %s", debateID)
+
+	// Initialize Firestore (if not already initialized)
+	ctx := r.Context()
+	if firebase.GetClient() == nil {
+		if err := firebase.InitFirestore(ctx); err != nil {
+			log.Printf("Failed to initialize Firestore (non-blocking): %v", err)
+			// Continue anyway - debate will work, just won't be saved
+		}
+	}
+
 	// Create Claude client
 	claudeClient, err := NewClaudeClient()
 	if err != nil {
@@ -54,14 +71,24 @@ func handleGenerateDebateImpl(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("X-Accel-Buffering", "no") // Disable nginx buffering
+	w.Header().Set("X-Debate-Id", debateID)     // Send debate ID to frontend
 
 	// Flush headers
 	if flusher, ok := w.(http.Flusher); ok {
 		flusher.Flush()
 	}
 
+	// Create accumulator for debate messages
+	accumulator := NewDebateAccumulator(debateID, req.Topic, req.SelectedPanelists)
+
+	// Wrap writer to accumulate messages
+	wrappedWriter := &AccumulatingWriter{
+		writer:      w,
+		accumulator: accumulator,
+	}
+
 	// Stream the debate
-	if err := claudeClient.GenerateDebate(r.Context(), &req, w); err != nil {
+	if err := claudeClient.GenerateDebate(ctx, &req, wrappedWriter); err != nil {
 		log.Printf("Error generating debate: %v", err)
 		errorChunk := StreamChunk{
 			Type:  "error",
@@ -73,6 +100,9 @@ func handleGenerateDebateImpl(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	// Save completed debate to Firestore (non-blocking)
+	go saveDebateToFirestore(context.Background(), accumulator, r.Header.Get("User-Agent"))
 }
 
 // sendError sends a JSON error response

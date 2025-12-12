@@ -64,4 +64,26 @@ apiClient.interceptors.response.use(
   }
 );
 
+/**
+ * Retrieve a saved debate by UUID
+ * @param {string} uuid - The debate UUID
+ * @returns {Promise<Object>} The debate data
+ */
+export const getDebateById = async (uuid) => {
+  const baseURL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+  const response = await fetch(`${baseURL}/get-debate?id=${uuid}`);
+  
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('Debate not found');
+    }
+    if (response.status === 400) {
+      throw new Error('Invalid debate ID');
+    }
+    throw new Error('Failed to load debate');
+  }
+  
+  return response.json();
+};
+
 export default apiClient;

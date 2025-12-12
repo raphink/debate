@@ -13,6 +13,7 @@ const useDebateStream = () => {
   const [error, setError] = useState(null);
   const [isComplete, setIsComplete] = useState(false);
   const [currentPanelistId, setCurrentPanelistId] = useState(null);
+  const [debateId, setDebateId] = useState(null);
   
   const cleanupRef = useRef(null);
 
@@ -29,6 +30,14 @@ const useDebateStream = () => {
     setIsComplete(false);
     setIsStreaming(true);
     setCurrentPanelistId(null);
+    setDebateId(null);
+
+    // Handle debate ID
+    const handleDebateId = (id) => {
+      setDebateId(id);
+      // Update URL without page reload
+      window.history.pushState({}, '', `/d/${id}`);
+    };
 
     // Handle incoming message chunks
     const handleMessage = (panelistId, text) => {
@@ -78,7 +87,8 @@ const useDebateStream = () => {
       selectedPanelists,
       handleMessage,
       handleError,
-      handleComplete
+      handleComplete,
+      handleDebateId
     );
   }, []);
 
@@ -119,6 +129,7 @@ const useDebateStream = () => {
     error,
     isComplete,
     currentPanelistId,
+    debateId,
     startDebate,
     stopDebate,
     reset,

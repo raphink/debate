@@ -1,0 +1,45 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.loadingText {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+}
+
+.errorDetail {
+  margin: 1rem 0 2rem;
+  color: var(--text-secondary);
+  max-width: 500px;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.viewerContainer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .viewerContainer {
+    padding: 1rem 0.5rem;
+  }
+}

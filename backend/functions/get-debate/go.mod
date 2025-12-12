@@ -1,9 +1,8 @@
-module github.com/raphink/debate/functions/generate-debate
+module github.com/raphink/debate/functions/get-debate
 
 go 1.24.0
 
 require (
-	github.com/anthropics/anthropic-sdk-go v1.19.0
 	github.com/google/uuid v1.6.0
 	github.com/raphink/debate/shared v0.0.0-00010101000000-000000000000
 )
@@ -37,10 +36,6 @@ require (
 	github.com/googleapis/gax-go/v2 v2.15.0 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.5.0 // indirect
-	github.com/tidwall/gjson v1.18.0 // indirect
-	github.com/tidwall/match v1.1.1 // indirect
-	github.com/tidwall/pretty v1.2.1 // indirect
-	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/zeebo/errs v1.4.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.36.0 // indirect

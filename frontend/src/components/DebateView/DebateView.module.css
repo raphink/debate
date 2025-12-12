@@ -77,6 +77,15 @@
   background: #a8a8a8;
 }
 
+.shareSection {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  border-radius: 0 0 8px 8px;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 640px) {
   .messageList {
