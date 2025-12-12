@@ -1,28 +1,32 @@
 FROM golang:1.24-alpine AS builder
 
+# Install git and ca-certificates (required for go mod download and HTTPS)
+RUN apk add --no-cache git ca-certificates
+
+# Copy shared module first (required by replace directive)
+COPY shared /shared
+
 WORKDIR /app
 
-# Copy go mod files
-COPY go.mod go.sum* ./
+# Copy function files
+COPY functions/autocomplete-topics/go.mod functions/autocomplete-topics/go.sum* ./
 RUN go mod download
 
-# Copy shared module
-COPY ../../shared /app/backend/shared
-
 # Copy source
-COPY . .
+COPY functions/autocomplete-topics/ .
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o autocomplete-topics ./cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -o /autocomplete-topics ./cmd
 
-# Final stage
-FROM alpine:latest
+# Runtime stage
+FROM gcr.io/distroless/static-debian12
 
-RUN apk --no-cache add ca-certificates
+WORKDIR /
 
-WORKDIR /root/
+# Copy CA certificates from builder
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-COPY --from=builder /app/autocomplete-topics .
+COPY --from=builder /autocomplete-topics .
 
 EXPOSE 8080
 
