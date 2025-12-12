@@ -83,7 +83,7 @@ export const TopicAutocompleteDropdown = ({
     <div className={styles.dropdown} ref={dropdownRef}>
       {loading && <div className={styles.loading}>Searching debates...</div>}
       {!loading && suggestions.length > 0 && (
-        <ul className={styles.list}>
+        <ul className={styles.list} role="listbox">
           {suggestions.map((debate, index) => (
             <li
               key={debate.id}
@@ -97,7 +97,8 @@ export const TopicAutocompleteDropdown = ({
                   onSelect(debate);
                 }
               }}
-              role="button"
+              role="option"
+              aria-selected={index === selectedIndex}
               tabIndex={0}
             >
               <div className={styles.topic}>{debate.topic}</div>
