@@ -20,8 +20,8 @@ services:
   # Debate Generation Cloud Function (Port 8081)
   generate-debate:
     build:
-      context: ./backend/functions/generate-debate
-      dockerfile: Dockerfile
+      context: ./backend
+      dockerfile: functions/generate-debate/Dockerfile
     ports:
       - "${BIND_ADDRESS:-0.0.0.0}:8081:8080"
     environment:
@@ -47,6 +47,21 @@ services:
       - debate-network
     restart: unless-stopped
 
+  # Get Debate Cloud Function (Port 8084)
+  get-debate:
+    build:
+      context: ./backend
+      dockerfile: functions/get-debate/Dockerfile
+    ports:
+      - "${BIND_ADDRESS:-0.0.0.0}:8084:8080"
+    environment:
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
+      - PORT=8080
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:-http://localhost:3000}
+    networks:
+      - debate-network
+    restart: unless-stopped
+
   # Frontend React Application (Port 3000)
   frontend:
     build:
@@ -58,12 +73,14 @@ services:
       - REACT_APP_VALIDATE_TOPIC_URL=http://localhost:8080
       - REACT_APP_GENERATE_DEBATE_URL=http://localhost:8081
       - REACT_APP_GET_PORTRAIT_URL=http://localhost:8082
+      - REACT_APP_GET_DEBATE_URL=http://localhost:8084
     networks:
       - debate-network
     depends_on:
       - validate-topic
       - generate-debate
       - get-portrait
+      - get-debate
     restart: unless-stopped
 
 networks:

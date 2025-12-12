@@ -2,17 +2,19 @@
 
 FROM golang:1.24-alpine AS builder
 
+# Copy shared module first (required by replace directive)
+COPY shared /shared
+
 WORKDIR /app
 
 # Copy go mod files
-COPY go.mod go.sum* ./
-COPY ../../shared ../shared
+COPY functions/get-debate/go.mod functions/get-debate/go.sum* ./
 
 # Download dependencies
 RUN go mod download
 
 # Copy source code
-COPY . .
+COPY functions/get-debate/ .
 
 # Build the binary
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/get-debate ./cmd/main.go
