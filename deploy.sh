@@ -74,6 +74,7 @@ check_prerequisites() {
         "run.googleapis.com"
         "secretmanager.googleapis.com"
         "artifactregistry.googleapis.com"
+        "firestore.googleapis.com"
     )
     
     for api in "${REQUIRED_APIS[@]}"; do
@@ -82,6 +83,16 @@ check_prerequisites() {
             gcloud services enable "$api" --quiet
         fi
     done
+    
+    # Check/create Firestore database
+    log_info "Checking Firestore database..."
+    if ! gcloud firestore databases list --filter="name:debates" --format="value(name)" | grep -q "debates"; then
+        log_info "Creating Firestore database 'debates' in europe-west1..."
+        gcloud firestore databases create --database=debates --location=europe-west1 --quiet
+        log_info "Firestore database created ✓"
+    else
+        log_info "Firestore database 'debates' already exists ✓"
+    fi
     
     log_info "Prerequisites check passed ✓"
 }
@@ -125,7 +136,7 @@ deploy_backend() {
         --trigger-http \
         --allow-unauthenticated \
         --set-secrets=ANTHROPIC_API_KEY=anthropic-api-key:latest \
-        --set-env-vars=ALLOWED_ORIGIN=https://raphink.github.io \
+        --set-env-vars=ALLOWED_ORIGIN=https://raphink.github.io,GCP_PROJECT_ID=$PROJECT_ID,FIRESTORE_DATABASE_ID=debates \
         --memory=512MB \
         --timeout=300s \
         --max-instances=100 \
@@ -155,18 +166,40 @@ deploy_backend() {
     PORTRAIT_URL=$(gcloud functions describe get-portrait --region="$REGION" --gen2 --format="value(serviceConfig.uri)")
     log_info "get-portrait deployed: $PORTRAIT_URL"
     
+    # Deploy get-debate function
+    log_info "Deploying get-debate function..."
+    gcloud functions deploy get-debate \
+        --gen2 \
+        --runtime="$RUNTIME" \
+        --region="$REGION" \
+        --source=./backend/functions/get-debate \
+        --entry-point=HandleGetDebate \
+        --trigger-http \
+        --allow-unauthenticated \
+        --set-env-vars=ALLOWED_ORIGIN=https://raphink.github.io,GCP_PROJECT_ID=$PROJECT_ID,FIRESTORE_DATABASE_ID=debates \
+        --memory=256MB \
+        --timeout=10s \
+        --max-instances=100 \
+        --min-instances=0 \
+        --quiet
+    
+    GET_DEBATE_URL=$(gcloud functions describe get-debate --region="$REGION" --gen2 --format="value(serviceConfig.uri)")
+    log_info "get-debate deployed: $GET_DEBATE_URL"
+    
     log_info "Backend deployment complete ✓"
     
     # Export URLs for frontend build
     export REACT_APP_VALIDATE_TOPIC_URL="$VALIDATE_URL"
     export REACT_APP_GENERATE_DEBATE_URL="$DEBATE_URL"
     export REACT_APP_GET_PORTRAIT_URL="$PORTRAIT_URL"
+    export REACT_APP_GET_DEBATE_URL="$GET_DEBATE_URL"
     
     # Save URLs to file for frontend deployment
     cat > frontend/.env.production << EOF
 REACT_APP_VALIDATE_TOPIC_URL=$VALIDATE_URL
 REACT_APP_GENERATE_DEBATE_URL=$DEBATE_URL
 REACT_APP_GET_PORTRAIT_URL=$PORTRAIT_URL
+REACT_APP_GET_DEBATE_URL=$GET_DEBATE_URL
 EOF
     
     log_info "Saved production URLs to frontend/.env.production"

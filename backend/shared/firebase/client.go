@@ -18,8 +18,14 @@ func InitFirestore(ctx context.Context) error {
 		log.Println("Warning: GCP_PROJECT_ID not set, attempting to use Application Default Credentials")
 	}
 
+	databaseID := os.Getenv("FIRESTORE_DATABASE_ID")
+	if databaseID == "" {
+		databaseID = "debates" // default database name
+	}
+
 	conf := &firebase.Config{
-		ProjectID: projectID,
+		ProjectID:  projectID,
+		DatabaseID: databaseID,
 	}
 
 	app, err := firebase.NewApp(ctx, conf)
@@ -33,7 +39,7 @@ func InitFirestore(ctx context.Context) error {
 	}
 
 	firestoreClient = client
-	log.Printf("Firestore client initialized successfully for project: %s", projectID)
+	log.Printf("Firestore client initialized successfully for project: %s, database: %s", projectID, databaseID)
 	return nil
 }
 
