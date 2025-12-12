@@ -140,9 +140,12 @@ func transformToSummary(id string, debate *firebase.DebateDocument) DebateSummar
 		}
 
 		panelists[i] = PanelistSummary{
-			ID:   p.ID,
-			Name: p.Name,
-			Slug: slug,
+			ID:        p.ID,
+			Name:      p.Name,
+			Slug:      slug,
+			AvatarURL: p.AvatarURL,
+			Tagline:   p.Tagline,
+			Biography: p.Biography,
 		}
 	}
 

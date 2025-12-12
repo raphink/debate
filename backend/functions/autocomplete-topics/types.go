@@ -2,9 +2,12 @@ package autocompletetopics
 
 // PanelistSummary represents minimal panelist info for autocomplete
 type PanelistSummary struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Slug string `json:"slug"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Slug      string `json:"slug"`
+	AvatarURL string `json:"avatarUrl"`
+	Tagline   string `json:"tagline"`
+	Biography string `json:"biography"`
 }
 
 // DebateSummary represents a debate summary for autocomplete results
