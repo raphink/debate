@@ -63,7 +63,10 @@ const DebateViewer = () => {
   // Transform debate data to match DebateView expected format
   const transformedData = {
     topic: debate.topic.text,
-    panelists: debate.panelists || [],
+    panelists: (debate.panelists || []).map(p => ({
+      ...p,
+      bio: p.biography || p.bio, // Map backend 'biography' to frontend 'bio'
+    })),
     messages: debate.messages || [],
   };
 
@@ -86,7 +89,10 @@ const DebateViewer = () => {
           ← Back
         </button>
         <div className={styles.topicDisplay}>
-          <h1 className={styles.title}>{transformedData.topic}</h1>
+          <h1 className={styles.title}>
+            <span className={styles.topicLabel}>Topic: </span>
+            <em>&ldquo;{transformedData.topic}&rdquo;</em>
+          </h1>
           <div className={styles.panelists}>
             <span className={styles.panelistsLabel}>Panelists:</span>
             {transformedData.panelists.map((p, idx) => (

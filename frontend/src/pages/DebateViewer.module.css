@@ -59,6 +59,16 @@
   color: #2c3e50;
 }
 
+.topicLabel {
+  font-weight: 400;
+  color: #555;
+}
+
+.title em {
+  color: #5b8a72;
+  font-weight: 500;
+}
+
 .panelists {
   display: flex;
   flex-wrap: wrap;
