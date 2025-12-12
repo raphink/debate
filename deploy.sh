@@ -7,7 +7,7 @@ set -e
 # Configuration
 PROJECT_ID="debate-480911"
 REGION="europe-west1"
-RUNTIME="go123"
+RUNTIME="go124"
 
 # Colors for output
 RED='\033[0;31m'
