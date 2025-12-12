@@ -1,0 +1,267 @@
+{
+  "endpoint": {
+    "name": "autocomplete-topics",
+    "method": "GET",
+    "path": "/api/autocomplete-topics",
+    "description": "Search historical debate topics and return matching debates for autocomplete dropdown",
+    "authentication": "None (public endpoint)"
+  },
+  "request": {
+    "queryParameters": {
+      "q": {
+        "type": "string",
+        "required": true,
+        "minLength": 3,
+        "description": "Search query to match against topic text (case-insensitive substring search)",
+        "example": "ethics"
+      },
+      "limit": {
+        "type": "integer",
+        "required": false,
+        "default": 10,
+        "min": 1,
+        "max": 50,
+        "description": "Maximum number of results to return",
+        "example": 10
+      }
+    },
+    "example": "/api/autocomplete-topics?q=ethics&limit=10"
+  },
+  "response": {
+    "success": {
+      "statusCode": 200,
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "debates": {
+            "type": "array",
+            "description": "List of matching debates ordered by creation date descending (newest first)",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique debate UUID",
+                  "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "topic": {
+                  "type": "string",
+                  "description": "Full debate topic text",
+                  "example": "Ethics of AI in healthcare"
+                },
+                "panelists": {
+                  "type": "array",
+                  "description": "List of panelists in this debate",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Panelist ID (slug or unique identifier)",
+                        "example": "aristotle"
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "Panelist display name",
+                        "example": "Aristotle"
+                      },
+                      "slug": {
+                        "type": "string",
+                        "description": "URL-safe slug for panelist",
+                        "example": "aristotle"
+                      }
+                    },
+                    "required": ["id", "name", "slug"]
+                  }
+                },
+                "panelistCount": {
+                  "type": "integer",
+                  "description": "Number of panelists in this debate",
+                  "example": 3
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "ISO 8601 timestamp of when debate was created",
+                  "example": "2025-01-15T14:30:00Z"
+                }
+              },
+              "required": ["id", "topic", "panelists", "panelistCount", "createdAt"]
+            }
+          }
+        },
+        "required": ["debates"]
+      },
+      "example": {
+        "debates": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "topic": "Ethics of AI in healthcare",
+            "panelists": [
+              {
+                "id": "aristotle",
+                "name": "Aristotle",
+                "slug": "aristotle"
+              },
+              {
+                "id": "immanuel-kant",
+                "name": "Immanuel Kant",
+                "slug": "immanuel-kant"
+              },
+              {
+                "id": "peter-singer",
+                "name": "Peter Singer",
+                "slug": "peter-singer"
+              }
+            ],
+            "panelistCount": 3,
+            "createdAt": "2025-01-15T14:30:00Z"
+          },
+          {
+            "id": "660e8400-e29b-41d4-a716-446655440001",
+            "topic": "Ethical considerations for autonomous vehicles",
+            "panelists": [
+              {
+                "id": "john-stuart-mill",
+                "name": "John Stuart Mill",
+                "slug": "john-stuart-mill"
+              },
+              {
+                "id": "immanuel-kant",
+                "name": "Immanuel Kant",
+                "slug": "immanuel-kant"
+              },
+              {
+                "id": "judith-jarvis-thomson",
+                "name": "Judith Jarvis Thomson",
+                "slug": "judith-jarvis-thomson"
+              },
+              {
+                "id": "philippa-foot",
+                "name": "Philippa Foot",
+                "slug": "philippa-foot"
+              }
+            ],
+            "panelistCount": 4,
+            "createdAt": "2025-01-14T10:15:00Z"
+          }
+        ]
+      }
+    },
+    "errors": {
+      "400": {
+        "description": "Bad Request - Query parameter missing or invalid",
+        "example": {
+          "error": "Query must be at least 3 characters"
+        }
+      },
+      "405": {
+        "description": "Method Not Allowed - Only GET requests supported",
+        "example": {
+          "error": "Method not allowed"
+        }
+      },
+      "500": {
+        "description": "Internal Server Error - Failed to query Firestore or process results",
+        "example": {
+          "error": "Failed to fetch debates"
+        }
+      }
+    }
+  },
+  "headers": {
+    "request": {
+      "Content-Type": "application/json"
+    },
+    "response": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
+  },
+  "behavior": {
+    "search": {
+      "algorithm": "Case-insensitive substring match on topic text",
+      "implementation": "Firestore query on topic_lowercase field with range: >= query && < query + '\\uf8ff'",
+      "ordering": "Results ordered by createdAt timestamp descending (newest first), then by topic_lowercase ascending for tie-breaking"
+    },
+    "performance": {
+      "targetLatency": "< 200ms for p90",
+      "caching": "None (real-time query against Firestore)",
+      "rateLimit": "None (public endpoint)"
+    },
+    "edgeCases": {
+      "emptyResults": "Returns empty debates array if no matches found",
+      "duplicateTopics": "Returns all matching debates (no deduplication)",
+      "specialCharacters": "Preserves special characters in topic text, normalizes for search"
+    }
+  },
+  "firestoreRequirements": {
+    "collection": "debates",
+    "fields": {
+      "topic_lowercase": {
+        "type": "string",
+        "description": "Lowercase version of topic.text for case-insensitive search",
+        "indexed": true
+      },
+      "createdAt": {
+        "type": "timestamp",
+        "description": "Creation timestamp",
+        "indexed": true
+      }
+    },
+    "index": {
+      "fields": [
+        "topic_lowercase ASC",
+        "createdAt DESC"
+      ],
+      "description": "Composite index required for efficient autocomplete queries"
+    }
+  },
+  "testing": {
+    "scenarios": [
+      {
+        "name": "Basic autocomplete",
+        "request": "/api/autocomplete-topics?q=eth",
+        "expectedBehavior": "Returns all debates with topic containing 'eth' (case-insensitive)"
+      },
+      {
+        "name": "Limit parameter",
+        "request": "/api/autocomplete-topics?q=ethics&limit=5",
+        "expectedBehavior": "Returns maximum 5 results"
+      },
+      {
+        "name": "Query too short",
+        "request": "/api/autocomplete-topics?q=ab",
+        "expectedBehavior": "Returns 400 error: Query must be at least 3 characters"
+      },
+      {
+        "name": "No matches",
+        "request": "/api/autocomplete-topics?q=xyz123",
+        "expectedBehavior": "Returns empty debates array"
+      },
+      {
+        "name": "Special characters",
+        "request": "/api/autocomplete-topics?q=ai's",
+        "expectedBehavior": "Matches topics containing \"AI's\" or \"ai's\""
+      },
+      {
+        "name": "CORS preflight",
+        "request": "OPTIONS /api/autocomplete-topics",
+        "expectedBehavior": "Returns 200 with CORS headers"
+      }
+    ]
+  },
+  "usageExample": {
+    "frontend": {
+      "language": "JavaScript",
+      "code": "const autocompleteTopics = async (query, limit = 10) => {\n  const params = new URLSearchParams({ q: query, limit });\n  const response = await fetch(`/api/autocomplete-topics?${params}`);\n  if (!response.ok) throw new Error(`HTTP ${response.status}`);\n  return response.json();\n};\n\n// Usage in hook\nconst { debates } = await autocompleteTopics('ethics', 10);\nconsole.log(debates[0].topic); // \"Ethics of AI in healthcare\""
+    },
+    "backend": {
+      "language": "Go",
+      "code": "func queryDebates(ctx context.Context, client *firestore.Client, query string, limit int) ([]DebateSummary, error) {\n  q := strings.ToLower(query)\n  iter := client.Collection(\"debates\").\n    Where(\"topic_lowercase\", \">=\", q).\n    Where(\"topic_lowercase\", \"<\", q+\"\\uf8ff\").\n    OrderBy(\"topic_lowercase\", firestore.Asc).\n    OrderBy(\"createdAt\", firestore.Desc).\n    Limit(limit).\n    Documents(ctx)\n  // ... process results\n}"
+    }
+  }
+}

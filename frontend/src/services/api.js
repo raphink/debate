@@ -86,4 +86,37 @@ export const getDebateById = async (uuid) => {
   return response.json();
 };
 
+/**
+ * Autocomplete topic search for historical debates
+ * @param {string} query - Search query (min 3 chars)
+ * @param {number} limit - Maximum number of results (default 10)
+ * @returns {Promise<Object>} Object with debates array
+ */
+export const autocompleteTopics = async (query, limit = 10) => {
+  if (!query || query.length < 3) {
+    return { debates: [] };
+  }
+
+  const baseURL = process.env.REACT_APP_AUTOCOMPLETE_TOPICS_URL || 'http://localhost:8085';
+  const params = new URLSearchParams({
+    q: query,
+    limit: limit.toString(),
+  });
+
+  const response = await fetch(`${baseURL}?${params}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    // Graceful degradation - don't throw, just return empty
+    console.warn(`Autocomplete failed: ${response.status}`);
+    return { debates: [] };
+  }
+
+  return response.json();
+};
+
 export default apiClient;

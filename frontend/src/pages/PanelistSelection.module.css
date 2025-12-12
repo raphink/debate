@@ -128,3 +128,57 @@
     font-size: 0.938rem;
   }
 }
+
+/* Cache indicator styles */
+.cacheIndicator {
+  background: #e8f5e9;
+  border: 1px solid #4caf50;
+  border-left: 4px solid #4caf50;
+  color: #2e7d32;
+  padding: 12px 16px;
+  margin: 1rem 2rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.cacheIndicator span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Modify button styles */
+.modifyButton {
+  width: 100%;
+  background: linear-gradient(135deg, #ff9800 0%, #fb8c00 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(251, 140, 0, 0.2);
+}
+
+.modifyButton:hover {
+  background: linear-gradient(135deg, #fb8c00 0%, #f57c00 100%);
+  box-shadow: 0 4px 8px rgba(251, 140, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.modifyButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(251, 140, 0, 0.2);
+}
+
+.modifyButton:focus {
+  outline: 2px solid #ff9800;
+  outline-offset: 2px;
+}

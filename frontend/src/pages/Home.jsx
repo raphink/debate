@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopicInput from '../components/TopicInput/TopicInput';
 import ValidationResult from '../components/ValidationResult/ValidationResult';
@@ -6,7 +6,9 @@ import LoadingSpinner from '../components/common/LoadingSpinner/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage/ErrorMessage';
 import PanelistGrid from '../components/PanelistGrid/PanelistGrid';
 import PanelistSelector from '../components/PanelistSelector/PanelistSelector';
+import { TopicAutocompleteDropdown } from '../components/TopicInput/TopicAutocompleteDropdown';
 import useTopicValidation from '../hooks/useTopicValidation';
+import { useTopicAutocomplete } from '../hooks/useTopicAutocomplete';
 import usePanelistSelection from '../hooks/usePanelistSelection';
 import { getPortrait } from '../services/portraitService';
 import styles from './Home.module.css';
@@ -21,6 +23,14 @@ const Home = () => {
     isValidSelection,
   } = usePanelistSelection();
 
+  // Autocomplete state
+  const [autocompleteQuery, setAutocompleteQuery] = useState('');
+  const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const { suggestions, loading: autocompleteLoading } = useTopicAutocomplete(
+    autocompleteQuery,
+    showAutocomplete
+  );
+
   const handleSubmit = async (topic, suggestedNames = []) => {
     try {
       await validate(topic, suggestedNames);
@@ -28,6 +38,21 @@ const Home = () => {
       // Error is already set in the hook
       console.error('Validation error:', err);
     }
+  };
+
+  const handleAutocompleteSelect = (debate) => {
+    setShowAutocomplete(false);
+    setAutocompleteQuery('');
+    
+    // Navigate directly to panelist selection with pre-filled data
+    navigate('/select-panelists', {
+      state: {
+        debateId: debate.id,
+        topic: debate.topic,
+        panelists: debate.panelists,
+        skipValidation: true,
+      },
+    });
   };
 
   const handleTryAgain = () => {
@@ -59,6 +84,35 @@ const Home = () => {
         {/* Show input section only if not validating and no results yet */}
         {!isValidating && !validationResult && (
           <div className={styles.inputSection}>
+            {/* Topic Autocomplete */}
+            <div className={styles.autocompleteSection}>
+              <label htmlFor="autocomplete-input" className={styles.autocompleteLabel}>
+                Search previous debates
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="autocomplete-input"
+                  type="text"
+                  value={autocompleteQuery}
+                  onChange={(e) => {
+                    setAutocompleteQuery(e.target.value);
+                    setShowAutocomplete(true);
+                  }}
+                  onFocus={() => setShowAutocomplete(true)}
+                  placeholder="Type to search previous topics..."
+                  className={styles.autocompleteInput}
+                />
+                <TopicAutocompleteDropdown
+                  suggestions={suggestions}
+                  onSelect={handleAutocompleteSelect}
+                  loading={autocompleteLoading}
+                  visible={showAutocomplete && autocompleteQuery.length >= 3}
+                  onClose={() => setShowAutocomplete(false)}
+                />
+              </div>
+              <p className={styles.orDivider}>— or create a new topic —</p>
+            </div>
+
             <TopicInput onSubmit={handleSubmit} isLoading={isValidating} />
           </div>
         )}

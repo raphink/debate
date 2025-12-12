@@ -326,33 +326,33 @@
 
 ### Backend: Topic Autocomplete Endpoint
 
-- [ ] T144 [P] [US6] Create autocomplete-topics function in backend/shared/firebase/debates.go (query Firestore by topic substring, case-insensitive, order by createdAt desc)
-- [ ] T145 [P] [US6] Create new Cloud Function backend/functions/autocomplete-topics/ (HTTP GET handler)
-- [ ] T146 [P] [US6] Implement autocomplete-topics handler (parse q and limit from query params, default limit=10)
-- [ ] T147 [P] [US6] Return full debate metadata: {id, topic, panelists: [{id, name, slug}], panelistCount, createdAt}
-- [ ] T148 [P] [US6] Add CORS headers and error handling to autocomplete-topics response
-- [ ] T149 [P] [US6] Create Dockerfile for autocomplete-topics function (or reuse shared approach)
-- [ ] T150 [P] [US6] Add autocomplete-topics deployment to deploy.sh script
+- [X] T144 [P] [US6] Create autocomplete-topics function in backend/shared/firebase/debates.go (query Firestore by topic substring, case-insensitive, order by createdAt desc)
+- [X] T145 [P] [US6] Create new Cloud Function backend/functions/autocomplete-topics/ (HTTP GET handler)
+- [X] T146 [P] [US6] Implement autocomplete-topics handler (parse q and limit from query params, default limit=10)
+- [X] T147 [P] [US6] Return full debate metadata: {id, topic, panelists: [{id, name, slug}], panelistCount, createdAt}
+- [X] T148 [P] [US6] Add CORS headers and error handling to autocomplete-topics response
+- [X] T149 [P] [US6] Create Dockerfile for autocomplete-topics function (or reuse shared approach)
+- [X] T150 [P] [US6] Add autocomplete-topics deployment to deploy.sh script
 
 ### Frontend: Topic Autocomplete Integration
 
-- [ ] T151 [P] [US6] Add autocompleteTopics method to frontend/src/services/api.js (GET /api/autocomplete-topics?q={query}&limit=10)
-- [ ] T152 [P] [US6] Create useTopicAutocomplete hook in frontend/src/hooks/useTopicAutocomplete.js (debouncing 300ms, min 3 chars, loading/error states)
-- [ ] T153 [P] [US6] Create TopicAutocompleteDropdown component (shows topic text + panelist count badge, e.g., "3 panelists")
-- [ ] T154 [P] [US6] Update Home.jsx topic input to integrate autocomplete dropdown (appears on typing, real-time filtering)
-- [ ] T155 [P] [US6] Handle topic selection from dropdown: skip Claude validation, store debate ID + panelists in navigation state
-- [ ] T156 [P] [US6] Navigate to PanelistSelection with pre-filled panelists from selected historical debate
-- [ ] T157 [P] [US6] Add subtle loading indicator for autocomplete (>300ms response time)
-- [ ] T158 [P] [US6] Implement graceful degradation: hide dropdown if API fails, allow manual topic entry
+- [X] T151 [P] [US6] Add autocompleteTopics method to frontend/src/services/api.js (GET /api/autocomplete-topics?q={query}&limit=10)
+- [X] T152 [P] [US6] Create useTopicAutocomplete hook in frontend/src/hooks/useTopicAutocomplete.js (debouncing 300ms, min 3 chars, loading/error states)
+- [X] T153 [P] [US6] Create TopicAutocompleteDropdown component (shows topic text + panelist count badge, e.g., "3 panelists")
+- [X] T154 [P] [US6] Update Home.jsx topic input to integrate autocomplete dropdown (appears on typing, real-time filtering)
+- [X] T155 [P] [US6] Handle topic selection from dropdown: skip Claude validation, store debate ID + panelists in navigation state
+- [X] T156 [P] [US6] Navigate to PanelistSelection with pre-filled panelists from selected historical debate
+- [X] T157 [P] [US6] Add subtle loading indicator for autocomplete (>300ms response time)
+- [X] T158 [P] [US6] Implement graceful degradation: hide dropdown if API fails, allow manual topic entry
 
 ### Frontend: Cache Hit Detection & Modify Flow
 
-- [ ] T159 [P] [US6] Create cacheDetection.js utility in frontend/src/utils/ (deep compare topic text + panelist array for exact match)
-- [ ] T160 [P] [US6] Update PanelistSelection.jsx to accept pre-filled panelists + original debate ID via navigation state
-- [ ] T161 [P] [US6] Add "Modify Panelists" button when panelists pre-filled from history (chips locked initially, unlocked on click)
-- [ ] T162 [P] [US6] Implement cache hit detection: if topic + panelists unchanged, redirect directly to /d/{uuid} (load cached debate)
-- [ ] T163 [P] [US6] If user modifies panelists, enable "Generate Debate" flow (new UUID, no cache reuse)
-- [ ] T164 [P] [US6] Add visual indicator showing "Using cached debate" vs "Generating new debate"
+- [X] T159 [P] [US6] Create cacheDetection.js utility in frontend/src/utils/ (deep compare topic text + panelist array for exact match)
+- [X] T160 [P] [US6] Update PanelistSelection.jsx to accept pre-filled panelists + original debate ID via navigation state
+- [X] T161 [P] [US6] Add "Modify Panelists" button when panelists pre-filled from history (chips locked initially, unlocked on click)
+- [X] T162 [P] [US6] Implement cache hit detection: if topic + panelists unchanged, redirect directly to /d/{uuid} (load cached debate)
+- [X] T163 [P] [US6] If user modifies panelists, enable "Generate Debate" flow (new UUID, no cache reuse)
+- [X] T164 [P] [US6] Add visual indicator showing "Using cached debate" vs "Generating new debate"
 
 ### Testing
 

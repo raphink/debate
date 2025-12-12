@@ -13,8 +13,15 @@ import { MAX_PANELISTS, MIN_PANELISTS } from '../../utils/constants';
  * @param {Function} props.onClear - Callback to clear all selections
  * @param {Function} props.onProceed - Callback to proceed to debate generation
  * @param {boolean} props.isLoading - Whether debate generation is in progress
+ * @param {string} props.proceedButtonText - Custom text for proceed button (default: "Generate Debate")
  */
-const PanelistSelector = ({ selectedPanelists, onClear, onProceed, isLoading = false }) => {
+const PanelistSelector = ({ 
+  selectedPanelists, 
+  onClear, 
+  onProceed, 
+  isLoading = false,
+  proceedButtonText = 'Generate Debate'
+}) => {
   const count = selectedPanelists.length;
   const canProceed = count >= MIN_PANELISTS && count <= MAX_PANELISTS;
   const isMaxReached = count >= MAX_PANELISTS;
@@ -68,21 +75,23 @@ const PanelistSelector = ({ selectedPanelists, onClear, onProceed, isLoading = f
       )}
 
       <div className={styles.actions}>
-        <Button
-          onClick={onClear}
-          variant="secondary"
-          disabled={count === 0 || isLoading}
-          aria-label="Clear all selected panelists"
-        >
-          Clear Selection
-        </Button>
+        {onClear && (
+          <Button
+            onClick={onClear}
+            variant="secondary"
+            disabled={count === 0 || isLoading}
+            aria-label="Clear all selected panelists"
+          >
+            Clear Selection
+          </Button>
+        )}
         <Button
           onClick={onProceed}
           variant="primary"
           disabled={!canProceed || isLoading}
           aria-label={`Generate debate with ${count} selected panelists`}
         >
-          {isLoading ? 'Generating...' : 'Generate Debate'}
+          {isLoading ? 'Generating...' : proceedButtonText}
         </Button>
       </div>
     </div>
@@ -97,9 +106,10 @@ PanelistSelector.propTypes = {
       avatarUrl: PropTypes.string.isRequired,
     })
   ).isRequired,
-  onClear: PropTypes.func.isRequired,
+  onClear: PropTypes.func,
   onProceed: PropTypes.func.isRequired,
   isLoading: PropTypes.bool,
+  proceedButtonText: PropTypes.string,
 };
 
 export default PanelistSelector;

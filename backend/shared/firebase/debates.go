@@ -2,6 +2,7 @@ package firebase
 
 import (
 	"context"
+	"strings"
 	"time"
 )
 
@@ -45,18 +46,28 @@ type Metadata struct {
 
 // DebateDocument represents a complete debate stored in Firestore
 type DebateDocument struct {
-	ID          string     `firestore:"id" json:"id"`
-	Topic       Topic      `firestore:"topic" json:"topic"`
-	Panelists   []Panelist `firestore:"panelists" json:"panelists"`
-	Messages    []Message  `firestore:"messages" json:"messages"`
-	Status      string     `firestore:"status" json:"status"`
-	StartedAt   time.Time  `firestore:"startedAt" json:"startedAt"`
-	CompletedAt time.Time  `firestore:"completedAt" json:"completedAt"`
-	Metadata    Metadata   `firestore:"metadata" json:"metadata"`
+	ID             string     `firestore:"id" json:"id"`
+	Topic          Topic      `firestore:"topic" json:"topic"`
+	TopicLowercase string     `firestore:"topic_lowercase" json:"-"`
+	Panelists      []Panelist `firestore:"panelists" json:"panelists"`
+	Messages       []Message  `firestore:"messages" json:"messages"`
+	Status         string     `firestore:"status" json:"status"`
+	StartedAt      time.Time  `firestore:"startedAt" json:"startedAt"`
+	CompletedAt    time.Time  `firestore:"completedAt" json:"completedAt"`
+	Metadata       Metadata   `firestore:"metadata" json:"metadata"`
+	CreatedAt      time.Time  `firestore:"createdAt" json:"createdAt"`
 }
 
 // SaveDebate saves a debate document to Firestore
 func SaveDebate(ctx context.Context, uuid string, debate *DebateDocument) error {
+	// Add lowercase topic for efficient autocomplete queries
+	debate.TopicLowercase = strings.ToLower(debate.Topic.Text)
+	
+	// Set createdAt if not already set
+	if debate.CreatedAt.IsZero() {
+		debate.CreatedAt = time.Now()
+	}
+	
 	_, err := GetClient().Collection("debates").Doc(uuid).Set(ctx, debate)
 	return err
 }

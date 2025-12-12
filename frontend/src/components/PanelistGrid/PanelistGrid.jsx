@@ -12,8 +12,9 @@ import styles from './PanelistGrid.module.css';
  * @param {Array} props.selectedPanelists - Array of currently selected panelist objects
  * @param {Function} props.onToggleSelection - Callback when a panelist is selected/deselected
  * @param {number} props.maxSelection - Maximum number of panelists that can be selected (default: 5)
+ * @param {boolean} props.isLocked - Whether the selection is locked (from cache)
  */
-const PanelistGrid = ({ panelists, selectedPanelists, onToggleSelection, maxSelection = 5 }) => {
+const PanelistGrid = ({ panelists, selectedPanelists, onToggleSelection, maxSelection = 5, isLocked = false }) => {
   const selectedIds = selectedPanelists.map(p => p.id);
   const isMaxReached = selectedPanelists.length >= maxSelection;
 
@@ -27,10 +28,15 @@ const PanelistGrid = ({ panelists, selectedPanelists, onToggleSelection, maxSele
 
   return (
     <div className={styles.gridContainer}>
+      {isLocked && (
+        <div className={styles.lockedNotice}>
+          Panelists pre-selected from historical debate. Click "Modify Panelists" to make changes.
+        </div>
+      )}
       <div className={styles.grid}>
         {panelists.map((panelist) => {
           const isSelected = selectedIds.includes(panelist.id);
-          const isDisabled = isMaxReached && !isSelected;
+          const isDisabled = (isMaxReached && !isSelected) || isLocked;
 
           return (
             <PanelistCard
@@ -61,6 +67,7 @@ PanelistGrid.propTypes = {
   selectedPanelists: PropTypes.array.isRequired,
   onToggleSelection: PropTypes.func.isRequired,
   maxSelection: PropTypes.number,
+  isLocked: PropTypes.bool,
 };
 
 export default PanelistGrid;

@@ -202,6 +202,34 @@ deploy_backend() {
     GET_DEBATE_URL=$(gcloud functions describe get-debate --region="$REGION" --gen2 --format="value(serviceConfig.uri)")
     log_info "get-debate deployed: $GET_DEBATE_URL"
     
+    # Deploy autocomplete-topics function (with shared module)
+    log_info "Deploying autocomplete-topics function..."
+    
+    # Vendor dependencies including shared module
+    log_info "Vendoring dependencies for autocomplete-topics..."
+    (cd ./backend/functions/autocomplete-topics && go mod vendor)
+    
+    gcloud functions deploy autocomplete-topics \
+        --gen2 \
+        --runtime="$RUNTIME" \
+        --region="$REGION" \
+        --source=./backend/functions/autocomplete-topics \
+        --entry-point=AutocompleteTopicsHandler \
+        --trigger-http \
+        --allow-unauthenticated \
+        --set-env-vars=ALLOWED_ORIGIN=https://debates.jollygood.ch,GCP_PROJECT_ID=$PROJECT_ID \
+        --memory=256MB \
+        --timeout=10s \
+        --max-instances=100 \
+        --min-instances=0 \
+        --quiet
+    
+    # Clean up vendor directory
+    rm -rf ./backend/functions/autocomplete-topics/vendor
+    
+    AUTOCOMPLETE_URL=$(gcloud functions describe autocomplete-topics --region="$REGION" --gen2 --format="value(serviceConfig.uri)")
+    log_info "autocomplete-topics deployed: $AUTOCOMPLETE_URL"
+    
     log_info "Backend deployment complete ✓"
     
     # Export URLs for frontend build
@@ -209,6 +237,7 @@ deploy_backend() {
     export REACT_APP_GENERATE_DEBATE_URL="$DEBATE_URL"
     export REACT_APP_GET_PORTRAIT_URL="$PORTRAIT_URL"
     export REACT_APP_GET_DEBATE_URL="$GET_DEBATE_URL"
+    export REACT_APP_AUTOCOMPLETE_TOPICS_URL="$AUTOCOMPLETE_URL"
     
     # Save URLs to file for frontend deployment
     cat > frontend/.env.production << EOF
@@ -216,6 +245,7 @@ REACT_APP_VALIDATE_TOPIC_URL=$VALIDATE_URL
 REACT_APP_GENERATE_DEBATE_URL=$DEBATE_URL
 REACT_APP_GET_PORTRAIT_URL=$PORTRAIT_URL
 REACT_APP_GET_DEBATE_URL=$GET_DEBATE_URL
+REACT_APP_AUTOCOMPLETE_TOPICS_URL=$AUTOCOMPLETE_URL
 EOF
     
     log_info "Saved production URLs to frontend/.env.production"
