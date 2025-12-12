@@ -7,6 +7,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
+	"google.golang.org/api/option"
 )
 
 var firestoreClient *firestore.Client
@@ -24,8 +25,7 @@ func InitFirestore(ctx context.Context) error {
 	}
 
 	conf := &firebase.Config{
-		ProjectID:  projectID,
-		DatabaseID: databaseID,
+		ProjectID: projectID,
 	}
 
 	app, err := firebase.NewApp(ctx, conf)
@@ -33,7 +33,8 @@ func InitFirestore(ctx context.Context) error {
 		return err
 	}
 
-	client, err := app.Firestore(ctx)
+	// Use DatabaseID option when creating Firestore client
+	client, err := app.Firestore(ctx, option.WithDatabaseID(databaseID))
 	if err != nil {
 		return err
 	}
