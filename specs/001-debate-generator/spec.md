@@ -111,22 +111,25 @@ User shares completed debate via URL that loads from cached storage, allowing de
 8. **Given** debate is loaded from cache, **When** user views page, **Then** PDF export and share functions work identically to freshly generated debates
 
 ---
-### User Story 6 - Recent Debates Discovery (Priority: P3)
+### User Story 6 - Topic Discovery via History Integration (Priority: P3)
 
-User browses a subtle suggestion list of recent debates on the home page, providing inspiration and quick access to previously generated content.
+User discovers previous debate topics directly within the topic input field as an autocomplete dropdown, allowing quick re-use of existing debates with their original panelists or modifications.
 
-**Why this priority**: Nice-to-have feature that improves discoverability and encourages exploration, but not essential for core debate generation functionality. Users can still generate and view debates without this feature.
+**Why this priority**: Quality-of-life enhancement that streamlines the workflow by combining topic discovery and input in a single interface. Users can quickly access previous debates or use them as starting points for variations.
 
-**Independent Test**: Can be tested by generating several debates, returning to home page, and verifying recent debates list displays with topic previews and panelist avatars.
+**Independent Test**: Can be tested by generating several debates with different topics, returning to home page, typing partial topic text, and verifying autocomplete shows matching previous topics. Selecting a topic should pre-fill panelists and optionally load cached debate.
 
 **Acceptance Scenarios**:
 
-1. **Given** user is on home page, **When** recent debates exist in Firestore, **Then** system displays subtle suggestion UI showing up to 10 recent debates below topic input
-2. **Given** recent debates list is displayed, **When** user views a debate entry, **Then** entry shows topic text (truncated to 60 characters if longer) and circular avatars of all panelists
-3. **Given** recent debates list is displayed, **When** user clicks a debate entry, **Then** system navigates to /d/{uuid} to load the cached debate
-4. **Given** recent debates are loading, **When** API call is in progress, **Then** system shows subtle loading indicator without blocking topic input
-5. **Given** no recent debates exist or Firestore read fails, **When** user views home page, **Then** recent debates section is hidden (graceful degradation)
-6. **Given** recent debates list is displayed, **When** user scrolls page, **Then** list remains non-intrusive and doesn't interfere with primary topic input workflow
+1. **Given** user types in topic input field, **When** user has typed ≥3 characters, **Then** system displays dropdown showing up to 10 matching previous topics ordered by recency
+2. **Given** topic autocomplete dropdown is displayed, **When** user views a suggestion, **Then** entry shows full topic text and count of panelists (e.g., "3 panelists")
+3. **Given** user types in topic input field, **When** input matches previous topics, **Then** matching topics are highlighted/narrowed in real-time as user continues typing
+4. **Given** user selects a topic from autocomplete dropdown, **When** topic is selected, **Then** system validates topic (skipping Claude validation) and navigates to panelist selection with original panelists pre-selected
+5. **Given** user is on panelist selection with pre-filled panelists from history, **When** user makes no changes to panelist list, **Then** system detects cache hit and loads debate directly from Firestore (bypassing generation)
+6. **Given** user is on panelist selection with pre-filled panelists, **When** user clicks "Modify Panelists" button, **Then** system allows editing chips and generates new debate if changes are made
+7. **Given** topic autocomplete is loading, **When** API call is in progress, **Then** system shows subtle loading indicator without blocking typing
+8. **Given** no previous topics match user input or Firestore fails, **When** user types, **Then** autocomplete dropdown is hidden and user can submit new topic normally (graceful degradation)
+9. **Given** user selects historical topic with modified panelists, **When** user proceeds to generate debate, **Then** system generates new debate (no cache hit) and saves as new debate instance
 
 ---
 ### User Story 7 - Panelist Autocompletion from History (Priority: P3)
@@ -240,13 +243,16 @@ User receives intelligent panelist chip suggestions based on historical debate d
 - **FR-028a**: Backend API MUST validate debate ID format before querying Firestore
 - **FR-028b**: Backend API MUST return 404 for non-existent debates and 500 for Firestore errors
 - **FR-028c**: Firestore documents MUST be immutable (no updates or deletes after creation)
-- **FR-029**: System MUST provide recent debates list endpoint: GET /api/list-debates?limit=10 (US6)
-- **FR-029a**: Recent debates endpoint MUST return debates ordered by creation timestamp descending (newest first)
-- **FR-029b**: Recent debates response MUST include: debate ID, topic text, panelist avatars array, created timestamp
-- **FR-029c**: Recent debates list MUST be displayed subtly on home page below topic input, not interfering with primary workflow
-- **FR-029d**: Recent debates list items MUST show topic (truncated to 60 chars) and circular panelist avatars
-- **FR-029e**: Clicking recent debate item MUST navigate to /d/{uuid} to load cached debate
-- **FR-029f**: Recent debates section MUST hide gracefully if no debates exist or API fails (no error shown to user)
+- **FR-029**: System MUST provide topic autocomplete endpoint: GET /api/autocomplete-topics?q={query}&limit=10 (US6)
+- **FR-029a**: Topic autocomplete endpoint MUST search historical debate topics from Firestore matching query substring (case-insensitive)
+- **FR-029b**: Topic autocomplete response MUST return debates ordered by creation timestamp descending (newest first)
+- **FR-029c**: Topic autocomplete response MUST include: debate ID, topic text, panelist count, panelist IDs/names, created timestamp
+- **FR-029d**: Topic autocomplete dropdown MUST appear when user types ≥3 characters in topic input field on home page
+- **FR-029e**: Topic autocomplete MUST show up to 10 matching results with full topic text and panelist count (e.g., "3 panelists")
+- **FR-029f**: Selecting topic from autocomplete MUST skip Claude validation and pre-fill panelists on panelist selection page
+- **FR-029g**: System MUST detect cache hit when topic + panelists match exactly and load debate from Firestore without regenerating
+- **FR-029h**: Panelist selection page MUST show "Modify Panelists" button when panelists are pre-filled from history
+- **FR-029i**: Topic autocomplete MUST degrade gracefully if Firestore unavailable (hide dropdown, allow manual topic entry)
 - **FR-030**: System MUST provide panelist autocomplete endpoint: GET /api/autocomplete-panelists?q={query} (US7)
 - **FR-030a**: Autocomplete endpoint MUST aggregate panelists from all historical debates in Firestore
 - **FR-030b**: Autocomplete MUST normalize panelist names for deduplication (lowercase, remove titles like "St.", "Dr.", strip punctuation)

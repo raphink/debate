@@ -233,16 +233,17 @@ frontend/
 │   │   ├── usePanelistSelection.js
 │   │   ├── useTopicValidation.js
 │   │   ├── useDebateLoader.js   # Load debate from Firestore by UUID
-│   │   ├── useRecentDebates.js  # US6: Load recent debates list
+│   │   ├── useTopicAutocomplete.js  # US6: Autocomplete topics from history
 │   │   └── usePanelistAutocomplete.js  # US7: Autocomplete panelist suggestions
 │   ├── pages/
-│   │   ├── Home.jsx             # Topic entry page + recent debates list (US6)
-│   │   ├── PanelistSelection.jsx
+│   │   ├── Home.jsx             # Topic entry with integrated autocomplete (US6)
+│   │   ├── PanelistSelection.jsx # Panelist selection with "Modify" button for pre-filled (US6)
 │   │   ├── DebateGeneration.jsx # Live debate generation (/d/:uuid)
 │   │   ├── DebateViewer.jsx     # US5: Load cached debate from Firestore
 │   │   └── NotFound.jsx
 │   ├── utils/
 │   │   ├── validation.js        # Client-side input validation
+│   │   ├── cacheDetection.js    # US6: Detect cache hit (topic + panelist matching)
 │   │   ├── constants.js         # App constants (max panelists, etc.)
 │   │   ├── uuid.js              # UUID v4 generation using Web Crypto API
 │   │   ├── markdown.js          # Markdown parsing for *italic*, **bold**, etc.
@@ -427,12 +428,18 @@ Purpose: Retrieve saved debate from Firestore
 Response: 200 OK with debate JSON, 404 Not Found, or 500 Error
 ```
 
-**New Cloud Function**: `list-debates` (US6)
+**New Cloud Function**: `autocomplete-topics` (US6)
 ```
-Endpoint: GET /api/list-debates?limit=10
-Purpose: Retrieve recent debates for home page discovery
-Response: 200 OK with array of debate summaries (id, topic, panelists, createdAt)
-Notes: Orders by createdAt DESC, returns minimal data for performance
+Endpoint: GET /api/autocomplete-topics?q={query}&limit=10
+Purpose: Search historical debate topics for autocomplete in topic input field
+Response: 200 OK with array of matching debates (id, topic, panelistCount, panelists[], createdAt)
+Implementation:
+  1. Query Firestore debates collection where topic contains query substring (case-insensitive)
+  2. Order by createdAt DESC (newest first)
+  3. Return up to 'limit' results (default 10)
+  4. Include full debate metadata: id, topic text, panelist IDs/names/slugs, created timestamp
+  5. Frontend uses this to pre-fill panelists and detect cache hits
+Notes: Index on topic field for performance, consider caching recent queries
 ```
 
 **New Cloud Function**: `autocomplete-panelists` (US7)

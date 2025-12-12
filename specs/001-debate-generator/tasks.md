@@ -322,74 +322,86 @@
 
 **Goal**: Display subtle list of recent debates on home page for discovery and quick access
 
-**Independent Test**: Generate multiple debates, return to home page, verify recent debates list displays with topic and avatars
+**Independent Test**: Generate debates with various topics, return to home page, type partial topic text in input field, verify autocomplete suggests matching debates and allows selection to pre-fill panelists
 
-### Backend: List Debates Endpoint
+### Backend: Topic Autocomplete Endpoint
 
-- [ ] T144 [P] [US6] Create list-debates function in backend/shared/firebase/debates.go (query Firestore, order by createdAt desc, limit param)
-- [ ] T145 [P] [US6] Create new Cloud Function backend/functions/list-debates/ (HTTP GET handler)
-- [ ] T146 [P] [US6] Implement list-debates handler (parse limit from query param, default 10, max 20)
-- [ ] T147 [P] [US6] Return minimal debate data: {id, topic, panelistAvatars[], createdAt}
-- [ ] T148 [P] [US6] Add CORS headers to list-debates response
-- [ ] T149 [P] [US6] Create Dockerfile for list-debates function (multi-stage build, minimal runtime)
-- [ ] T150 [P] [US6] Add list-debates deployment to deploy.sh script
+- [ ] T144 [P] [US6] Create autocomplete-topics function in backend/shared/firebase/debates.go (query Firestore by topic substring, case-insensitive, order by createdAt desc)
+- [ ] T145 [P] [US6] Create new Cloud Function backend/functions/autocomplete-topics/ (HTTP GET handler)
+- [ ] T146 [P] [US6] Implement autocomplete-topics handler (parse q and limit from query params, default limit=10)
+- [ ] T147 [P] [US6] Return full debate metadata: {id, topic, panelists: [{id, name, slug}], panelistCount, createdAt}
+- [ ] T148 [P] [US6] Add CORS headers and error handling to autocomplete-topics response
+- [ ] T149 [P] [US6] Create Dockerfile for autocomplete-topics function (or reuse shared approach)
+- [ ] T150 [P] [US6] Add autocomplete-topics deployment to deploy.sh script
 
-### Frontend: Recent Debates Component
+### Frontend: Topic Autocomplete Integration
 
-- [ ] T151 [P] [US6] Add listRecentDebates method to frontend/src/services/api.js (GET /api/list-debates?limit=10)
-- [ ] T152 [P] [US6] Create useRecentDebates hook in frontend/src/hooks/useRecentDebates.js (fetch recent debates, loading/error states)
-- [ ] T153 [P] [US6] Create RecentDebates component in frontend/src/components/RecentDebates/RecentDebates.jsx (subtle list UI)
-- [ ] T154 [P] [US6] Create DebateListItem component (topic truncated to 60 chars, circular panelist avatars, onClick navigate)
-- [ ] T155 [P] [US6] Add RecentDebates to Home page below topic input
-- [ ] T156 [P] [US6] Style RecentDebates as subtle suggestion UI (muted colors, not prominent)
-- [ ] T157 [P] [US6] Hide RecentDebates gracefully if empty or API fails (no error shown)
+- [ ] T151 [P] [US6] Add autocompleteTopics method to frontend/src/services/api.js (GET /api/autocomplete-topics?q={query}&limit=10)
+- [ ] T152 [P] [US6] Create useTopicAutocomplete hook in frontend/src/hooks/useTopicAutocomplete.js (debouncing 300ms, min 3 chars, loading/error states)
+- [ ] T153 [P] [US6] Create TopicAutocompleteDropdown component (shows topic text + panelist count badge, e.g., "3 panelists")
+- [ ] T154 [P] [US6] Update Home.jsx topic input to integrate autocomplete dropdown (appears on typing, real-time filtering)
+- [ ] T155 [P] [US6] Handle topic selection from dropdown: skip Claude validation, store debate ID + panelists in navigation state
+- [ ] T156 [P] [US6] Navigate to PanelistSelection with pre-filled panelists from selected historical debate
+- [ ] T157 [P] [US6] Add subtle loading indicator for autocomplete (>300ms response time)
+- [ ] T158 [P] [US6] Implement graceful degradation: hide dropdown if API fails, allow manual topic entry
+
+### Frontend: Cache Hit Detection & Modify Flow
+
+- [ ] T159 [P] [US6] Create cacheDetection.js utility in frontend/src/utils/ (deep compare topic text + panelist array for exact match)
+- [ ] T160 [P] [US6] Update PanelistSelection.jsx to accept pre-filled panelists + original debate ID via navigation state
+- [ ] T161 [P] [US6] Add "Modify Panelists" button when panelists pre-filled from history (chips locked initially, unlocked on click)
+- [ ] T162 [P] [US6] Implement cache hit detection: if topic + panelists unchanged, redirect directly to /d/{uuid} (load cached debate)
+- [ ] T163 [P] [US6] If user modifies panelists, enable "Generate Debate" flow (new UUID, no cache reuse)
+- [ ] T164 [P] [US6] Add visual indicator showing "Using cached debate" vs "Generating new debate"
 
 ### Testing
 
-- [ ] T158 [US6] Backend test: Call list-debates → verify returns debates ordered by createdAt descending
-- [ ] T159 [US6] Backend test: Call list-debates with limit=5 → verify returns max 5 debates
-- [ ] T160 [US6] Frontend test: Load home page → verify recent debates list renders if debates exist
-- [ ] T161 [US6] Frontend test: Click recent debate item → verify navigates to /d/{uuid}
-- [ ] T162 [US6] Frontend test: Topic truncation works correctly (60 char limit with ellipsis)
+- [ ] T165 [US6] Backend test: Call autocomplete-topics with q="ethics" → verify returns matching debates ordered by createdAt DESC
+- [ ] T166 [US6] Backend test: Call with limit=5 → verify returns max 5 results
+- [ ] T167 [US6] Frontend test: Type 3+ chars in topic input → verify autocomplete dropdown appears with topic suggestions
+- [ ] T168 [US6] Frontend test: Select topic from dropdown → verify navigation to PanelistSelection with pre-filled panelists
+- [ ] T169 [US6] Frontend test: Pre-filled panelists unchanged → verify cache hit, redirect to /d/{uuid}
+- [ ] T170 [US6] Frontend test: Click "Modify Panelists", change list → verify new debate generated (no cache)
+- [ ] T171 [US6] E2E test: Generate debate → return home → type topic → autocomplete suggests it → select → verify panelists pre-filled
 
-**Checkpoint**: User Story 6 complete - users can discover and access recent debates from home page
+**Checkpoint**: User Story 6 complete - users discover and reuse previous debates via integrated topic autocomplete
 
 ### User Story 7 - Panelist Autocomplete (P3)
 
 **Backend - Autocomplete API Function** (Depends: Firestore integration US5)
-- [ ] T163 [US7] Backend: Create autocomplete-panelists Cloud Function scaffolding
-- [ ] T164 [US7] Backend: Implement Firestore query to aggregate all panelists from debates collection
-- [ ] T165 [US7] Backend: Implement name normalization utility (lowercase, strip titles/punctuation)
-- [ ] T166 [US7] Backend: Implement fuzzy matching algorithm for panelist name deduplication
-- [ ] T167 [US7] Backend: Implement frequency counting for panelist occurrences across debates
-- [ ] T168 [US7] Backend: Implement query matching logic (case-insensitive substring/prefix match)
-- [ ] T169 [US7] Backend: Implement response ranking (most frequent first, limit to top 10)
-- [ ] T170 [US7] Backend: Add 5-minute in-memory cache for aggregated panelist data
-- [ ] T171 [US7] Backend: Create autocomplete-panelists contract JSON schema
-- [ ] T172 [US7] Backend: Deploy autocomplete-panelists to Cloud Functions (go124 runtime)
+- [ ] T172 [US7] Backend: Create autocomplete-panelists Cloud Function scaffolding
+- [ ] T173 [US7] Backend: Implement Firestore query to aggregate all panelists from debates collection
+- [ ] T174 [US7] Backend: Implement name normalization utility (lowercase, strip titles/punctuation)
+- [ ] T175 [US7] Backend: Implement fuzzy matching algorithm for panelist name deduplication
+- [ ] T176 [US7] Backend: Implement frequency counting for panelist occurrences across debates
+- [ ] T177 [US7] Backend: Implement query matching logic (case-insensitive substring/prefix match)
+- [ ] T178 [US7] Backend: Implement response ranking (most frequent first, limit to top 10)
+- [ ] T179 [US7] Backend: Add 5-minute in-memory cache for aggregated panelist data
+- [ ] T180 [US7] Backend: Create autocomplete-panelists contract JSON schema
+- [ ] T181 [US7] Backend: Deploy autocomplete-panelists to Cloud Functions (go124 runtime)
 
-**Frontend - Autocomplete Component** (Depends: T163-T172)
-- [ ] T173 [US7] Frontend: Create usePanelistAutocomplete.js hook with debouncing (300ms)
-- [ ] T174 [US7] Frontend: Create autocomplete API service in topicService.js (GET /api/autocomplete-panelists?q={query})
-- [ ] T175 [US7] Frontend: Update chip input component to support autocomplete dropdown
-- [ ] T176 [US7] Frontend: Implement autocomplete dropdown UI (Material-UI Autocomplete or custom)
-- [ ] T177 [US7] Frontend: Add loading indicator for slow autocomplete responses (>500ms)
-- [ ] T178 [US7] Frontend: Implement graceful degradation when autocomplete API fails
-- [ ] T179 [US7] Frontend: Add keyboard navigation for autocomplete dropdown (↑↓ arrows, Enter, Escape)
-- [ ] T180 [US7] Frontend: Update PanelistSelection.jsx to integrate autocomplete component
-- [ ] T181 [US7] Frontend: Add analytics tracking for autocomplete usage (selected vs manual entry)
+**Frontend - Autocomplete Component** (Depends: T172-T181)
+- [ ] T182 [US7] Frontend: Create usePanelistAutocomplete.js hook with debouncing (300ms)
+- [ ] T183 [US7] Frontend: Create autocomplete API service in topicService.js (GET /api/autocomplete-panelists?q={query})
+- [ ] T184 [US7] Frontend: Update chip input component to support autocomplete dropdown
+- [ ] T185 [US7] Frontend: Implement autocomplete dropdown UI (Material-UI Autocomplete or custom)
+- [ ] T186 [US7] Frontend: Add loading indicator for slow autocomplete responses (>500ms)
+- [ ] T187 [US7] Frontend: Implement graceful degradation when autocomplete API fails
+- [ ] T188 [US7] Frontend: Add keyboard navigation for autocomplete dropdown (↑↓ arrows, Enter, Escape)
+- [ ] T189 [US7] Frontend: Update PanelistSelection.jsx to integrate autocomplete component
+- [ ] T190 [US7] Frontend: Add analytics tracking for autocomplete usage (selected vs manual entry)
 
-**Testing User Story 7** (Depends: T173-T181)
-- [ ] T182 [US7] Backend test: Verify name normalization ("St. Augustine" → "augustine")
-- [ ] T183 [US7] Backend test: Verify fuzzy matching deduplicates similar names
-- [ ] T184 [US7] Backend test: Verify frequency ranking returns most common panelists first
-- [ ] T185 [US7] Backend test: Verify autocomplete returns max 10 results
-- [ ] T186 [US7] Backend test: Verify cache reduces Firestore reads (5-minute TTL)
-- [ ] T187 [US7] Frontend test: Type "aug" → verify autocomplete suggests "Augustine of Hippo"
-- [ ] T188 [US7] Frontend test: Select autocomplete suggestion → verify chip created with correct data
-- [ ] T189 [US7] Frontend test: Autocomplete API fails → verify manual chip creation still works
-- [ ] T190 [US7] Frontend test: Type query with no matches → verify dropdown hides gracefully
-- [ ] T191 [US7] E2E test: Generate 3 debates with "Augustine" → verify autocomplete suggests him first
+**Testing User Story 7** (Depends: T182-T190)
+- [ ] T191 [US7] Backend test: Verify name normalization ("St. Augustine" → "augustine")
+- [ ] T192 [US7] Backend test: Verify fuzzy matching deduplicates similar names
+- [ ] T193 [US7] Backend test: Verify frequency ranking returns most common panelists first
+- [ ] T194 [US7] Backend test: Verify autocomplete returns max 10 results
+- [ ] T195 [US7] Backend test: Verify cache reduces Firestore reads (5-minute TTL)
+- [ ] T196 [US7] Frontend test: Type "aug" → verify autocomplete suggests "Augustine of Hippo"
+- [ ] T197 [US7] Frontend test: Select autocomplete suggestion → verify chip created with correct data
+- [ ] T198 [US7] Frontend test: Autocomplete API fails → verify manual chip creation still works
+- [ ] T199 [US7] Frontend test: Type query with no matches → verify dropdown hides gracefully
+- [ ] T200 [US7] E2E test: Generate 3 debates with "Augustine" → verify autocomplete suggests him first
 
 **Checkpoint**: User Story 7 complete - users receive intelligent panelist suggestions from historical data
 
