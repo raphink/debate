@@ -81,9 +81,9 @@ const Home = () => {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>
+            <div className={styles.label}>
               Select Panelists <span className={styles.optional}>(Optional)</span>
-            </label>
+            </div>
             <PanelistChipSelector
               value={selectedPanelists}
               onChange={setSelectedPanelists}

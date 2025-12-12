@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import useTopicAutocomplete from '../../hooks/useTopicAutocomplete';
-import TopicAutocompleteDropdown from './TopicAutocompleteDropdown';
+import { useTopicAutocomplete } from '../../hooks/useTopicAutocomplete';
+import { TopicAutocompleteDropdown } from './TopicAutocompleteDropdown';
 import styles from './UnifiedTopicInput.module.css';
 
 const UnifiedTopicInput = ({

@@ -71,7 +71,6 @@ const PanelistChipSelector = ({ value, onChange, disabled, max }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={styles.searchInput}
-              autoFocus
             />
             <button
               type="button"
