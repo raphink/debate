@@ -255,64 +255,64 @@
 
 ### Backend: Firestore Integration
 
-- [ ] T107 [P] [US5] Add Firebase Admin SDK dependency to backend/go.mod (cloud.google.com/go/firestore, firebase.google.com/go)
-- [ ] T108 [P] [US5] Create Firestore client in backend/shared/firebase/client.go (initialize with Application Default Credentials, requires GCP_PROJECT_ID env var)
+- [X] T107 [P] [US5] Add Firebase Admin SDK dependency to backend/go.mod (cloud.google.com/go/firestore, firebase.google.com/go)
+- [X] T108 [P] [US5] Create Firestore client in backend/shared/firebase/client.go (initialize with Application Default Credentials, requires GCP_PROJECT_ID env var)
 - [ ] T108a [P] [US5] Update quickstart.md with ADC setup: `gcloud auth application-default login` for local dev, service account key for Docker
-- [ ] T109 [P] [US5] Create debate storage service in backend/shared/firebase/debates.go (SaveDebate, GetDebate with DebateDocument struct)
-- [ ] T110 [P] [US5] Add UUID generation to backend/functions/generate-debate/handler.go using github.com/google/uuid
-- [ ] T111 [P] [US5] Modify generate-debate to include X-Debate-Id header in SSE response with generated UUID
-- [ ] T111a [P] [US5] Add Access-Control-Expose-Headers: X-Debate-Id to CORS configuration in generate-debate handler
-- [ ] T112 [P] [US5] Modify generate-debate to accumulate messages during streaming and save to Firestore on completion (non-blocking)
-- [ ] T113 [P] [US5] Add error handling for Firestore save failures (log error, don't fail debate stream)
+- [X] T109 [P] [US5] Create debate storage service in backend/shared/firebase/debates.go (SaveDebate, GetDebate with DebateDocument struct)
+- [X] T110 [P] [US5] Add UUID generation to backend/functions/generate-debate/handler.go using github.com/google/uuid
+- [X] T111 [P] [US5] Modify generate-debate to include X-Debate-Id header in SSE response with generated UUID
+- [X] T111a [P] [US5] Add Access-Control-Expose-Headers: X-Debate-Id to CORS configuration in generate-debate handler
+- [X] T112 [P] [US5] Modify generate-debate to accumulate messages during streaming and save to Firestore on completion (non-blocking)
+- [X] T113 [P] [US5] Add error handling for Firestore save failures (log error, don't fail debate stream)
 
 ### Backend: Get Debate Function
 
-- [ ] T114 [P] [US5] Create new Cloud Function backend/functions/get-debate/ (HTTP GET handler)
-- [ ] T115 [P] [US5] Implement get-debate handler in main.go (parse UUID from query param, validate format, query Firestore)
-- [ ] T116 [P] [US5] Add error responses for get-debate (404 Not Found, 400 Bad Request, 500 Internal Error)
-- [ ] T117 [P] [US5] Add CORS headers to get-debate response for cross-origin requests
-- [ ] T118 [P] [US5] Create Dockerfile for get-debate function (multi-stage build, minimal runtime)
-- [ ] T119 [P] [US5] Add get-debate deployment configuration to deploy.sh script
+- [X] T114 [P] [US5] Create new Cloud Function backend/functions/get-debate/ (HTTP GET handler)
+- [X] T115 [P] [US5] Implement get-debate handler in main.go (parse UUID from query param, validate format, query Firestore)
+- [X] T116 [P] [US5] Add error responses for get-debate (404 Not Found, 400 Bad Request, 500 Internal Error)
+- [X] T117 [P] [US5] Add CORS headers to get-debate response for cross-origin requests
+- [X] T118 [P] [US5] Create Dockerfile for get-debate function (multi-stage build, minimal runtime)
+- [X] T119 [P] [US5] Add get-debate deployment configuration to deploy.sh script
 
 ### Firestore Security
 
 - [ ] T120 [P] [US5] Create Firestore database: `gcloud firestore databases create --database="(default)" --location=europe-west1`
-- [ ] T121 [P] [US5] Create firestore.rules with deny all direct client access (read/write: false)
-- [ ] T122 [P] [US5] Create .firebaserc with Firebase project ID configuration
-- [ ] T123 [P] [US5] Create firebase.json with Firestore rules deployment configuration
+- [X] T121 [P] [US5] Create firestore.rules with deny all direct client access (read/write: false)
+- [X] T122 [P] [US5] Create .firebaserc with Firebase project ID configuration
+- [X] T123 [P] [US5] Create firebase.json with Firestore rules deployment configuration
 - [ ] T124 [P] [US5] Update DEPLOYMENT.md with Firebase project setup and security rules deployment instructions
 
 ### Frontend: API Integration
 
-- [ ] T124 [P] [US5] Add getDebateById method to frontend/src/services/api.js (GET /api/get-debate?id={uuid})
-- [ ] T125 [P] [US5] Update useDebateStream hook to extract X-Debate-Id header from SSE response
-- [ ] T126 [P] [US5] Update useDebateStream to update browser URL to /d/{uuid} using History API (pushState, no page reload)
+- [X] T125 [P] [US5] Add getDebateById method to frontend/src/services/api.js (GET /api/get-debate?id={uuid})
+- [ ] T126 [P] [US5] Update useDebateStream hook to extract X-Debate-Id header from SSE response
+- [ ] T127 [P] [US5] Update useDebateStream to update browser URL to /d/{uuid} using History API (pushState, no page reload)
 
 ### Frontend: Debate Viewer Page
 
-- [ ] T127 [P] [US5] Create useDebateLoader hook in frontend/src/hooks/useDebateLoader.js (fetch debate from backend by UUID parameter)
-- [ ] T128 [P] [US5] Create DebateViewer page in frontend/src/pages/DebateViewer.jsx (load and display cached debate, handle loading/error states)
-- [ ] T129 [P] [US5] Add /d/:uuid route in App.jsx routing to DebateViewer component
-- [ ] T130 [P] [US5] Add "Debate not found" error state in DebateViewer for 404s with link to create new debate
-- [ ] T131 [P] [US5] Add retry button for 500 errors in DebateViewer
+- [X] T128 [P] [US5] Create useDebateLoader hook in frontend/src/hooks/useDebateLoader.js (fetch debate from backend by UUID parameter)
+- [X] T129 [P] [US5] Create DebateViewer page in frontend/src/pages/DebateViewer.jsx (load and display cached debate, handle loading/error states)
+- [X] T130 [P] [US5] Add /d/:uuid route in App.jsx routing to DebateViewer component
+- [X] T131 [P] [US5] Add "Debate not found" error state in DebateViewer for 404s with link to create new debate
+- [X] T132 [P] [US5] Add retry button for 500 errors in DebateViewer
 
 ### Frontend: Share Functionality
 
-- [ ] T132 [P] [US5] Create ShareButton component in frontend/src/components/DebateView/ShareButton.jsx (copy current URL to clipboard)
-- [ ] T133 [P] [US5] Add ShareButton to DebateView component with success/failure toast notifications
-- [ ] T134 [P] [US5] Style ShareButton with gradient and hover effects matching app design system
-- [ ] T135 [P] [US5] Show ShareButton only when debate ID is available (hide during initial generation before UUID received)
+- [X] T133 [P] [US5] Create ShareButton component in frontend/src/components/common/ShareButton/ShareButton.jsx (copy current URL to clipboard)
+- [X] T134 [P] [US5] Add ShareButton to DebateView component with success/failure toast notifications
+- [X] T135 [P] [US5] Style ShareButton with gradient and hover effects matching app design system
+- [X] T136 [P] [US5] Show ShareButton only when debate ID is available (hide during initial generation before UUID received)
 
 ### Testing
 
-- [ ] T136 [US5] Backend test: Generate debate → verify Firestore document created → verify document structure matches DebateDocument
-- [ ] T137 [US5] Backend test: Call get-debate with valid UUID → verify JSON response matches saved debate
-- [ ] T138 [US5] Backend test: Call get-debate with invalid UUID → verify 400 Bad Request response
-- [ ] T139 [US5] Backend test: Call get-debate with non-existent UUID → verify 404 Not Found response
-- [ ] T140 [US5] Frontend test: Generate debate → verify URL updates to /d/{uuid} → verify share button appears
-- [ ] T141 [US5] End-to-end test: Generate debate → copy share URL → open in new browser/incognito → verify identical content loads from backend
-- [ ] T142 [US5] Test Firestore save failure handling (graceful degradation, debate still viewable/exportable, just not shareable)
-- [ ] T143 [US5] Test share button copy-to-clipboard functionality with success notification
+- [ ] T137 [US5] Backend test: Generate debate → verify Firestore document created → verify document structure matches DebateDocument
+- [ ] T138 [US5] Backend test: Call get-debate with valid UUID → verify JSON response matches saved debate
+- [ ] T139 [US5] Backend test: Call get-debate with invalid UUID → verify 400 Bad Request response
+- [ ] T140 [US5] Backend test: Call get-debate with non-existent UUID → verify 404 Not Found response
+- [ ] T141 [US5] Frontend test: Generate debate → verify URL updates to /d/{uuid} → verify share button appears
+- [ ] T142 [US5] End-to-end test: Generate debate → copy share URL → open in new browser/incognito → verify identical content loads from backend
+- [ ] T143 [US5] Test Firestore save failure handling (graceful degradation, debate still viewable/exportable, just not shareable)
+- [ ] T144 [US5] Test share button copy-to-clipboard functionality with success notification
 
 **Checkpoint**: User Story 5 complete - users can share debates via URLs and backend serves cached debates
 
