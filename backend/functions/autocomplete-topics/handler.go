@@ -50,8 +50,17 @@ func AutocompleteTopicsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Query Firestore
+	// Initialize Firestore (if not already initialized)
 	ctx := r.Context()
+	if firebase.GetClient() == nil {
+		if err := firebase.InitFirestore(ctx); err != nil {
+			log.Printf("Failed to initialize Firestore: %v", err)
+			http.Error(w, `{"error":"Database connection failed"}`, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Query Firestore
 	results, err := queryDebates(ctx, query, limit)
 	if err != nil {
 		log.Printf("Failed to query debates: %v", err)
