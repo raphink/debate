@@ -3,16 +3,27 @@ package firebase
 import (
 	"context"
 	"log"
+	"os"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
+	"google.golang.org/api/option"
 )
 
 var firestoreClient *firestore.Client
 
 // InitFirestore initializes the Firestore client using Application Default Credentials
 func InitFirestore(ctx context.Context) error {
-	app, err := firebase.NewApp(ctx, nil)
+	projectID := os.Getenv("GCP_PROJECT_ID")
+	if projectID == "" {
+		log.Println("Warning: GCP_PROJECT_ID not set, attempting to use Application Default Credentials")
+	}
+
+	conf := &firebase.Config{
+		ProjectID: projectID,
+	}
+
+	app, err := firebase.NewApp(ctx, conf)
 	if err != nil {
 		return err
 	}
@@ -23,7 +34,7 @@ func InitFirestore(ctx context.Context) error {
 	}
 
 	firestoreClient = client
-	log.Println("Firestore client initialized successfully")
+	log.Printf("Firestore client initialized successfully for project: %s", projectID)
 	return nil
 }
 
