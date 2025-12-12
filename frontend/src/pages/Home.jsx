@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UnifiedTopicInput from '../components/TopicInput/UnifiedTopicInput';
-import PanelistChipSelector from '../components/PanelistChips/PanelistChipSelector';
+import ChipInput from '../components/ChipInput/ChipInput';
 import { validateTopic } from '../services/topicService';
 import styles from './Home.module.css';
 
 const Home = () => {
   const navigate = useNavigate();
   const [topic, setTopic] = useState('');
-  const [selectedPanelists, setSelectedPanelists] = useState([]);
+  const [panelistChips, setPanelistChips] = useState([]);
   const [validationError, setValidationError] = useState(null);
   const [isValidating, setIsValidating] = useState(false);
 
@@ -24,31 +24,40 @@ const Home = () => {
     });
   };
 
+  // Parse chip names into panelist objects
+  const parsePanelistChips = (chips) => {
+    if (chips.length === 0) return [];
+    
+    return chips.map(name => ({
+      id: name.toLowerCase().replace(/\s+/g, '-'),
+      name: name,
+      slug: name.toLowerCase().replace(/\s+/g, '-'),
+    }));
+  };
+
   const handleFindPanelists = async () => {
     setIsValidating(true);
     setValidationError(null);
 
     try {
-      // Validate topic with optional panelist context
-      const result = await validateTopic(topic, selectedPanelists);
+      // Validate topic
+      const result = await validateTopic(topic);
 
-      if (result.isRelevant) {
-        // Navigate to panelist selection page
-        navigate('/select-panelists', {
-          state: {
-            topic: result.topic,
-            panelists: selectedPanelists,
-            suggestedNames: result.suggestedNames,
-            skipValidation: false,
-          },
-        });
-      } else {
-        setValidationError(result.validationMessage || 'This topic is not suitable for a debate. Please try another.');
-      }
+      // Parse panelist chips if provided
+      const panelists = parsePanelistChips(panelistChips);
+
+      // Navigate to panelist selection page
+      navigate('/select-panelists', {
+        state: {
+          topic: result.topic || topic,
+          panelists: panelists,
+          suggestedNames: result.suggestedNames || [],
+          skipValidation: false,
+        },
+      });
     } catch (error) {
       console.error('Validation error:', error);
       setValidationError('Failed to validate topic. Please try again.');
-    } finally {
       setIsValidating(false);
     }
   };
@@ -82,14 +91,18 @@ const Home = () => {
 
           <div className={styles.formGroup}>
             <div className={styles.label}>
-              Select Panelists <span className={styles.optional}>(Optional)</span>
+              Panelists <span className={styles.optional}>(Optional)</span>
             </div>
-            <PanelistChipSelector
-              value={selectedPanelists}
-              onChange={setSelectedPanelists}
-              disabled={isValidating || topic.trim().length < 3}
-              max={10}
+            <ChipInput
+              value={panelistChips}
+              onChange={setPanelistChips}
+              disabled={isValidating}
+              max={5}
+              placeholder="e.g., Albert Einstein"
             />
+            <p className={styles.hint}>
+              Type names separated by commas, Tab, or Enter (up to 5 panelists)
+            </p>
           </div>
 
           <button

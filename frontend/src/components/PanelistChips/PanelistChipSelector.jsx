@@ -4,14 +4,70 @@ import PanelistChip from './PanelistChip';
 import styles from './PanelistChipSelector.module.css';
 
 const FAMOUS_PANELISTS = [
-  { id: 'albert-einstein', name: 'Albert Einstein', avatarUrl: 'einstein.jpg' },
-  { id: 'marie-curie', name: 'Marie Curie', avatarUrl: 'curie.jpg' },
-  { id: 'stephen-hawking', name: 'Stephen Hawking', avatarUrl: 'hawking.jpg' },
-  { id: 'ada-lovelace', name: 'Ada Lovelace', avatarUrl: 'lovelace.jpg' },
-  { id: 'nikola-tesla', name: 'Nikola Tesla', avatarUrl: 'tesla.jpg' },
-  { id: 'isaac-newton', name: 'Isaac Newton', avatarUrl: 'newton.jpg' },
-  { id: 'charles-darwin', name: 'Charles Darwin', avatarUrl: 'darwin.jpg' },
-  { id: 'galileo-galilei', name: 'Galileo Galilei', avatarUrl: 'galileo.jpg' },
+  { 
+    id: 'albert-einstein', 
+    name: 'Albert Einstein', 
+    slug: 'albert-einstein',
+    avatarUrl: 'einstein.jpg',
+    tagline: 'Theoretical Physicist',
+    biography: 'Developer of the theory of relativity and one of the most influential physicists of the 20th century.'
+  },
+  { 
+    id: 'marie-curie', 
+    name: 'Marie Curie', 
+    slug: 'marie-curie',
+    avatarUrl: 'curie.jpg',
+    tagline: 'Pioneering Physicist and Chemist',
+    biography: 'First woman to win a Nobel Prize and the only person to win Nobel Prizes in two scientific fields.'
+  },
+  { 
+    id: 'stephen-hawking', 
+    name: 'Stephen Hawking', 
+    slug: 'stephen-hawking',
+    avatarUrl: 'hawking.jpg',
+    tagline: 'Theoretical Physicist and Cosmologist',
+    biography: 'Renowned for his work on black holes and cosmology, author of "A Brief History of Time".'
+  },
+  { 
+    id: 'ada-lovelace', 
+    name: 'Ada Lovelace', 
+    slug: 'ada-lovelace',
+    avatarUrl: 'lovelace.jpg',
+    tagline: 'Mathematics Pioneer',
+    biography: 'First computer programmer, known for her work on Charles Babbage\'s Analytical Engine.'
+  },
+  { 
+    id: 'nikola-tesla', 
+    name: 'Nikola Tesla', 
+    slug: 'nikola-tesla',
+    avatarUrl: 'tesla.jpg',
+    tagline: 'Inventor and Electrical Engineer',
+    biography: 'Pioneer of alternating current electricity and wireless communication technologies.'
+  },
+  { 
+    id: 'isaac-newton', 
+    name: 'Isaac Newton', 
+    slug: 'isaac-newton',
+    avatarUrl: 'newton.jpg',
+    tagline: 'Mathematician and Physicist',
+    biography: 'Formulated the laws of motion and universal gravitation, invented calculus.'
+  },
+  { 
+    id: 'charles-darwin', 
+    name: 'Charles Darwin', 
+    slug: 'charles-darwin',
+    avatarUrl: 'darwin.jpg',
+    tagline: 'Naturalist and Biologist',
+    biography: 'Proposed the theory of evolution by natural selection in "On the Origin of Species".'
+  },
+  { 
+    id: 'galileo-galilei', 
+    name: 'Galileo Galilei', 
+    slug: 'galileo-galilei',
+    avatarUrl: 'galileo.jpg',
+    tagline: 'Astronomer and Physicist',
+    biography: 'Father of observational astronomy and modern physics, championed heliocentrism.'
+  },
 ];
 
 const PanelistChipSelector = ({ value, onChange, disabled, max }) => {

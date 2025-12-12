@@ -3,23 +3,16 @@ const VALIDATE_TOPIC_URL = process.env.REACT_APP_VALIDATE_TOPIC_URL || 'http://l
 /**
  * Validates a debate topic with the backend API (simplified for unified input)
  * @param {string} topic - The topic to validate
- * @param {Array} panelists - Optional array of pre-selected panelists
  * @returns {Promise<Object>} Validation result
  */
-export const validateTopic = async (topic, panelists = []) => {
-  const payload = { topic };
-  
-  if (panelists && panelists.length > 0) {
-    payload.panelists = panelists.map(p => p.id || p.slug);
-  }
-
+export const validateTopic = async (topic) => {
   try {
     const response = await fetch(VALIDATE_TOPIC_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ topic }),
     });
 
     if (!response.ok) {
