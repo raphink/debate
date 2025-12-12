@@ -136,7 +136,7 @@ deploy_backend() {
         --trigger-http \
         --allow-unauthenticated \
         --set-secrets=ANTHROPIC_API_KEY=anthropic-api-key:latest \
-        --set-env-vars=ALLOWED_ORIGIN=https://raphink.github.io,GCP_PROJECT_ID=$PROJECT_ID,FIRESTORE_DATABASE_ID=debates \
+        --set-env-vars=ALLOWED_ORIGIN=https://raphink.github.io,GCP_PROJECT_ID=$PROJECT_ID \
         --memory=512MB \
         --timeout=300s \
         --max-instances=100 \
@@ -176,7 +176,7 @@ deploy_backend() {
         --entry-point=HandleGetDebate \
         --trigger-http \
         --allow-unauthenticated \
-        --set-env-vars=ALLOWED_ORIGIN=https://raphink.github.io,GCP_PROJECT_ID=$PROJECT_ID,FIRESTORE_DATABASE_ID=debates \
+        --set-env-vars=ALLOWED_ORIGIN=https://raphink.github.io,GCP_PROJECT_ID=$PROJECT_ID \
         --memory=256MB \
         --timeout=10s \
         --max-instances=100 \
