@@ -1,50 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import TopicInput from '../components/TopicInput/TopicInput';
-import ValidationResult from '../components/ValidationResult/ValidationResult';
-import LoadingSpinner from '../components/common/LoadingSpinner/LoadingSpinner';
-import ErrorMessage from '../components/common/ErrorMessage/ErrorMessage';
-import PanelistGrid from '../components/PanelistGrid/PanelistGrid';
-import PanelistSelector from '../components/PanelistSelector/PanelistSelector';
-import { TopicAutocompleteDropdown } from '../components/TopicInput/TopicAutocompleteDropdown';
-import useTopicValidation from '../hooks/useTopicValidation';
-import { useTopicAutocomplete } from '../hooks/useTopicAutocomplete';
-import usePanelistSelection from '../hooks/usePanelistSelection';
-import { getPortrait } from '../services/portraitService';
+import UnifiedTopicInput from '../components/TopicInput/UnifiedTopicInput';
+import PanelistChipSelector from '../components/PanelistChips/PanelistChipSelector';
+import { validateTopic } from '../services/topicService';
 import styles from './Home.module.css';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { isValidating, validationResult, panelists, error, validate, reset } = useTopicValidation();
-  const {
-    selectedPanelists,
-    toggleSelection,
-    clearSelection,
-    isValidSelection,
-  } = usePanelistSelection();
-
-  // Autocomplete state
-  const [autocompleteQuery, setAutocompleteQuery] = useState('');
-  const [showAutocomplete, setShowAutocomplete] = useState(false);
-  const { suggestions, loading: autocompleteLoading } = useTopicAutocomplete(
-    autocompleteQuery,
-    showAutocomplete
-  );
-
-  const handleSubmit = async (topic, suggestedNames = []) => {
-    try {
-      await validate(topic, suggestedNames);
-    } catch (err) {
-      // Error is already set in the hook
-      console.error('Validation error:', err);
-    }
-  };
+  const [topic, setTopic] = useState('');
+  const [selectedPanelists, setSelectedPanelists] = useState([]);
+  const [validationError, setValidationError] = useState(null);
+  const [isValidating, setIsValidating] = useState(false);
 
   const handleAutocompleteSelect = (debate) => {
-    setShowAutocomplete(false);
-    setAutocompleteQuery('');
-    
-    // Navigate directly to panelist selection with pre-filled data
+    // Navigate to panelist selection with pre-filled data from autocomplete
     navigate('/select-panelists', {
       state: {
         debateId: debate.id,
@@ -55,144 +24,82 @@ const Home = () => {
     });
   };
 
-  const handleTryAgain = () => {
-    reset();
-    clearSelection();
-  };
+  const handleFindPanelists = async () => {
+    setIsValidating(true);
+    setValidationError(null);
 
-  const handleProceedToDebate = () => {
-    if (isValidSelection() && validationResult) {
-      navigate('/debate', {
-        state: {
-          topic: validationResult.topic,
-          selectedPanelists,
-        },
-      });
+    try {
+      // Validate topic with optional panelist context
+      const result = await validateTopic(topic, selectedPanelists);
+
+      if (result.isRelevant) {
+        // Navigate to panelist selection page
+        navigate('/select-panelists', {
+          state: {
+            topic: result.topic,
+            panelists: selectedPanelists,
+            suggestedNames: result.suggestedNames,
+            skipValidation: false,
+          },
+        });
+      } else {
+        setValidationError(result.validationMessage || 'This topic is not suitable for a debate. Please try another.');
+      }
+    } catch (error) {
+      console.error('Validation error:', error);
+      setValidationError('Failed to validate topic. Please try again.');
+    } finally {
+      setIsValidating(false);
     }
   };
+
+  const isSubmitDisabled = topic.trim().length < 3 || isValidating;
 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
         <h1 className={styles.title}>AI-Powered Debate Generator</h1>
         <p className={styles.subtitle}>
-          Generate engaging debates between historical theological and philosophical figures
+          Search previous debates or create a new topic to generate engaging discussions
         </p>
       </header>
 
       <main className={styles.main}>
-        {/* Show input section only if not validating and no results yet */}
-        {!isValidating && !validationResult && (
-          <div className={styles.inputSection}>
-            {/* Topic Autocomplete */}
-            <div className={styles.autocompleteSection}>
-              <label htmlFor="autocomplete-input" className={styles.autocompleteLabel}>
-                Search previous debates
-              </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  id="autocomplete-input"
-                  type="text"
-                  value={autocompleteQuery}
-                  onChange={(e) => {
-                    setAutocompleteQuery(e.target.value);
-                    setShowAutocomplete(true);
-                  }}
-                  onFocus={() => setShowAutocomplete(true)}
-                  placeholder="Type to search previous topics..."
-                  className={styles.autocompleteInput}
-                />
-                <TopicAutocompleteDropdown
-                  suggestions={suggestions}
-                  onSelect={handleAutocompleteSelect}
-                  loading={autocompleteLoading}
-                  visible={showAutocomplete && autocompleteQuery.length >= 3}
-                  onClose={() => setShowAutocomplete(false)}
-                />
-              </div>
-              <p className={styles.orDivider}>— or create a new topic —</p>
-            </div>
-
-            <TopicInput onSubmit={handleSubmit} isLoading={isValidating} />
-          </div>
-        )}
-
-        {error && (
-          <div className={styles.errorContainer}>
-            <ErrorMessage
-              message={error.error || 'Failed to validate topic. Please try again.'}
-              retryable={error.retryable}
-              onRetry={reset}
+        <div className={styles.inputSection}>
+          <div className={styles.formGroup}>
+            <label htmlFor="topic-input" className={styles.label}>
+              Debate Topic
+            </label>
+            <UnifiedTopicInput
+              value={topic}
+              onChange={setTopic}
+              onSelectSuggestion={handleAutocompleteSelect}
+              error={validationError}
+              disabled={isValidating}
+              placeholder="What should they debate?"
             />
           </div>
-        )}
 
-        {validationResult && !validationResult.isRelevant && (
-          <ValidationResult
-            isRelevant={validationResult.isRelevant}
-            message={validationResult.message}
-            topic={validationResult.topic}
-            onTryAgain={handleTryAgain}
-          />
-        )}
-
-        {(isValidating || (validationResult && validationResult.isRelevant)) && (
-          <div className={styles.panelistSection}>
-            <div className={styles.topicDisplay}>
-              <h2 className={styles.sectionTitle}>Select Debate Panelists</h2>
-              {validationResult && (
-                <p className={styles.validatedTopic}>
-                  Topic: <em>&ldquo;{validationResult.topic}&rdquo;</em>
-                </p>
-              )}
-            </div>
-
-            {!isValidating && panelists.length < 5 && panelists.length > 0 && (
-              <ErrorMessage
-                message={`Only ${panelists.length} panelists were suggested for this topic. You may want to refine your topic to get more diverse perspectives.`}
-                type="warning"
-              />
-            )}
-
-            {panelists.length > 0 && (
-              <div className={styles.panelistContent}>
-                <div className={styles.gridSection}>
-                  <PanelistGrid
-                    panelists={panelists}
-                    selectedPanelists={selectedPanelists}
-                    onToggleSelection={toggleSelection}
-                  />
-                  
-                  {/* Show loading animation at the end of the list while streaming */}
-                  {isValidating && (
-                    <div className={styles.loadingAtEnd}>
-                      <LoadingSpinner />
-                      <p className={styles.loadingText}>Looking for more panelists...</p>
-                    </div>
-                  )}
-                </div>
-
-                {panelists.length > 0 && (
-                  <aside className={styles.selectorSection}>
-                    <PanelistSelector
-                      selectedPanelists={selectedPanelists}
-                      onClear={clearSelection}
-                      onProceed={handleProceedToDebate}
-                    />
-                  </aside>
-                )}
-              </div>
-            )}
-
-            {/* Show loading when no panelists yet */}
-            {isValidating && panelists.length === 0 && (
-              <div className={styles.loadingContainer}>
-                <LoadingSpinner />
-                <p className={styles.loadingText}>Looking for panelists...</p>
-              </div>
-            )}
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
+              Select Panelists <span className={styles.optional}>(Optional)</span>
+            </label>
+            <PanelistChipSelector
+              value={selectedPanelists}
+              onChange={setSelectedPanelists}
+              disabled={isValidating || topic.trim().length < 3}
+              max={10}
+            />
           </div>
-        )}
+
+          <button
+            onClick={handleFindPanelists}
+            disabled={isSubmitDisabled}
+            className={styles.submitButton}
+          >
+            {isValidating ? 'Validating...' : 'Find Panelists →'}
+          </button>
+        </div>
       </main>
 
       <footer className={styles.footer}>

@@ -27,13 +27,58 @@
 .main {
   flex: 1;
   padding: 2rem 1.5rem;
-  max-width: 1400px;
+  max-width: 700px;
   width: 100%;
   margin: 0 auto;
 }
 
 .inputSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   animation: fadeIn 0.3s ease-in;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.optional {
+  font-weight: 400;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  background: #007bff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 0.5rem;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.submitButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .loadingContainer {

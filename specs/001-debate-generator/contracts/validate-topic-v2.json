@@ -1,0 +1,246 @@
+{
+  "endpoint": {
+    "name": "validate-topic",
+    "method": "POST",
+    "path": "/api/validate-topic",
+    "version": "2.0",
+    "description": "Validate a debate topic for relevance and suggest panelists. Enhanced with optional panelist context for better suggestions.",
+    "authentication": "None (public endpoint)"
+  },
+  "request": {
+    "contentType": "application/json",
+    "schema": {
+      "type": "object",
+      "required": ["topic"],
+      "properties": {
+        "topic": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 500,
+          "description": "The debate topic to validate",
+          "example": "Ethics of AI in healthcare"
+        },
+        "panelists": {
+          "type": "array",
+          "required": false,
+          "items": {
+            "type": "string",
+            "description": "Panelist ID or slug"
+          },
+          "maxItems": 10,
+          "description": "Optional pre-selected panelists to provide context for validation and suggestions",
+          "example": ["immanuel-kant", "peter-singer"]
+        }
+      }
+    },
+    "examples": [
+      {
+        "name": "Basic validation",
+        "body": {
+          "topic": "Should we colonize Mars?"
+        }
+      },
+      {
+        "name": "Validation with panelist context",
+        "body": {
+          "topic": "Ethics of genetic engineering",
+          "panelists": ["francis-crick", "james-watson", "rosalind-franklin"]
+        }
+      }
+    ]
+  },
+  "response": {
+    "success": {
+      "statusCode": 200,
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "isRelevant": {
+            "type": "boolean",
+            "description": "Whether the topic is suitable for a debate"
+          },
+          "topic": {
+            "type": "string",
+            "description": "The validated/normalized topic text"
+          },
+          "validationMessage": {
+            "type": "string",
+            "description": "Feedback message about the topic quality"
+          },
+          "suggestedNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of suggested panelist names (enhanced when panelists provided)"
+          },
+          "panelistContext": {
+            "type": "object",
+            "required": false,
+            "properties": {
+              "compatible": {
+                "type": "boolean",
+                "description": "Whether pre-selected panelists are compatible with topic"
+              },
+              "feedback": {
+                "type": "string",
+                "description": "Feedback about panelist-topic fit"
+              }
+            },
+            "description": "Additional context when panelists are provided"
+          }
+        }
+      },
+      "examples": [
+        {
+          "name": "Valid topic without panelists",
+          "body": {
+            "isRelevant": true,
+            "topic": "Should we colonize Mars?",
+            "validationMessage": "Great topic for a debate!",
+            "suggestedNames": [
+              "Elon Musk",
+              "Neil deGrasse Tyson",
+              "Carl Sagan",
+              "Mae Jemison"
+            ]
+          }
+        },
+        {
+          "name": "Valid topic with compatible panelists",
+          "body": {
+            "isRelevant": true,
+            "topic": "Ethics of genetic engineering",
+            "validationMessage": "Excellent topic for these panelists!",
+            "suggestedNames": [
+              "Jennifer Doudna",
+              "George Church",
+              "Françoise Baylis"
+            ],
+            "panelistContext": {
+              "compatible": true,
+              "feedback": "The selected scientists have relevant expertise in genetics and bioethics"
+            }
+          }
+        },
+        {
+          "name": "Valid topic with incompatible panelists",
+          "body": {
+            "isRelevant": true,
+            "topic": "Ethics of genetic engineering",
+            "validationMessage": "Good topic, but consider adding bioethics experts",
+            "suggestedNames": [
+              "Jennifer Doudna",
+              "Francis Collins",
+              "Françoise Baylis"
+            ],
+            "panelistContext": {
+              "compatible": false,
+              "feedback": "While these panelists are brilliant, they lack expertise in genetics. Consider adding scientists like Jennifer Doudna or bioethicists."
+            }
+          }
+        },
+        {
+          "name": "Invalid topic",
+          "body": {
+            "isRelevant": false,
+            "topic": "asdfghjkl",
+            "validationMessage": "This doesn't appear to be a meaningful debate topic. Please try a topic that presents opposing viewpoints.",
+            "suggestedNames": []
+          }
+        }
+      ]
+    },
+    "errors": {
+      "400": {
+        "description": "Bad Request - Missing or invalid topic",
+        "examples": [
+          {
+            "error": "Topic is required"
+          },
+          {
+            "error": "Topic must be at least 3 characters"
+          },
+          {
+            "error": "Too many panelists (max 10)"
+          }
+        ]
+      },
+      "500": {
+        "description": "Internal Server Error - Failed to validate topic",
+        "example": {
+          "error": "Failed to validate topic"
+        }
+      }
+    }
+  },
+  "behavior": {
+    "validation": {
+      "criteria": [
+        "Topic presents opposing viewpoints",
+        "Topic is specific enough to debate",
+        "Topic is not gibberish or spam",
+        "Topic is appropriate for intellectual discussion"
+      ],
+      "withPanelists": [
+        "Check if panelists have relevant expertise",
+        "Suggest complementary panelists if gaps exist",
+        "Validate panelist-topic compatibility",
+        "Enhance suggestions based on panelist domains"
+      ]
+    },
+    "suggestions": {
+      "algorithm": "AI-powered analysis using Claude API",
+      "count": "4-8 suggested names",
+      "criteria": [
+        "Relevant expertise in topic domain",
+        "Historical figures or contemporary experts",
+        "Diverse perspectives and backgrounds",
+        "Complementary to pre-selected panelists (if provided)"
+      ]
+    }
+  },
+  "testing": {
+    "scenarios": [
+      {
+        "name": "Valid topic without panelists",
+        "request": {
+          "topic": "Should we colonize Mars?"
+        },
+        "expectedBehavior": "Returns isRelevant=true with general expert suggestions"
+      },
+      {
+        "name": "Valid topic with compatible panelists",
+        "request": {
+          "topic": "Ethics of genetic engineering",
+          "panelists": ["francis-crick", "james-watson"]
+        },
+        "expectedBehavior": "Returns isRelevant=true, panelistContext.compatible=true, suggests complementary bioethics experts"
+      },
+      {
+        "name": "Valid topic with incompatible panelists",
+        "request": {
+          "topic": "Quantum computing advances",
+          "panelists": ["shakespeare", "jane-austen"]
+        },
+        "expectedBehavior": "Returns isRelevant=true, panelistContext.compatible=false with helpful feedback"
+      },
+      {
+        "name": "Invalid topic",
+        "request": {
+          "topic": "xyz123"
+        },
+        "expectedBehavior": "Returns isRelevant=false with explanatory message"
+      },
+      {
+        "name": "Too many panelists",
+        "request": {
+          "topic": "Ethics of AI",
+          "panelists": ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11"]
+        },
+        "expectedBehavior": "Returns 400 error: Too many panelists"
+      }
+    ]
+  }
+}

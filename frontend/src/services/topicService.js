@@ -1,6 +1,39 @@
 const VALIDATE_TOPIC_URL = process.env.REACT_APP_VALIDATE_TOPIC_URL || 'http://localhost:8080';
 
 /**
+ * Validates a debate topic with the backend API (simplified for unified input)
+ * @param {string} topic - The topic to validate
+ * @param {Array} panelists - Optional array of pre-selected panelists
+ * @returns {Promise<Object>} Validation result
+ */
+export const validateTopic = async (topic, panelists = []) => {
+  const payload = { topic };
+  
+  if (panelists && panelists.length > 0) {
+    payload.panelists = panelists.map(p => p.id || p.slug);
+  }
+
+  try {
+    const response = await fetch(VALIDATE_TOPIC_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to validate topic:', error);
+    throw error;
+  }
+};
+
+/**
  * Validates a debate topic with the backend API using streaming
  * @param {string} topic - The topic to validate
  * @param {string[]} suggestedNames - Optional array of suggested panelist names (max 5)
@@ -10,7 +43,7 @@ const VALIDATE_TOPIC_URL = process.env.REACT_APP_VALIDATE_TOPIC_URL || 'http://l
  * @param {Function} onComplete - Callback when stream completes
  * @returns {Promise<void>}
  */
-export const validateTopic = async (
+export const validateTopicStream = async (
   topic,
   suggestedNames = [],
   onValidation,

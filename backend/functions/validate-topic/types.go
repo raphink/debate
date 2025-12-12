@@ -4,6 +4,7 @@ package validatetopic
 type TopicValidationRequest struct {
 	Topic          string   `json:"topic"`
 	SuggestedNames []string `json:"suggestedNames,omitempty"` // Optional: user-suggested panelist names (max 5)
+	Panelists      []string `json:"panelists,omitempty"`      // Optional: pre-selected panelist IDs for context
 }
 
 // Panelist represents a suggested debate participant
