@@ -258,18 +258,23 @@ export const generateDebatePDF = async (debateData) => {
     // Save graphics state
     pdf.saveGraphicsState();
     
-    // Create circular clipping path
+    // Create circular clipping path using internal API for better compatibility
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    pdf.internal.write('q'); // Save state
+    
+    // Draw circle path and set as clipping
     pdf.circle(x, y, radius);
-    pdf.clip();
+    pdf.internal.write('W n'); // Set clipping path (W) and end path (n)
     
     // Draw image (square, will be clipped to circle)
     const size = radius * 2;
     pdf.addImage(imageData, 'JPEG', x - radius, y - radius, size, size);
     
-    // Restore graphics state (removes clipping path)
+    // Restore graphics state
+    pdf.internal.write('Q'); // Restore state
     pdf.restoreGraphicsState();
     
-    // Draw circle border AFTER restoring (outside clipping context)
+    // Draw circle border
     pdf.setDrawColor(200, 200, 200);
     pdf.setLineWidth(0.2);
     pdf.circle(x, y, radius);
@@ -331,42 +336,45 @@ export const generateDebatePDF = async (debateData) => {
   pdf.setFont('helvetica', 'normal');
 
   panelists.forEach((panelist) => {
-    const bioLines = panelist.bio ? pdf.splitTextToSize(panelist.bio, contentWidth - 20) : [];
-    const neededSpace = 15 + (panelist.tagline ? 5 : 0) + (bioLines.length * 5);
+    const bioLines = panelist.bio ? pdf.splitTextToSize(panelist.bio, contentWidth - avatarSize - 12) : [];
+    const neededSpace = Math.max(avatarSize + 2, 10 + (panelist.tagline ? 5 : 0) + (bioLines.length * 5)) + 8;
     
     checkPageBreak(neededSpace);
 
     // Draw avatar
     const avatarUrl = panelist.avatarUrl || defaultAvatar;
     const avatarData = portraitCache[avatarUrl] || portraitCache[defaultAvatar];
+    const avatarCenterY = yPosition + (avatarSize / 2);
     if (avatarData) {
-      drawCircularAvatar(avatarData, margin + 5, yPosition + 3, avatarSize / 2);
+      drawCircularAvatar(avatarData, margin + (avatarSize / 2), avatarCenterY, avatarSize / 2);
     }
 
-    // Panelist name (aligned with top of avatar)
-    const textStartX = margin + avatarSize + 8;
+    // Panelist name and details (aligned next to avatar)
+    const textStartX = margin + avatarSize + 4;
+    let textY = yPosition + 4;
+    
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(31, 41, 55);
-    pdf.text(panelist.name, textStartX, yPosition + 4);
-    yPosition += 6;
+    pdf.text(panelist.name, textStartX, textY);
+    textY += 5;
 
     // Tagline
     if (panelist.tagline) {
       pdf.setFont('helvetica', 'italic');
       pdf.setTextColor(107, 114, 128);
-      pdf.text(panelist.tagline, textStartX, yPosition);
-      yPosition += 5;
+      pdf.text(panelist.tagline, textStartX, textY);
+      textY += 5;
     }
 
     // Bio
     if (panelist.bio) {
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(75, 85, 99);
-      pdf.text(bioLines, textStartX, yPosition);
-      yPosition += (bioLines.length * 5);
+      pdf.text(bioLines, textStartX, textY);
+      textY += (bioLines.length * 5);
     }
     
-    yPosition += 8; // Spacing between panelists
+    yPosition += neededSpace;
 
     pdf.setTextColor(31, 41, 55);
   });
@@ -417,12 +425,16 @@ export const generateDebatePDF = async (debateData) => {
     const bubbleX = isModerator 
       ? margin + (contentWidth - bubbleWidth) / 2
       : (index % 2 === 0) 
-        ? margin + 15
-        : margin + contentWidth - bubbleWidth - 15;
+        ? margin + avatarSize + 6
+        : margin + contentWidth - bubbleWidth;
     
-    // Avatar position
-    const avatarX = bubbleX - 8;
-    const avatarY = yPosition + 3;
+    // Avatar position (left of bubble for left-aligned, right of bubble for right-aligned)
+    const avatarX = (index % 2 === 0 && !isModerator) 
+      ? margin + (avatarSize / 2)
+      : isModerator
+        ? bubbleX + bubbleWidth + avatarSize / 2 + 3
+        : margin + contentWidth - (avatarSize / 2);
+    const avatarY = yPosition + 5;
 
     // Draw chat bubble background with subtle shadow effect
     // Shadow
