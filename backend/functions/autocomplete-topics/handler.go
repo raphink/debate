@@ -87,14 +87,11 @@ func queryDebates(ctx context.Context, queryStr string, limit int) ([]DebateSumm
 	// Normalize query for case-insensitive search
 	q := strings.ToLower(queryStr)
 
-	// Build query with range for substring search
-	// Using Unicode max char \uf8ff to create an upper bound
+	// Fetch recent debates (up to 100) and filter client-side for substring matching
+	// This is more effective than Firestore's limited text search capabilities
 	iter := client.Collection("debates").
-		Where("topic_lowercase", ">=", q).
-		Where("topic_lowercase", "<", q+"\uf8ff").
-		OrderBy("topic_lowercase", firestore.Asc).
 		OrderBy("createdAt", firestore.Desc).
-		Limit(limit).
+		Limit(100).
 		Documents(ctx)
 
 	defer iter.Stop()
@@ -116,9 +113,17 @@ func queryDebates(ctx context.Context, queryStr string, limit int) ([]DebateSumm
 			continue
 		}
 
-		// Transform to summary
-		summary := transformToSummary(doc.Ref.ID, &debate)
-		results = append(results, summary)
+		// Filter by substring match (case-insensitive)
+		topicLower := strings.ToLower(debate.Topic.Text)
+		if strings.Contains(topicLower, q) {
+			summary := transformToSummary(doc.Ref.ID, &debate)
+			results = append(results, summary)
+			
+			// Stop once we have enough results
+			if len(results) >= limit {
+				break
+			}
+		}
 	}
 
 	return results, nil
@@ -142,8 +147,8 @@ func transformToSummary(id string, debate *firebase.DebateDocument) DebateSummar
 	}
 
 	// Format timestamp
-	createdAt := debate.CreatedAt.Format(time.RFC3339)
-	if debate.CreatedAt.IsZero() && !debate.StartedAt.IsZero() {
+	createdAt := ""
+	if !debate.StartedAt.IsZero() {
 		createdAt = debate.StartedAt.Format(time.RFC3339)
 	}
 
