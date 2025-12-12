@@ -132,6 +132,8 @@ User shares completed debate via URL that loads from cached storage, allowing de
 - What happens when Firestore read operation times out or fails?
 - How does system prevent duplicate debate saves for the same UUID?
 - What happens when user navigates away during Firestore save operation?
+- What happens when Application Default Credentials are not configured for Firestore access?
+- How does system handle Firestore authentication failures in local development vs production?
 
 ## Requirements *(mandatory)*
 

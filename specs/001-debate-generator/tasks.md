@@ -256,7 +256,8 @@
 ### Backend: Firestore Integration
 
 - [ ] T107 [P] [US5] Add Firebase Admin SDK dependency to backend/go.mod (cloud.google.com/go/firestore, firebase.google.com/go)
-- [ ] T108 [P] [US5] Create Firestore client in backend/shared/firebase/client.go (initialize with Application Default Credentials)
+- [ ] T108 [P] [US5] Create Firestore client in backend/shared/firebase/client.go (initialize with Application Default Credentials, requires GCP_PROJECT_ID env var)
+- [ ] T108a [P] [US5] Update quickstart.md with ADC setup: `gcloud auth application-default login` for local dev, service account key for Docker
 - [ ] T109 [P] [US5] Create debate storage service in backend/shared/firebase/debates.go (SaveDebate, GetDebate with DebateDocument struct)
 - [ ] T110 [P] [US5] Add UUID generation to backend/functions/generate-debate/handler.go using github.com/google/uuid
 - [ ] T111 [P] [US5] Modify generate-debate to include X-Debate-Id header in SSE response with generated UUID

@@ -297,6 +297,11 @@ start-local.sh                   # Quick start script
 - Firebase Admin SDK uses Application Default Credentials for authentication
 - Firestore writes to `(default)` database in specified GCP project
 
+**Authentication Setup**:
+- **Local Development**: Run `gcloud auth application-default login` to create ADC
+- **Docker/Production**: Mount service account key JSON or set `GOOGLE_APPLICATION_CREDENTIALS` env var
+- **Service Account Permissions**: Requires `Cloud Datastore User` role (or `roles/datastore.user`) for Firestore access
+
 ### UUID Generation
 - **Location**: Backend (`generate-debate` Cloud Function)
 - **Library**: Google UUID (`github.com/google/uuid`)
