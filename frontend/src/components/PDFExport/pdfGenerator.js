@@ -1,6 +1,122 @@
 import { jsPDF } from 'jspdf';
 
 /**
+ * Parse Markdown formatting into segments for PDF rendering
+ * Returns array of {text, bold, italic} objects
+ * @param {string} text - Text with Markdown formatting
+ * @returns {Array} Array of text segments with formatting flags
+ */
+const parseMarkdownSegments = (text) => {
+  if (!text) return [{ text: '', bold: false, italic: false }];
+  
+  const segments = [];
+  let currentPos = 0;
+  
+  // Regex to match all formatting patterns
+  const formatRegex = /(\*\*\*(.+?)\*\*\*|___(.+?)___|__(.+?)__|_(.+?)_|\*\*(.+?)\*\*|\*(.+?)\*)/g;
+  let match;
+  
+  while ((match = formatRegex.exec(text)) !== null) {
+    // Add plain text before this match
+    if (match.index > currentPos) {
+      segments.push({
+        text: text.substring(currentPos, match.index),
+        bold: false,
+        italic: false
+      });
+    }
+    
+    // Determine formatting type and content
+    let content, bold = false, italic = false;
+    
+    if (match[2] || match[3]) {
+      // ***bold italic*** or ___bold italic___
+      content = match[2] || match[3];
+      bold = true;
+      italic = true;
+    } else if (match[4] || match[6]) {
+      // **bold** or __bold__
+      content = match[4] || match[6];
+      bold = true;
+    } else if (match[5] || match[7]) {
+      // *italic* or _italic_
+      content = match[5] || match[7];
+      italic = true;
+    }
+    
+    segments.push({ text: content, bold, italic });
+    currentPos = match.index + match[0].length;
+  }
+  
+  // Add remaining plain text
+  if (currentPos < text.length) {
+    segments.push({
+      text: text.substring(currentPos),
+      bold: false,
+      italic: false
+    });
+  }
+  
+  return segments.length > 0 ? segments : [{ text, bold: false, italic: false }];
+};
+
+/**
+ * Render text with inline formatting to PDF
+ * @param {jsPDF} pdf - PDF document
+ * @param {string} text - Text with Markdown formatting
+ * @param {number} x - Starting X position
+ * @param {number} y - Starting Y position
+ * @param {number} maxWidth - Maximum width for text wrapping
+ * @returns {number} Height consumed by the text
+ */
+const renderFormattedText = (pdf, text, x, y, maxWidth) => {
+  const segments = parseMarkdownSegments(text);
+  const lineHeight = 5.5;
+  let currentX = x;
+  let currentY = y;
+  const spaceWidth = pdf.getTextWidth(' ');
+  
+  segments.forEach((segment) => {
+    if (!segment.text) return;
+    
+    // Set font based on formatting
+    const fontStyle = segment.bold && segment.italic ? 'bolditalic' 
+                    : segment.bold ? 'bold'
+                    : segment.italic ? 'italic'
+                    : 'normal';
+    pdf.setFont('helvetica', fontStyle);
+    
+    // Split segment into words for wrapping
+    const words = segment.text.split(' ');
+    
+    words.forEach((word, wordIndex) => {
+      const wordWidth = pdf.getTextWidth(word);
+      
+      // Check if we need to wrap to next line
+      if (currentX > x && currentX + wordWidth > x + maxWidth) {
+        currentX = x;
+        currentY += lineHeight;
+      }
+      
+      // Draw the word
+      pdf.text(word, currentX, currentY);
+      currentX += wordWidth;
+      
+      // Add space after word (except last word)
+      if (wordIndex < words.length - 1) {
+        currentX += spaceWidth;
+      }
+    });
+    
+    // Add space after segment (between formatted parts)
+    currentX += spaceWidth;
+  });
+  
+  // Return total height used
+  return currentY - y + lineHeight;
+};
+
+/**
  * Load an image from URL and convert to base64 data URL
  * @param {string} url - Image URL (absolute or relative)
  * @returns {Promise<string>} Base64 data URL
@@ -278,11 +394,18 @@ export const generateDebatePDF = async (debateData) => {
 
     const isModerator = panelist.id === 'moderator';
     
-    // Estimate space needed for this message
-    const bubbleWidth = contentWidth * 0.7; // Use 70% of page width
-    const messageLines = pdf.splitTextToSize(message.text, bubbleWidth - 12);
-    const bubbleHeight = 12 + (messageLines.length * 5.5); // Increased line height
-    const neededSpace = bubbleHeight + 6; // More spacing between bubbles
+    // Calculate text height with formatting
+    const bubbleWidth = contentWidth * 0.7;
+    const textWidth = bubbleWidth - 12;
+    
+    // Estimate height by rendering to a temporary context
+    // For simplicity, estimate based on plain text then add buffer for formatting
+    const plainText = message.text.replace(/\*\*\*(.+?)\*\*\*/g, '$1')
+                                   .replace(/\*\*(.+?)\*\*/g, '$1')
+                                   .replace(/\*(.+?)\*/g, '$1');
+    const estimatedLines = pdf.splitTextToSize(plainText, textWidth);
+    const bubbleHeight = 12 + (estimatedLines.length * 5.5);
+    const neededSpace = bubbleHeight + 6;
     
     // Check if we need a new page BEFORE starting to draw
     if (yPosition + neededSpace > pageHeight - margin) {
@@ -292,10 +415,10 @@ export const generateDebatePDF = async (debateData) => {
 
     // Alternate bubble position for visual variety (except moderator - always centered)
     const bubbleX = isModerator 
-      ? margin + (contentWidth - bubbleWidth) / 2 // Center moderator
+      ? margin + (contentWidth - bubbleWidth) / 2
       : (index % 2 === 0) 
-        ? margin + 15 // Left-aligned for even messages
-        : margin + contentWidth - bubbleWidth - 15; // Right-aligned for odd
+        ? margin + 15
+        : margin + contentWidth - bubbleWidth - 15;
     
     // Avatar position
     const avatarX = bubbleX - 8;
@@ -332,12 +455,11 @@ export const generateDebatePDF = async (debateData) => {
     }
     pdf.text(panelist.name, bubbleX + 5, yPosition + 5);
     
-    // Message text
-    pdf.setFont('helvetica', 'normal');
+    // Message text with formatting
     pdf.setTextColor(31, 41, 55); // gray-800
-    pdf.text(messageLines, bubbleX + 5, yPosition + 10);
+    const textHeight = renderFormattedText(pdf, message.text, bubbleX + 5, yPosition + 10, textWidth);
     
-    yPosition += bubbleHeight + 6; // More spacing between messages
+    yPosition += bubbleHeight + 6;
 
     pdf.setTextColor(31, 41, 55);
   });

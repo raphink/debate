@@ -9,6 +9,7 @@ Generate engaging debates between historical theological and philosophical figur
 💬 **Live Streaming** - Watch debates unfold in real-time with progressive message streaming  
 📱 **Mobile PWA** - Install as a standalone app on iOS and Android devices  
 📄 **PDF Export** - Export debates with portraits and chat bubble formatting  
+✍️ **Markdown Formatting** - Supports inline formatting (*italic*, **bold**, ***bold italic***) in messages  
 🎨 **Beautiful UI** - Modern, responsive design with gradient effects and animations  
 🔒 **Secure** - CORS protection, input sanitization, and rate limiting
 

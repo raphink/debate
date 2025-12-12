@@ -69,6 +69,7 @@ User launches debate generation and watches the conversation unfold in real-time
 8. **Given** panelist modal is open, **When** user clicks outside modal or presses Escape key, **Then** modal closes and returns focus to debate view
 9. **Given** debate is streaming, **When** user toggles auto-scroll, **Then** conversation view automatically follows new messages (when enabled) or remains at current scroll position (when disabled, default)
 10. **Given** debate is generating, **When** an error occurs (API timeout, rate limit), **Then** user sees friendly error message with option to retry
+11. **Given** Claude uses inline Markdown formatting, **When** debate messages stream in with *italic*, **bold**, or ***bold italic*** text, **Then** formatting is rendered correctly in chat bubbles
 
 ---
 
@@ -153,6 +154,8 @@ User exports completed debate as a formatted PDF document for offline reading, s
 - **FR-023**: Application MUST provide PWA manifest for mobile installation with app name, description, icons, theme colors, and display mode
 - **FR-023a**: PWA manifest MUST include multiple icon sizes (192x192, 512x512) for various mobile platforms
 - **FR-023b**: Application MUST use standalone display mode to provide app-like experience when installed
+- **FR-024**: System MUST render inline Markdown formatting (*italic*, **bold**, ***bold italic***) in debate messages for both web UI and PDF export
+- **FR-024a**: Markdown rendering MUST properly escape HTML to prevent XSS attacks while preserving formatting
 
 ### Key Entities
 

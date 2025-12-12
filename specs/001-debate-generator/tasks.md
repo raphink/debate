@@ -262,6 +262,9 @@
 - [X] T098a [P] Create manifest.json with app name, description, icons, theme colors, and standalone display mode
 - [X] T098b [P] Create app icons in multiple sizes (192x192, 512x512) for iOS and Android
 - [X] T098c [P] Add manifest link and apple-touch-icon meta tags to index.html
+- [X] T098d [P] Create markdown utility in frontend/src/utils/markdown.js for parsing inline formatting
+- [X] T098e [P] Update DebateBubble component to render Markdown formatting with dangerouslySetInnerHTML
+- [X] T098f [P] Update PDF generator to render Markdown formatting with appropriate font styles (bold, italic, bold-italic)
 - [ ] T099 Perform full accessibility audit with axe-core across all pages (verify WCAG 2.1 Level AA)
 - [ ] T100 Perform performance audit with Lighthouse (verify SC-007: <100ms UI response)
 - [ ] T101 Test complete user journey end-to-end (topic → validation → panelist selection → debate → PDF export)
@@ -362,7 +365,7 @@ Each phase must pass these gates before proceeding:
 
 ## Task Statistics
 
-- **Total Tasks**: 113 (includes portrait service, enhanced PDF export, and PWA support)
+- **Total Tasks**: 116 (includes portrait service, enhanced PDF export, PWA support, and Markdown rendering)
 - **Setup Phase**: 14 tasks (T001-T014)
 - **Foundational Phase**: 13 tasks (T015-T027, BLOCKING - includes CORS configuration)
 - **User Story 1**: 18 tasks (T027-T044: 7 backend + 11 frontend)
@@ -373,13 +376,14 @@ Each phase must pass these gates before proceeding:
 - **User Story 4**: 12 tasks (T082-T090 + T086a-T086c: frontend only, includes enhanced PDF with portraits)
   - Original PDF export: 9 tasks (T082-T090)
   - Portrait embedding: 3 tasks (T086a-T086c: image loading, CORS, circular cropping)
-- **Polish Phase**: 19 tasks (T091-T106 + T098a-T098c: includes PWA manifest)
+- **Polish Phase**: 22 tasks (T091-T106 + T098a-T098f: includes PWA manifest and Markdown rendering)
   - Original polish: 16 tasks (T091-T106)
   - PWA support: 3 tasks (T098a-T098c: manifest, icons, meta tags)
+  - Markdown rendering: 3 tasks (T098d-T098f: utility, web UI, PDF export)
 
 **Parallel Opportunities**: ~65% of tasks can run in parallel after foundational phase completes
 
-**MVP Tasks**: 94 tasks (Phases 1-5 including portrait service, enhanced PDF, and PWA, excludes remaining Polish)
+**MVP Tasks**: 97 tasks (Phases 1-5 including portrait service, enhanced PDF, PWA, and Markdown, excludes remaining Polish)
 
 **Architecture Notes**: 
 - Portrait service (get-portrait) runs as independent Cloud Function with async frontend integration
@@ -389,3 +393,5 @@ Each phase must pass these gates before proceeding:
 - Chat bubble format in PDF matches web UI with circular portrait avatars and rounded rectangles
 - PWA manifest enables mobile installation with standalone display mode (iOS Safari 14+, Android Chrome 90+)
 - Icon generation automated via generate-icons.sh script using librsvg or ImageMagick
+- Inline Markdown formatting (*italic*, **bold**, ***bold italic***) rendered in web UI via dangerouslySetInnerHTML (HTML-escaped)
+- PDF export renders Markdown with jsPDF font styles (normal, bold, italic, bolditalic)

@@ -1,14 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { markdownToHtml } from '../../utils/markdown';
 import styles from './DebateBubble.module.css';
 
 /**
  * DebateBubble component displays a single debate message from a panelist.
  * Shows avatar, name, and message text in a chat-style bubble.
+ * Supports inline Markdown formatting (*italic*, **bold**, ***bold italic***).
  * 
  * @param {Object} props - Component props
  * @param {Object} props.panelist - Panelist object (id, name, avatarUrl, tagline, bio)
- * @param {string} props.text - The message text
+ * @param {string} props.text - The message text (may include Markdown formatting)
  * @param {number} props.index - Message index in the conversation
  * @param {Function} props.onAvatarClick - Callback when avatar is clicked
  */
@@ -20,6 +22,9 @@ const DebateBubble = ({ panelist, text, index, onAvatarClick }) => {
       onAvatarClick(panelist);
     }
   };
+
+  // Convert Markdown to HTML for rendering
+  const formattedText = markdownToHtml(text);
 
   return (
     <div className={`${styles.container} ${isEven ? styles.left : styles.right}`}>
@@ -41,7 +46,11 @@ const DebateBubble = ({ panelist, text, index, onAvatarClick }) => {
         <div className={styles.header}>
           <span className={styles.name}>{panelist.name}</span>
         </div>
-        <p className={styles.text}>{text}</p>
+        {/* Render formatted HTML (already escaped in markdownToHtml) */}
+        <p 
+          className={styles.text}
+          dangerouslySetInnerHTML={{ __html: formattedText }}
+        />
       </div>
     </div>
   );
