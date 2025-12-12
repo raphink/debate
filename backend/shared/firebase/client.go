@@ -18,22 +18,14 @@ func InitFirestore(ctx context.Context) error {
 		return fmt.Errorf("GCP_PROJECT_ID environment variable is required")
 	}
 
-	databaseID := os.Getenv("FIRESTORE_DATABASE_ID")
-	if databaseID == "" {
-		databaseID = "debates" // default database name
-	}
-
-	// Construct database path: projects/{project}/databases/{database}
-	databasePath := fmt.Sprintf("projects/%s/databases/%s", projectID, databaseID)
-
-	// Create Firestore client directly with database path
-	client, err := firestore.NewClient(ctx, projectID, firestore.DatabaseID(databaseID))
+	// Create Firestore client (uses default database)
+	client, err := firestore.NewClient(ctx, projectID)
 	if err != nil {
 		return fmt.Errorf("failed to create Firestore client: %w", err)
 	}
 
 	firestoreClient = client
-	log.Printf("Firestore client initialized successfully for %s", databasePath)
+	log.Printf("Firestore client initialized successfully for project: %s", projectID)
 	return nil
 }
 

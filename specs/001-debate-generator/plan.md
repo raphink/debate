@@ -294,10 +294,8 @@ start-local.sh                   # Quick start script
 
 **Configuration Requirements**:
 - `GCP_PROJECT_ID` environment variable must be set for Firestore initialization
-- `FIRESTORE_DATABASE_ID` environment variable specifies database name (defaults to "debates")
-- Firebase Admin SDK uses Application Default Credentials for authentication
-- Firestore writes to named database in specified GCP project
-- **Firestore database must be created before first use**: `gcloud firestore databases create --database=debates --location=europe-west1 --project=${GCP_PROJECT_ID}`
+- Firestore uses the `(default)` database in the specified GCP project
+- **Firestore database must be created before first use**: `gcloud firestore databases create --database="(default)" --location=europe-west1 --project=${GCP_PROJECT_ID}`
 
 **Authentication Setup**:
 - **Local Development**: Run `gcloud auth application-default login` to create ADC

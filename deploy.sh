@@ -86,12 +86,12 @@ check_prerequisites() {
     
     # Check/create Firestore database
     log_info "Checking Firestore database..."
-    if ! gcloud firestore databases list --filter="name:debates" --format="value(name)" | grep -q "debates"; then
-        log_info "Creating Firestore database 'debates' in europe-west1..."
-        gcloud firestore databases create --database=debates --location=europe-west1 --quiet
+    if ! gcloud firestore databases list --format="value(name)" | grep -q "(default)"; then
+        log_info "Creating Firestore (default) database in europe-west1..."
+        gcloud firestore databases create --database="(default)" --location=europe-west1 --quiet
         log_info "Firestore database created ✓"
     else
-        log_info "Firestore database 'debates' already exists ✓"
+        log_info "Firestore (default) database already exists ✓"
     fi
     
     log_info "Prerequisites check passed ✓"

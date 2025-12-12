@@ -276,7 +276,7 @@
 
 ### Firestore Security
 
-- [ ] T120 [P] [US5] Create Firestore database: `gcloud firestore databases create --database=debates --location=europe-west1`
+- [ ] T120 [P] [US5] Create Firestore database: `gcloud firestore databases create --database="(default)" --location=europe-west1`
 - [ ] T121 [P] [US5] Create firestore.rules with deny all direct client access (read/write: false)
 - [ ] T122 [P] [US5] Create .firebaserc with Firebase project ID configuration
 - [ ] T123 [P] [US5] Create firebase.json with Firestore rules deployment configuration
