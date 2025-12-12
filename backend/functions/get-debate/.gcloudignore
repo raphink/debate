@@ -1,0 +1,23 @@
+# This file specifies files to ignore during gcloud deployment
+
+# Ignore common development files
+*~
+*.swp
+.DS_Store
+.git
+.gitignore
+
+# Ignore test files
+*_test.go
+test/
+tests/
+
+# Ignore build artifacts
+*.exe
+*.test
+*.out
+bin/
+dist/
+
+# Ignore Dockerfile (not needed for Cloud Functions)
+Dockerfile

@@ -125,8 +125,13 @@ deploy_backend() {
     
     # Note: suggest-panelists function removed - panelists now returned by validate-topic
     
-    # Deploy generate-debate function
+    # Deploy generate-debate function (with shared module)
     log_info "Deploying generate-debate function..."
+    
+    # Vendor dependencies including shared module
+    log_info "Vendoring dependencies for generate-debate..."
+    (cd ./backend/functions/generate-debate && go mod vendor)
+    
     gcloud functions deploy generate-debate \
         --gen2 \
         --runtime="$RUNTIME" \
@@ -142,6 +147,9 @@ deploy_backend() {
         --max-instances=100 \
         --min-instances=0 \
         --quiet
+    
+    # Clean up vendor directory
+    rm -rf ./backend/functions/generate-debate/vendor
     
     DEBATE_URL=$(gcloud functions describe generate-debate --region="$REGION" --gen2 --format="value(serviceConfig.uri)")
     log_info "generate-debate deployed: $DEBATE_URL"
@@ -166,8 +174,13 @@ deploy_backend() {
     PORTRAIT_URL=$(gcloud functions describe get-portrait --region="$REGION" --gen2 --format="value(serviceConfig.uri)")
     log_info "get-portrait deployed: $PORTRAIT_URL"
     
-    # Deploy get-debate function
+    # Deploy get-debate function (with shared module)
     log_info "Deploying get-debate function..."
+    
+    # Vendor dependencies including shared module
+    log_info "Vendoring dependencies for get-debate..."
+    (cd ./backend/functions/get-debate && go mod vendor)
+    
     gcloud functions deploy get-debate \
         --gen2 \
         --runtime="$RUNTIME" \
@@ -182,6 +195,9 @@ deploy_backend() {
         --max-instances=100 \
         --min-instances=0 \
         --quiet
+    
+    # Clean up vendor directory
+    rm -rf ./backend/functions/get-debate/vendor
     
     GET_DEBATE_URL=$(gcloud functions describe get-debate --region="$REGION" --gen2 --format="value(serviceConfig.uri)")
     log_info "get-debate deployed: $GET_DEBATE_URL"

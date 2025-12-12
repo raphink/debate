@@ -3,6 +3,8 @@ package generatedebate
 import (
 	"log"
 	"net/http"
+
+	_ "github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
 )
 
 // HandleGenerateDebate is the entry point for the Cloud Function

@@ -24,6 +24,7 @@ frontend/dist/
 *.test
 *.out
 backend/functions/*/bin/
+backend/functions/*/vendor/
 
 # IDE
 .vscode/

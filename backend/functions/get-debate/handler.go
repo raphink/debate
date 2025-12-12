@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	_ "github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
 	"github.com/google/uuid"
 	"github.com/raphink/debate/shared/firebase"
 )
