@@ -21,6 +21,7 @@ func handleGenerateDebateImpl(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Expose-Headers", "X-Debate-Id")
 
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK)
