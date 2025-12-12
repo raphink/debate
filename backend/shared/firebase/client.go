@@ -2,12 +2,11 @@ package firebase
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
 	"cloud.google.com/go/firestore"
-	firebase "firebase.google.com/go"
-	"google.golang.org/api/option"
 )
 
 var firestoreClient *firestore.Client
@@ -16,7 +15,7 @@ var firestoreClient *firestore.Client
 func InitFirestore(ctx context.Context) error {
 	projectID := os.Getenv("GCP_PROJECT_ID")
 	if projectID == "" {
-		log.Println("Warning: GCP_PROJECT_ID not set, attempting to use Application Default Credentials")
+		return fmt.Errorf("GCP_PROJECT_ID environment variable is required")
 	}
 
 	databaseID := os.Getenv("FIRESTORE_DATABASE_ID")
@@ -24,23 +23,17 @@ func InitFirestore(ctx context.Context) error {
 		databaseID = "debates" // default database name
 	}
 
-	conf := &firebase.Config{
-		ProjectID: projectID,
-	}
+	// Construct database path: projects/{project}/databases/{database}
+	databasePath := fmt.Sprintf("projects/%s/databases/%s", projectID, databaseID)
 
-	app, err := firebase.NewApp(ctx, conf)
+	// Create Firestore client directly with database path
+	client, err := firestore.NewClient(ctx, projectID, firestore.DatabaseID(databaseID))
 	if err != nil {
-		return err
-	}
-
-	// Use DatabaseID option when creating Firestore client
-	client, err := app.Firestore(ctx, option.WithDatabaseID(databaseID))
-	if err != nil {
-		return err
+		return fmt.Errorf("failed to create Firestore client: %w", err)
 	}
 
 	firestoreClient = client
-	log.Printf("Firestore client initialized successfully for project: %s, database: %s", projectID, databaseID)
+	log.Printf("Firestore client initialized successfully for %s", databasePath)
 	return nil
 }
 
