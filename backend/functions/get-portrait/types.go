@@ -22,7 +22,7 @@ type ErrorResponse struct {
 
 // Error codes
 const (
-	ErrInvalidInput    = "INVALID_INPUT"
-	ErrWikimediaError  = "WIKIMEDIA_ERROR"
-	ErrInternalError   = "INTERNAL_ERROR"
+	ErrInvalidInput   = "INVALID_INPUT"
+	ErrWikimediaError = "WIKIMEDIA_ERROR"
+	ErrInternalError  = "INTERNAL_ERROR"
 )

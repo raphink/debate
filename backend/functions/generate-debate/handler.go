@@ -71,7 +71,7 @@ func handleGenerateDebateImpl(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("X-Accel-Buffering", "no") // Disable nginx buffering
-	w.Header().Set("X-Debate-Id", debateID)     // Send debate ID to frontend
+	w.Header().Set("X-Debate-Id", debateID)   // Send debate ID to frontend
 
 	// Flush headers
 	if flusher, ok := w.(http.Flusher); ok {

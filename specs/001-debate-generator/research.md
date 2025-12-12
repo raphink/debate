@@ -141,7 +141,7 @@ const exportDebateToPDF = async (debateData) => {
 - Estimated cost: <$0.001 per invocation
 
 **suggest-panelists**:
-- Runtime: Go 1.23
+- Runtime: Go 1.24
 - Memory: 512MB (JSON parsing of 20 panelists)
 - Timeout: 15s
 - Trigger: HTTPS
@@ -149,7 +149,7 @@ const exportDebateToPDF = async (debateData) => {
 - Estimated cost: <$0.002 per invocation
 
 **generate-debate**:
-- Runtime: Go 1.23
+- Runtime: Go 1.24
 - Memory: 1GB (streaming buffer)
 - Timeout: 60s (max Cloud Function Gen 2 limit)
 - Trigger: HTTPS with SSE streaming
@@ -292,7 +292,7 @@ services:
 ```
 
 **Development Workflow**:
-- Each Go Cloud Function has its own Dockerfile (multi-stage build: golang:1.23-alpine → distroless)
+- Each Go Cloud Function has its own Dockerfile (multi-stage build: golang:1.24-alpine → distroless)
 - Frontend Dockerfile builds React app and serves via nginx
 - docker-compose.yml orchestrates all services with proper networking
 - Secrets managed via summon with GCP Secret Manager (same source as production)
@@ -343,9 +343,9 @@ services:
 ┌─────────────────────────────────────────────┐
 │  GCP Cloud Functions (europe-west1)         │
 │  ┌─────────────────────────────────────┐   │
-│  │ validate-topic (Go 1.23)            │   │
-│  │ suggest-panelists (Go 1.23)         │   │
-│  │ generate-debate (Go 1.23)           │   │
+│  │ validate-topic (Go 1.24)            │   │
+│  │ suggest-panelists (Go 1.24)         │   │
+│  │ generate-debate (Go 1.24)           │   │
 │  └─────────────────────────────────────┘   │
 └────────┬────────────────────────────────────┘
          │ Secret access
@@ -362,7 +362,7 @@ services:
 
 **Infrastructure Details**:
 - Cloud Functions Gen 2 (better performance, more control than Gen 1)
-- Runtime: Go 1.23
+- Runtime: Go 1.24
 - Region: europe-west1 (Belgium - lowest latency for EU users)
 - Memory: 256MB per function (sufficient for API proxy)
 - Timeout: 60s (max for streaming responses)

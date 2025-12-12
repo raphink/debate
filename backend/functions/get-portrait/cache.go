@@ -22,7 +22,7 @@ func NewPortraitCache() *PortraitCache {
 func (pc *PortraitCache) Get(panelistID string) (string, bool) {
 	pc.mu.RLock()
 	defer pc.mu.RUnlock()
-	
+
 	url, found := pc.cache[panelistID]
 	return url, found
 }
@@ -31,7 +31,7 @@ func (pc *PortraitCache) Get(panelistID string) (string, bool) {
 func (pc *PortraitCache) Set(panelistID, portraitURL string) {
 	pc.mu.Lock()
 	defer pc.mu.Unlock()
-	
+
 	pc.cache[panelistID] = portraitURL
 }
 

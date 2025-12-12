@@ -25,7 +25,7 @@
 - [X] T007 Create environment variable template (.env.example) with ANTHROPIC_API_KEY and GCP_PROJECT_ID
 - [X] T008 [P] Create README.md with quick start instructions per quickstart.md
 - [X] T009 [P] Create docker-compose.yml to orchestrate all services (validate-topic:8080, suggest-panelists:8081, generate-debate:8082, frontend:3000)
-- [X] T010 [P] Create multi-stage Dockerfiles for each backend Cloud Function (golang:1.23-alpine → distroless)
+- [X] T010 [P] Create multi-stage Dockerfiles for each backend Cloud Function (golang:1.24-alpine → distroless)
 - [X] T011 [P] Create multi-stage Dockerfile for frontend (node:18-alpine → nginx:alpine)
 - [X] T012 [P] Create .dockerignore to exclude node_modules, .env, build artifacts from Docker context
 - [X] T013 [P] Create nginx.conf for frontend container (SPA routing, gzip, security headers)

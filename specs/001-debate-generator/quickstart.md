@@ -2,7 +2,7 @@
 
 **Feature**: 001-debate-generator  
 **Last Updated**: 2025-12-11  
-**Prerequisites**: Docker 24+ & Docker Compose v2+ (recommended) OR Go 1.23+ & Node.js 18+ (manual setup)
+**Prerequisites**: Docker 24+ & Docker Compose v2+ (recommended) OR Go 1.24 & Node.js 18+ (manual setup)
 
 ## Overview
 
@@ -106,7 +106,7 @@ summon -p gcloud docker-compose up --build
 ## Option 2: Manual Setup
 
 ### Prerequisites
-- Go 1.23+ installed
+- Go 1.24 installed
 - Node.js 18+ installed
 - Anthropic API key
 

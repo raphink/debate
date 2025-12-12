@@ -35,10 +35,10 @@ Build a web application that generates AI-powered theological/philosophical deba
 
 ## Technical Context
 
-**Language/Version**: Go 1.23+ (backend/GCP Functions), JavaScript/React 18+ (frontend)  
+**Language/Version**: Go 1.24 (backend/GCP Functions), JavaScript/React 18+ (frontend)  
 **Primary Dependencies**: 
 - Frontend: React 18, React Router, CSS Modules
-- Backend: Go 1.23+, Google Cloud Functions SDK, Anthropic Go SDK v1.19.0 (official streaming client)
+- Backend: Go 1.24, Google Cloud Functions SDK, Anthropic Go SDK v1.19.0 (official streaming client)
 - DevOps: Docker 24+, Docker Compose v2+ (local development)
 **Storage**: N/A (stateless, no persistence for MVP)  
 **Testing**: 

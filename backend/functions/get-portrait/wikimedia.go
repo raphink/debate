@@ -26,8 +26,8 @@ func NewWikimediaAPI() *WikimediaAPI {
 type WikimediaImageResponse struct {
 	Query struct {
 		Pages map[string]struct {
-			PageID   int    `json:"pageid"`
-			Title    string `json:"title"`
+			PageID    int    `json:"pageid"`
+			Title     string `json:"title"`
 			Thumbnail struct {
 				Source string `json:"source"`
 				Width  int    `json:"width"`
@@ -48,7 +48,7 @@ func (w *WikimediaAPI) FetchPortraitURL(personName string) string {
 	// Construct Wikipedia API URL
 	// We'll use the pageimages API which provides the main image for a page
 	baseURL := "https://en.wikipedia.org/w/api.php"
-	
+
 	params := url.Values{}
 	params.Add("action", "query")
 	params.Add("titles", personName)
@@ -56,9 +56,9 @@ func (w *WikimediaAPI) FetchPortraitURL(personName string) string {
 	params.Add("pithumbsize", "300") // Request 300px thumbnail
 	params.Add("format", "json")
 	params.Add("formatversion", "2")
-	
+
 	apiURL := baseURL + "?" + params.Encode()
-	
+
 	// Create request with proper User-Agent header (required by Wikipedia)
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
@@ -66,7 +66,7 @@ func (w *WikimediaAPI) FetchPortraitURL(personName string) string {
 		return ""
 	}
 	req.Header.Set("User-Agent", "DebateApp/1.0 (https://github.com/raphink/debate; debate@example.com)")
-	
+
 	// Make the request
 	resp, err := w.client.Do(req)
 	if err != nil {
@@ -74,18 +74,18 @@ func (w *WikimediaAPI) FetchPortraitURL(personName string) string {
 		return ""
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		fmt.Printf("[WIKIMEDIA] Non-200 status for %s: %d\n", personName, resp.StatusCode)
 		return ""
 	}
-	
+
 	// Parse response - using simpler structure
 	var result struct {
 		Query struct {
 			Pages []struct {
-				PageID   int    `json:"pageid"`
-				Title    string `json:"title"`
+				PageID    int    `json:"pageid"`
+				Title     string `json:"title"`
 				Thumbnail *struct {
 					Source string `json:"source"`
 					Width  int    `json:"width"`
@@ -94,19 +94,19 @@ func (w *WikimediaAPI) FetchPortraitURL(personName string) string {
 			} `json:"pages"`
 		} `json:"query"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		fmt.Printf("[WIKIMEDIA] Error decoding response for %s: %v\n", personName, err)
 		return ""
 	}
-	
+
 	// Extract image URL from first page
 	if len(result.Query.Pages) > 0 && result.Query.Pages[0].Thumbnail != nil {
 		imageURL := result.Query.Pages[0].Thumbnail.Source
 		fmt.Printf("[WIKIMEDIA] Found portrait for %s: %s\n", personName, imageURL)
 		return imageURL
 	}
-	
+
 	fmt.Printf("[WIKIMEDIA] No portrait found for %s\n", personName)
 	return ""
 }
