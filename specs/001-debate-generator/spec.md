@@ -185,11 +185,13 @@ User shares completed debate via URL that loads from cached storage, allowing de
 - **FR-025**: Backend MUST generate a unique UUID (v4) when receiving debate generation request to identify the debate session
 - **FR-025a**: UUID MUST be cryptographically random using Go's uuid.New() to ensure uniqueness and unpredictability
 - **FR-025b**: Backend MUST include generated UUID in SSE response header: X-Debate-Id
+- **FR-025c**: Backend MUST expose X-Debate-Id header to frontend JavaScript via Access-Control-Expose-Headers CORS header
 - **FR-026**: Backend MUST save completed debates to Firestore with UUID as document ID for caching and sharing
 - **FR-026a**: Firestore document MUST include complete debate data: topic, panelists, messages, status, timestamps, and metadata
 - **FR-026b**: Backend MUST write to Firestore automatically after debate generation completes successfully
 - **FR-026c**: Firestore save failures MUST NOT prevent user from viewing the debate (graceful degradation, logged only)
 - **FR-026d**: Backend MUST use Firebase Admin SDK for all Firestore operations (no client-side Firestore access)
+- **FR-026e**: Backend MUST initialize Firestore with GCP_PROJECT_ID environment variable to specify target project
 - **FR-027**: System MUST provide shareable URLs in format /d/{uuid} that load debates via backend API
 - **FR-027a**: Backend MUST provide GET /api/get-debate?id={uuid} endpoint to retrieve saved debates
 - **FR-027b**: Frontend MUST display complete debate with all original formatting, avatars, and metadata when loading from backend

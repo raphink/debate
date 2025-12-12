@@ -24,8 +24,8 @@
 - [X] T006 [P] Setup golangci-lint configuration in backend/.golangci.yml
 - [X] T007 Create environment variable template (.env.example) with ANTHROPIC_API_KEY and GCP_PROJECT_ID
 - [X] T008 [P] Create README.md with quick start instructions per quickstart.md
-- [X] T009 [P] Create docker-compose.yml to orchestrate all services (validate-topic:8080, suggest-panelists:8081, generate-debate:8082, frontend:3000)
-- [X] T010 [P] Create multi-stage Dockerfiles for each backend Cloud Function (golang:1.24-alpine → distroless)
+- [X] T009 [P] Create docker-compose.yml to orchestrate all services (validate-topic:8080, generate-debate:8081, get-portrait:8082, get-debate:8084, frontend:3000)
+- [X] T010 [P] Create multi-stage Dockerfiles for each backend Cloud Function (golang:1.24-alpine → distroless). Functions using shared module (generate-debate, get-debate) must build with context: ./backend
 - [X] T011 [P] Create multi-stage Dockerfile for frontend (node:18-alpine → nginx:alpine)
 - [X] T012 [P] Create .dockerignore to exclude node_modules, .env, build artifacts from Docker context
 - [X] T013 [P] Create nginx.conf for frontend container (SPA routing, gzip, security headers)
@@ -260,6 +260,7 @@
 - [ ] T109 [P] [US5] Create debate storage service in backend/shared/firebase/debates.go (SaveDebate, GetDebate with DebateDocument struct)
 - [ ] T110 [P] [US5] Add UUID generation to backend/functions/generate-debate/handler.go using github.com/google/uuid
 - [ ] T111 [P] [US5] Modify generate-debate to include X-Debate-Id header in SSE response with generated UUID
+- [ ] T111a [P] [US5] Add Access-Control-Expose-Headers: X-Debate-Id to CORS configuration in generate-debate handler
 - [ ] T112 [P] [US5] Modify generate-debate to accumulate messages during streaming and save to Firestore on completion (non-blocking)
 - [ ] T113 [P] [US5] Add error handling for Firestore save failures (log error, don't fail debate stream)
 

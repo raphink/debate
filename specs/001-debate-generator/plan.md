@@ -292,12 +292,18 @@ start-local.sh                   # Quick start script
 - Better security (service account credentials only in backend)
 - Consistent error handling
 
+**Configuration Requirements**:
+- `GCP_PROJECT_ID` environment variable must be set for Firestore initialization
+- Firebase Admin SDK uses Application Default Credentials for authentication
+- Firestore writes to `(default)` database in specified GCP project
+
 ### UUID Generation
 - **Location**: Backend (`generate-debate` Cloud Function)
 - **Library**: Google UUID (`github.com/google/uuid`)
 - **Format**: UUID v4 (128-bit, cryptographically random)
 - **Generation point**: When backend receives debate generation request
 - **Delivery**: Returned in HTTP header `X-Debate-Id: {uuid}`
+- **CORS Exposure**: Custom header exposed via `Access-Control-Expose-Headers: X-Debate-Id` (required for JavaScript access)
 - **URL pattern**: `/d/{uuid}` (e.g., `/d/550e8400-e29b-41d4-a716-446655440000`)
 - **Uniqueness**: ~10^36 combinations, collision probability negligible
 
