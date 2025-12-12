@@ -30,26 +30,26 @@
 │  │  1. Parse query params: q, limit (default 10)        │       │
 │  │  2. Validate q.length >= 3                            │       │
 │  │  3. Query Firestore:                                  │       │
-│  │     - Where topic_lowercase >= q.toLowerCase()        │       │
-│  │     - Where topic_lowercase < q.toLowerCase() + 'z'   │       │
-│  │     - OrderBy createdAt DESC                          │       │
-│  │     - Limit(limit)                                    │       │
-│  │  4. Transform results:                                │       │
+│  │     - OrderBy startedAt DESC                          │       │
+│  │     - Limit(100) recent debates                       │       │
+│  │  4. Filter results client-side:                       │       │
+│  │     - strings.Contains(topic.lower, query.lower)      │       │
+│  │     - Return first <limit> matches                    │       │
+│  │  5. Transform results:                                │       │
 │  │     - Map to: {id, topic, panelists, count, created}  │       │
-│  │  5. Return JSON with CORS headers                     │       │
+│  │  6. Return JSON with CORS headers                     │       │
 │  └──────────────────────────────────────────────────────┘       │
 │                                                                   │
-│  Firestore Schema Addition:                                      │
+│  Firestore Schema (No Changes Required):                         │
 │  ┌──────────────────────────────────────────────────────┐       │
 │  │  debates/{id}:                                        │       │
-│  │    topic_lowercase: string (NEW - for querying)       │       │
 │  │    topic: string (existing)                           │       │
 │  │    panelists: array (existing)                        │       │
-│  │    createdAt: timestamp (existing)                    │       │
+│  │    startedAt: timestamp (existing)                    │       │
 │  │    ...other fields                                    │       │
 │  └──────────────────────────────────────────────────────┘       │
 │                                                                   │
-│  Index Required: topic_lowercase ASC, createdAt DESC             │
+│  Index Required: None (uses existing startedAt index)            │
 │                                                                   │
 └─────────────────────────────────────────────────────────────────┘
 

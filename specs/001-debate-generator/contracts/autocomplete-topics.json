@@ -184,13 +184,14 @@
   "behavior": {
     "search": {
       "algorithm": "Case-insensitive substring match on topic text",
-      "implementation": "Firestore query on topic_lowercase field with range: >= query && < query + '\\uf8ff'",
-      "ordering": "Results ordered by createdAt timestamp descending (newest first), then by topic_lowercase ascending for tie-breaking"
+      "implementation": "Client-side filtering: fetch 100 most recent debates, filter using strings.Contains(topic.lower, query.lower)",
+      "ordering": "Results ordered by startedAt timestamp descending (newest first)"
     },
     "performance": {
-      "targetLatency": "< 200ms for p90",
+      "targetLatency": "< 300ms for p90",
       "caching": "None (real-time query against Firestore)",
-      "rateLimit": "None (public endpoint)"
+      "rateLimit": "None (public endpoint)",
+      "scalability": "Optimized for < 1000 debates; client-side filtering efficient for MVP"
     },
     "edgeCases": {
       "emptyResults": "Returns empty debates array if no matches found",
@@ -201,23 +202,22 @@
   "firestoreRequirements": {
     "collection": "debates",
     "fields": {
-      "topic_lowercase": {
+      "topic.text": {
         "type": "string",
-        "description": "Lowercase version of topic.text for case-insensitive search",
-        "indexed": true
+        "description": "Debate topic text (used for client-side filtering)",
+        "indexed": false
       },
-      "createdAt": {
+      "startedAt": {
         "type": "timestamp",
-        "description": "Creation timestamp",
+        "description": "Debate start timestamp",
         "indexed": true
       }
     },
     "index": {
       "fields": [
-        "topic_lowercase ASC",
-        "createdAt DESC"
+        "startedAt DESC"
       ],
-      "description": "Composite index required for efficient autocomplete queries"
+      "description": "Single-field index for fetching recent debates (typically auto-created)"
     }
   },
   "testing": {
@@ -261,7 +261,7 @@
     },
     "backend": {
       "language": "Go",
-      "code": "func queryDebates(ctx context.Context, client *firestore.Client, query string, limit int) ([]DebateSummary, error) {\n  q := strings.ToLower(query)\n  iter := client.Collection(\"debates\").\n    Where(\"topic_lowercase\", \">=\", q).\n    Where(\"topic_lowercase\", \"<\", q+\"\\uf8ff\").\n    OrderBy(\"topic_lowercase\", firestore.Asc).\n    OrderBy(\"createdAt\", firestore.Desc).\n    Limit(limit).\n    Documents(ctx)\n  // ... process results\n}"
+      "code": "func queryDebates(ctx context.Context, queryStr string, limit int) ([]DebateSummary, error) {\n  client := firebase.GetClient()\n  q := strings.ToLower(queryStr)\n  \n  // Fetch recent debates and filter client-side\n  iter := client.Collection(\"debates\").\n    OrderBy(\"startedAt\", firestore.Desc).\n    Limit(100).\n    Documents(ctx)\n  \n  var results []DebateSummary\n  for {\n    doc, err := iter.Next()\n    if err == iterator.Done { break }\n    \n    var debate firebase.DebateDocument\n    doc.DataTo(&debate)\n    \n    // Substring match\n    if strings.Contains(strings.ToLower(debate.Topic.Text), q) {\n      results = append(results, transformToSummary(doc.Ref.ID, &debate))\n      if len(results) >= limit { break }\n    }\n  }\n  return results, nil\n}"
     }
   }
 }

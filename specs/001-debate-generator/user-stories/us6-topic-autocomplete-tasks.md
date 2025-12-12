@@ -1,82 +1,54 @@
 # US6 Topic Autocomplete - Implementation Tasks
 
-## Phase 1: Backend Infrastructure (7 tasks)
+## Phase 1: Backend Infrastructure (5 tasks)
 
-### Task 1.1: Firestore Schema Update
-- [ ] Update `backend/shared/firebase/debates.go`:
-  - Add `TopicLowercase string` field to `DebateDocument` struct with firestore tag
-  - Update `SaveDebate()` function to populate `TopicLowercase = strings.ToLower(debate.Topic.Text)`
-- [ ] Test: Save a debate and verify `topic_lowercase` field exists in Firestore
+### Task 1.1: Create Function Scaffolding
+- [X] Create directory: `backend/functions/autocomplete-topics/`
+- [X] Create `go.mod` with dependencies
+- [X] Create `handler.go` with package and imports
+- [X] Create `cmd/main.go` entry point for Cloud Functions
 
-### Task 1.2: Create Firestore Index
-- [ ] Create `firestore.indexes.json` in repo root
-- [ ] Define composite index: `debates` collection, fields: `topic_lowercase ASC, createdAt DESC`
-- [ ] Deploy index: `gcloud firestore indexes create --database=(default)`
-- [ ] Wait for index creation (check status in Firestore console)
-
-### Task 1.3: Create Function Scaffolding
-- [ ] Create directory: `backend/functions/autocomplete-topics/`
-- [ ] Create `go.mod` with dependencies:
-  ```
-  module github.com/raphink/debate/backend/functions/autocomplete-topics
-  require cloud.google.com/go/firestore
-  require github.com/raphink/debate/backend/shared
-  ```
-- [ ] Create `main.go` with package and imports
-- [ ] Create `cmd/main.go` entry point for Cloud Functions
-
-### Task 1.4: Define Types and Structs
-- [ ] Create `types.go`:
-  - `AutocompleteRequest` struct (Query string, Limit int)
+### Task 1.2: Define Types and Structs
+- [X] Create `types.go`:
   - `DebateSummary` struct (ID, Topic, Panelists, PanelistCount, CreatedAt) with JSON tags
   - `PanelistSummary` struct (ID, Name, Slug) with JSON tags
-- [ ] Test: Ensure JSON marshaling works correctly
+  - `AutocompleteResponse` struct with Debates slice
+- [X] Test: Ensure JSON marshaling works correctly
 
-### Task 1.5: Implement Query Logic
-- [ ] Create `handler.go` with `queryDebates()` function:
-  - Accept context, Firestore client, query string, limit
+### Task 1.3: Implement Query Logic
+- [X] Create `handler.go` with `queryDebates()` function:
+  - Accept context, query string, limit
   - Normalize query: `q := strings.ToLower(query)`
-  - Build Firestore query:
+  - Fetch recent debates from Firestore:
     ```go
-    Where("topic_lowercase", ">=", q).
-    Where("topic_lowercase", "<", q+"\uf8ff").
-    OrderBy("topic_lowercase", firestore.Asc).
-    OrderBy("createdAt", firestore.Desc).
-    Limit(limit)
+    OrderBy("startedAt", firestore.Desc).
+    Limit(100)
     ```
-  - Iterate results, transform to `DebateSummary`
-  - Return slice of summaries
-- [ ] Create `transformToSummary()` helper function
-- [ ] Test: Query with "eth" should match "Ethics of AI"
+  - Filter client-side: `strings.Contains(strings.ToLower(topic), q)`
+  - Return first `limit` matches
+- [X] Create `transformToSummary()` helper function
+- [X] Test: Query with "eth" should match "Ethics of AI" anywhere in topic
 
-### Task 1.6: Implement HTTP Handler
-- [ ] Create `AutocompleteTopicsHandler()` in `handler.go`:
-  - Set CORS headers (allow all origins for now)
+### Task 1.4: Implement HTTP Handler
+- [X] Create `AutocompleteTopicsHandler()` in `handler.go`:
+  - Set CORS headers (allow all origins)
   - Handle OPTIONS preflight
   - Check method is GET, return 405 if not
   - Parse `q` query param, validate >= 3 chars (400 if invalid)
   - Parse `limit` query param, default to 10
-  - Get Firestore client
+  - Initialize Firestore client if needed
   - Call `queryDebates()`
   - Return JSON: `{"debates": [...]}`
   - Handle errors with appropriate status codes
-- [ ] Test: Manual curl request should return JSON
+- [X] Test: Manual curl request should return JSON
 
-### Task 1.7: Create Dockerfile and Deployment
-- [ ] Create `Dockerfile` in `backend/functions/autocomplete-topics/`:
+### Task 1.5: Create Dockerfile and Deployment
+- [X] Create `Dockerfile` in `backend/functions/autocomplete-topics/`:
   - Multi-stage build with golang:1.24-alpine
-  - Build binary
-  - Final stage with alpine
+  - Build binary using distroless runtime
   - Expose 8080, CMD to run binary
-- [ ] Update `deploy.sh` to deploy autocomplete-topics function:
-  ```bash
-  gcloud functions deploy autocomplete-topics \
-    --gen2 --runtime=go124 --region=us-central1 \
-    --source=./backend/functions/autocomplete-topics \
-    --entry-point=AutocompleteTopicsHandler \
-    --trigger-http --allow-unauthenticated
-  ```
-- [ ] Deploy and test with actual Firestore data
+- [X] Update `docker-compose.yml` to include autocomplete-topics service
+- [X] Update `deploy.sh` to deploy autocomplete-topics function
 
 **Checkpoint**: Backend endpoint functional, returns matching debates
 
