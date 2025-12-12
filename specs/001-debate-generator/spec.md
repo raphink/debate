@@ -129,6 +129,25 @@ User browses a subtle suggestion list of recent debates on the home page, provid
 6. **Given** recent debates list is displayed, **When** user scrolls page, **Then** list remains non-intrusive and doesn't interfere with primary topic input workflow
 
 ---
+### User Story 7 - Panelist Autocompletion from History (Priority: P3)
+
+User receives intelligent panelist chip suggestions based on historical debate data, with normalized name matching to handle duplicate panelists identified differently across debates.
+
+**Why this priority**: Quality-of-life enhancement that leverages Firestore data to improve UX, but not essential for core functionality. Users can still manually input panelist suggestions or use Claude's defaults.
+
+**Independent Test**: Can be tested by generating debates with common panelists, then verifying autocomplete dropdown suggests previously used panelists when user starts typing a name.
+
+**Acceptance Scenarios**:
+
+1. **Given** user is on panelist selection page, **When** user starts typing in a chip input field, **Then** system shows autocomplete dropdown with matching panelists from Firestore history
+2. **Given** autocomplete dropdown is displayed, **When** multiple panelists with similar names exist (e.g., "Augustine of Hippo", "St. Augustine", "Augustine"), **Then** system deduplicates via normalized matching (lowercase, title removal) and displays the most frequently used variant
+3. **Given** autocomplete dropdown is displayed, **When** user views suggestions, **Then** panelists are ranked by frequency (most common first) and limited to top 10 matches
+4. **Given** user selects autocomplete suggestion, **When** panelist is added to chips, **Then** system uses the historical panelist data (id, name, slug) from the selected suggestion
+5. **Given** no historical panelists match user input, **When** user types, **Then** autocomplete dropdown is hidden and user can create new chip manually (no degradation of existing functionality)
+6. **Given** Firestore read fails or is unavailable, **When** user types in chip input, **Then** autocomplete feature gracefully degrades to manual chip creation without errors
+7. **Given** autocomplete API is slow (>500ms), **When** user is typing, **Then** system shows subtle loading indicator in dropdown without blocking input
+
+---
 ### Edge Cases
 
 - What happens when Claude API is unavailable or times out during topic validation?
@@ -228,6 +247,15 @@ User browses a subtle suggestion list of recent debates on the home page, provid
 - **FR-029d**: Recent debates list items MUST show topic (truncated to 60 chars) and circular panelist avatars
 - **FR-029e**: Clicking recent debate item MUST navigate to /d/{uuid} to load cached debate
 - **FR-029f**: Recent debates section MUST hide gracefully if no debates exist or API fails (no error shown to user)
+- **FR-030**: System MUST provide panelist autocomplete endpoint: GET /api/autocomplete-panelists?q={query} (US7)
+- **FR-030a**: Autocomplete endpoint MUST aggregate panelists from all historical debates in Firestore
+- **FR-030b**: Autocomplete MUST normalize panelist names for deduplication (lowercase, remove titles like "St.", "Dr.", strip punctuation)
+- **FR-030c**: Autocomplete MUST use fuzzy matching to deduplicate similar panelists (e.g., "Augustine of Hippo", "St. Augustine", "Augustine")
+- **FR-030d**: Autocomplete response MUST return panelists ranked by frequency (most common first), limited to top 10 matches
+- **FR-030e**: Autocomplete MUST return canonical panelist data (id, name, slug) from the most frequently used variant
+- **FR-030f**: Autocomplete dropdown MUST appear when user types ≥2 characters in chip input field on panelist selection page
+- **FR-030g**: Autocomplete feature MUST degrade gracefully if Firestore unavailable (hide dropdown, allow manual chip creation)
+- **FR-030h**: Autocomplete API MUST respond within 500ms; if slower, frontend shows loading indicator without blocking input
 
 ### Key Entities
 

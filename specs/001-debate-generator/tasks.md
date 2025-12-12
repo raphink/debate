@@ -354,6 +354,45 @@
 
 **Checkpoint**: User Story 6 complete - users can discover and access recent debates from home page
 
+### User Story 7 - Panelist Autocomplete (P3)
+
+**Backend - Autocomplete API Function** (Depends: Firestore integration US5)
+- [ ] T163 [US7] Backend: Create autocomplete-panelists Cloud Function scaffolding
+- [ ] T164 [US7] Backend: Implement Firestore query to aggregate all panelists from debates collection
+- [ ] T165 [US7] Backend: Implement name normalization utility (lowercase, strip titles/punctuation)
+- [ ] T166 [US7] Backend: Implement fuzzy matching algorithm for panelist name deduplication
+- [ ] T167 [US7] Backend: Implement frequency counting for panelist occurrences across debates
+- [ ] T168 [US7] Backend: Implement query matching logic (case-insensitive substring/prefix match)
+- [ ] T169 [US7] Backend: Implement response ranking (most frequent first, limit to top 10)
+- [ ] T170 [US7] Backend: Add 5-minute in-memory cache for aggregated panelist data
+- [ ] T171 [US7] Backend: Create autocomplete-panelists contract JSON schema
+- [ ] T172 [US7] Backend: Deploy autocomplete-panelists to Cloud Functions (go124 runtime)
+
+**Frontend - Autocomplete Component** (Depends: T163-T172)
+- [ ] T173 [US7] Frontend: Create usePanelistAutocomplete.js hook with debouncing (300ms)
+- [ ] T174 [US7] Frontend: Create autocomplete API service in topicService.js (GET /api/autocomplete-panelists?q={query})
+- [ ] T175 [US7] Frontend: Update chip input component to support autocomplete dropdown
+- [ ] T176 [US7] Frontend: Implement autocomplete dropdown UI (Material-UI Autocomplete or custom)
+- [ ] T177 [US7] Frontend: Add loading indicator for slow autocomplete responses (>500ms)
+- [ ] T178 [US7] Frontend: Implement graceful degradation when autocomplete API fails
+- [ ] T179 [US7] Frontend: Add keyboard navigation for autocomplete dropdown (↑↓ arrows, Enter, Escape)
+- [ ] T180 [US7] Frontend: Update PanelistSelection.jsx to integrate autocomplete component
+- [ ] T181 [US7] Frontend: Add analytics tracking for autocomplete usage (selected vs manual entry)
+
+**Testing User Story 7** (Depends: T173-T181)
+- [ ] T182 [US7] Backend test: Verify name normalization ("St. Augustine" → "augustine")
+- [ ] T183 [US7] Backend test: Verify fuzzy matching deduplicates similar names
+- [ ] T184 [US7] Backend test: Verify frequency ranking returns most common panelists first
+- [ ] T185 [US7] Backend test: Verify autocomplete returns max 10 results
+- [ ] T186 [US7] Backend test: Verify cache reduces Firestore reads (5-minute TTL)
+- [ ] T187 [US7] Frontend test: Type "aug" → verify autocomplete suggests "Augustine of Hippo"
+- [ ] T188 [US7] Frontend test: Select autocomplete suggestion → verify chip created with correct data
+- [ ] T189 [US7] Frontend test: Autocomplete API fails → verify manual chip creation still works
+- [ ] T190 [US7] Frontend test: Type query with no matches → verify dropdown hides gracefully
+- [ ] T191 [US7] E2E test: Generate 3 debates with "Augustine" → verify autocomplete suggests him first
+
+**Checkpoint**: User Story 7 complete - users receive intelligent panelist suggestions from historical data
+
 ---
 
 ## Phase 7: Polish & Cross-Cutting Concerns

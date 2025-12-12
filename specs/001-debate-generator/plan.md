@@ -233,7 +233,8 @@ frontend/
 │   │   ├── usePanelistSelection.js
 │   │   ├── useTopicValidation.js
 │   │   ├── useDebateLoader.js   # Load debate from Firestore by UUID
-│   │   └── useRecentDebates.js  # US6: Load recent debates list
+│   │   ├── useRecentDebates.js  # US6: Load recent debates list
+│   │   └── usePanelistAutocomplete.js  # US7: Autocomplete panelist suggestions
 │   ├── pages/
 │   │   ├── Home.jsx             # Topic entry page + recent debates list (US6)
 │   │   ├── PanelistSelection.jsx
@@ -424,6 +425,29 @@ start-local.sh                   # Quick start script
 Endpoint: GET /api/get-debate?id={uuid}
 Purpose: Retrieve saved debate from Firestore
 Response: 200 OK with debate JSON, 404 Not Found, or 500 Error
+```
+
+**New Cloud Function**: `list-debates` (US6)
+```
+Endpoint: GET /api/list-debates?limit=10
+Purpose: Retrieve recent debates for home page discovery
+Response: 200 OK with array of debate summaries (id, topic, panelists, createdAt)
+Notes: Orders by createdAt DESC, returns minimal data for performance
+```
+
+**New Cloud Function**: `autocomplete-panelists` (US7)
+```
+Endpoint: GET /api/autocomplete-panelists?q={query}
+Purpose: Return autocomplete suggestions based on historical panelist data
+Response: 200 OK with array of panelist suggestions ranked by frequency
+Implementation:
+  1. Aggregate all panelists from Firestore debates
+  2. Normalize names (lowercase, strip titles/punctuation)
+  3. Fuzzy match query against normalized names
+  4. Deduplicate similar panelists (e.g., "Augustine" vs "St. Augustine")
+  5. Return top 10 matches sorted by frequency (most common first)
+  6. Return canonical panelist data from most frequent variant
+Notes: Cache aggregation results for 5 minutes to reduce Firestore reads
 ```
 
 **Modified Cloud Function**: `generate-debate`
