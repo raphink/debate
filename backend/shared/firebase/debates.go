@@ -7,52 +7,52 @@ import (
 
 // Topic represents the debate topic
 type Topic struct {
-	Text              string   `firestore:"text"`
-	SuggestedNames    []string `firestore:"suggestedNames,omitempty"`
-	IsRelevant        bool     `firestore:"isRelevant"`
-	ValidationMessage string   `firestore:"validationMessage,omitempty"`
+	Text              string   `firestore:"text" json:"text"`
+	SuggestedNames    []string `firestore:"suggestedNames,omitempty" json:"suggestedNames,omitempty"`
+	IsRelevant        bool     `firestore:"isRelevant" json:"isRelevant"`
+	ValidationMessage string   `firestore:"validationMessage,omitempty" json:"validationMessage,omitempty"`
 }
 
 // Panelist represents a debate participant
 type Panelist struct {
-	ID        string `firestore:"id"`
-	Name      string `firestore:"name"`
-	Tagline   string `firestore:"tagline"`
-	Biography string `firestore:"biography"`
-	AvatarURL string `firestore:"avatarUrl"`
-	Position  string `firestore:"position,omitempty"`
+	ID        string `firestore:"id" json:"id"`
+	Name      string `firestore:"name" json:"name"`
+	Tagline   string `firestore:"tagline" json:"tagline"`
+	Biography string `firestore:"biography" json:"biography"`
+	AvatarURL string `firestore:"avatarUrl" json:"avatarUrl"`
+	Position  string `firestore:"position,omitempty" json:"position,omitempty"`
 }
 
 // Message represents a single debate contribution
 type Message struct {
-	ID           string    `firestore:"id"`
-	PanelistID   string    `firestore:"panelistId"`
-	PanelistName string    `firestore:"panelistName"`
-	AvatarURL    string    `firestore:"avatarUrl"`
-	Text         string    `firestore:"text"`
-	Timestamp    time.Time `firestore:"timestamp"`
-	Sequence     int       `firestore:"sequence"`
-	IsComplete   bool      `firestore:"isComplete"`
+	ID           string    `firestore:"id" json:"id"`
+	PanelistID   string    `firestore:"panelistId" json:"panelistId"`
+	PanelistName string    `firestore:"panelistName" json:"panelistName"`
+	AvatarURL    string    `firestore:"avatarUrl" json:"avatarUrl"`
+	Text         string    `firestore:"text" json:"text"`
+	Timestamp    time.Time `firestore:"timestamp" json:"timestamp"`
+	Sequence     int       `firestore:"sequence" json:"sequence"`
+	IsComplete   bool      `firestore:"isComplete" json:"isComplete"`
 }
 
 // Metadata contains debate metadata
 type Metadata struct {
-	CreatedBy   string `firestore:"createdBy"`
-	UserAgent   string `firestore:"userAgent,omitempty"`
-	Version     string `firestore:"version"`
-	GeneratedBy string `firestore:"generatedBy"`
+	CreatedBy   string `firestore:"createdBy" json:"createdBy"`
+	UserAgent   string `firestore:"userAgent,omitempty" json:"userAgent,omitempty"`
+	Version     string `firestore:"version" json:"version"`
+	GeneratedBy string `firestore:"generatedBy" json:"generatedBy"`
 }
 
 // DebateDocument represents a complete debate stored in Firestore
 type DebateDocument struct {
-	ID          string     `firestore:"id"`
-	Topic       Topic      `firestore:"topic"`
-	Panelists   []Panelist `firestore:"panelists"`
-	Messages    []Message  `firestore:"messages"`
-	Status      string     `firestore:"status"`
-	StartedAt   time.Time  `firestore:"startedAt"`
-	CompletedAt time.Time  `firestore:"completedAt"`
-	Metadata    Metadata   `firestore:"metadata"`
+	ID          string     `firestore:"id" json:"id"`
+	Topic       Topic      `firestore:"topic" json:"topic"`
+	Panelists   []Panelist `firestore:"panelists" json:"panelists"`
+	Messages    []Message  `firestore:"messages" json:"messages"`
+	Status      string     `firestore:"status" json:"status"`
+	StartedAt   time.Time  `firestore:"startedAt" json:"startedAt"`
+	CompletedAt time.Time  `firestore:"completedAt" json:"completedAt"`
+	Metadata    Metadata   `firestore:"metadata" json:"metadata"`
 }
 
 // SaveDebate saves a debate document to Firestore
