@@ -30,7 +30,7 @@ const PanelistGrid = ({ panelists, selectedPanelists, onToggleSelection, maxSele
     <div className={styles.gridContainer}>
       {isLocked && (
         <div className={styles.lockedNotice}>
-          Panelists pre-selected from historical debate. Click "Modify Panelists" to make changes.
+          Panelists pre-selected from historical debate. Click &ldquo;Modify Panelists&rdquo; to make changes.
         </div>
       )}
       <div className={styles.grid}>

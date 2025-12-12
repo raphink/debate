@@ -92,6 +92,13 @@ export const TopicAutocompleteDropdown = ({
               }`}
               onClick={() => onSelect(debate)}
               onMouseEnter={() => setSelectedIndex(index)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  onSelect(debate);
+                }
+              }}
+              role="button"
+              tabIndex={0}
             >
               <div className={styles.topic}>{debate.topic}</div>
               <div className={styles.badge}>
