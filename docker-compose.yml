@@ -98,8 +98,6 @@ services:
       - REACT_APP_GENERATE_DEBATE_URL=http://localhost:8081
       - REACT_APP_GET_PORTRAIT_URL=http://localhost:8082
       - REACT_APP_GET_DEBATE_URL=http://localhost:8084
-    networks:
-      - debate-network
       - REACT_APP_LIST_DEBATES_URL=http://localhost:8086
     networks:
       - debate-network
@@ -109,6 +107,8 @@ services:
       - get-portrait
       - get-debate
       - list-debates
+    restart: unless-stopped
+
 networks:
   debate-network:
     driver: bridge
