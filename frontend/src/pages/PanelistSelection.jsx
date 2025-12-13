@@ -9,28 +9,18 @@ import styles from './PanelistSelection.module.css';
 /**
  * PanelistSelection page allows users to browse and select panelists for the debate.
  * Receives panelist data from topic validation and manages selection state.
- * Can also receive pre-filled panelists from autocomplete selection.
  */
 const PanelistSelection = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { topic, panelists, source, preFilled } = location.state || {};
+  const { topic, panelists } = location.state || {};
 
   const {
     selectedPanelists,
     toggleSelection,
     clearSelection,
     isValidSelection,
-    setSelection,
   } = usePanelistSelection();
-
-  // Pre-fill panelists if coming from autocomplete
-  useEffect(() => {
-    if (source === 'autocomplete' && preFilled && preFilled.length > 0) {
-      // Pre-select the panelists from the autocomplete selection
-      setSelection(preFilled);
-    }
-  }, [source, preFilled, setSelection]);
 
   // Redirect if no panelists data available
   useEffect(() => {

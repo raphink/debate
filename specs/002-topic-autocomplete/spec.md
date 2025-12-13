@@ -3,11 +3,10 @@
 ## Clarifications (Session 2025-12-13)
 
 - Q: How should the system handle concurrent writes to Firestore when multiple users generate debates with the same topic at the same time? → A: Allow duplicates - multiple debates on the same topic are acceptable (last write wins, Firestore default)
-- Q: When a user selects a topic from autocomplete and lands on PanelistSelection with pre-filled panelists, what should the "Generate Debate" button say to clarify the cache behavior? → A: "View Debate" for cached (no changes) with alternate button to change the panelists (in which case it will lead to a new debate as if generated from scratch)
 - Q: When autocomplete returns multiple debates with identical topics, how should they be differentiated in the dropdown? → A: Show panelist avatars + generation date. Two debates on the same topic can be distinguished because they have different panelists.
 - Q: Should the autocomplete query sanitize user input to prevent injection attacks, or can it safely pass raw input to Firestore? → A: All input should be sanitized
 - Q: Should the autocomplete dropdown support keyboard navigation (arrow keys, Enter to select, Escape to close)? → A: Yes - standard accessibility practice
-- **CRITICAL UX CLARIFICATION**: There is ONE single input field for topics, not two separate flows. As users type, autocomplete suggestions appear (if matches exist). Users can either: (A) select an existing debate from dropdown → navigate to PanelistSelection with pre-filled panelists, OR (B) ignore autocomplete and click "Find Panelists" button to trigger Claude validation (normal US1 flow with optional suggested panelist names). Autocomplete is optional enhancement, not a separate mode.
+- **CRITICAL UX CLARIFICATION**: There is ONE single input field for topics, not two separate flows. As users type, autocomplete suggestions appear (if matches exist). Users can either: (A) select an existing debate from dropdown → navigate directly to view that debate (skipping topic validation and panelist selection entirely), OR (B) ignore autocomplete and click "Find Panelists" button to trigger Claude validation (normal US1 flow). Autocomplete provides quick access to previously generated debates.
 
 ## Overview
 
@@ -34,7 +33,7 @@ Users see autocomplete suggestions of previous debates as they type in the singl
 
 3. **Given** user types in topic input field, **When** input matches previous topics, **Then** matching topics are highlighted/narrowed in real-time as user continues typing
 
-4. **Given** user selects a topic from autocomplete dropdown, **When** topic is selected, **Then** system navigates directly to panelist selection with original panelists pre-selected (skipping Claude validation)
+4. **Given** user selects a topic from autocomplete dropdown, **When** topic is selected, **Then** system navigates directly to debate viewer (/d/{debate.id}) to display the existing debate (skipping Claude validation and panelist selection entirely)
 
 5. **Given** user types topic and autocomplete appears, **When** user ignores dropdown and clicks "Find Panelists" button, **Then** system proceeds with normal Claude validation flow (US1) with optional suggested panelist names
 
@@ -42,7 +41,7 @@ Users see autocomplete suggestions of previous debates as they type in the singl
 
 7. **Given** no previous topics match user input or Firestore fails, **When** user types, **Then** autocomplete dropdown is hidden and user can click "Find Panelists" normally (graceful degradation)
 
-8. **Given** user selects debate from autocomplete, **When** user proceeds to PanelistSelection with pre-filled panelists, **Then** user can modify panelists or keep them as-is before generating debate
+8. **Given** user selects debate from autocomplete, **When** debate viewer loads, **Then** user sees the complete previously-generated debate with all messages and panelist information
 
 ## Functional Requirements
 
@@ -68,13 +67,13 @@ Users see autocomplete suggestions of previous debates as they type in the singl
 - **FR-015**: System MUST hide dropdown if API fails or returns empty results (user can still click "Find Panelists" normally)
 - **FR-016**: System MUST NOT disable or block "Find Panelists" button when autocomplete is loading or unavailable
 
-### Panelist Pre-filling
+### Direct Debate Viewing
 
 - **FR-017**: System MUST skip Claude validation ONLY when user selects topic from autocomplete dropdown (clicking "Find Panelists" always triggers Claude validation)
-- **FR-018**: System MUST navigate to PanelistSelection page with panelists pre-selected from historical debate when user selects from dropdown
-- **FR-019**: System MUST pass topic and panelist data via navigation state for pre-filling
-- **FR-020**: System MUST allow user to modify pre-filled panelists before generating debate
-- **FR-021**: System MUST always generate new debate when proceeding from autocomplete selection (no cache hit detection)
+- **FR-018**: System MUST navigate directly to debate viewer (/d/{debate.id}) when user selects debate from autocomplete dropdown
+- **FR-019**: System MUST display the complete existing debate with all messages, panelists, and metadata
+- **FR-020**: System MUST provide navigation back to home page from debate viewer (standard DebateViewer functionality)
+- **FR-021**: System MUST NOT generate new debates when viewing from autocomplete selection (displays existing cached debate)
 
 ## Non-Functional Requirements
 
@@ -92,7 +91,7 @@ Users see autocomplete suggestions of previous debates as they type in the singl
 - **EC-005**: User clears input field after dropdown displayed: Hide dropdown
 - **EC-006**: User clicks outside dropdown: Close dropdown without selection
 - **EC-007**: Duplicate topics in Firestore: Show all instances differentiated by panelist avatars and generation dates (multiple debates on same topic are acceptable)
-- **EC-008**: User modifies pre-filled panelists: Allow any modifications before generating new debate
+- **EC-008**: User wants to regenerate debate with different panelists: Must return to home page and use normal "Find Panelists" flow (autocomplete is for viewing existing debates only)
 
 ## Out of Scope
 
@@ -120,7 +119,7 @@ Users see autocomplete suggestions of previous debates as they type in the singl
     id: string;              // UUID
     topic: string;           // Original topic text
     panelistCount: number;   // Number of panelists
-    panelists: Array<{       // Full panelist data for pre-filling
+    panelists: Array<{       // Full panelist data for display in dropdown
       id: string;
       name: string;
       slug: string;
@@ -130,23 +129,12 @@ Users see autocomplete suggestions of previous debates as they type in the singl
 }
 ```
 
-### Cache Detection Comparison
-```typescript
-{
-  topic: string;                 // Exact text match
-  panelists: Array<{             // Order-independent deep comparison
-    id: string;
-    name: string;
-  }>;
-}
-```
-
 ## Success Metrics
 
-- Autocomplete adoption rate: % of debates created via autocomplete pre-fill vs manual entry
-- Time saved: Reduction in time to reach debate generation when using autocomplete
+- Autocomplete usage rate: % of debate views accessed via autocomplete vs direct navigation or history page
+- Time saved: Reduction in time to view existing debates (autocomplete vs history page navigation)
 - API performance: p95 response time <500ms
-- User satisfaction: qualitative feedback on workflow improvement
+- User satisfaction: qualitative feedback on quick access to previous debates
 
 ## Testing Strategy
 
@@ -160,17 +148,17 @@ Users see autocomplete suggestions of previous debates as they type in the singl
 - Error handling: empty results, Firestore failures
 
 ### End-to-End Tests
-1. Generate debate → return home → type 3+ chars → verify autocomplete appears
-2. Select topic from dropdown → verify panelists pre-filled on PanelistSelection page
-3. Keep or modify panelists → verify new debate generated with pre-filled/modified panelists
-4. Firestore disabled → verify graceful degradation to manual topic entry
+1. Generate debate → return home → type 3+ chars matching topic → verify autocomplete appears with previously generated debate
+2. Select topic from dropdown → verify navigation to /d/{debate.id} and complete debate displays
+3. From debate viewer, navigate back to home → verify can create new debate or view other autocomplete suggestions
+4. Firestore disabled → verify autocomplete hidden, "Find Panelists" still works (graceful degradation)
 
 ## Dependencies & Prerequisites
 
 - US5 (Debate Caching & Sharing) fully implemented
 - Firestore debates collection populated with sample debates
 - list-debates Cloud Function operational (reuses Firestore query logic)
-- Navigation state management in React Router functional
+- DebateViewer component functional at /d/:uuid route
 
 ## Open Questions
 

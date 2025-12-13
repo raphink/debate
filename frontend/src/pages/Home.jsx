@@ -35,16 +35,9 @@ const Home = () => {
     clearSelection();
   };
 
-  // Handle autocomplete selection - navigate to panelist selection with pre-filled data
+  // Handle autocomplete selection - navigate directly to view the existing debate
   const handleAutocompleteSelect = (debate) => {
-    navigate('/panelist-selection', {
-      state: {
-        source: 'autocomplete',
-        debateId: debate.id,
-        topic: debate.topic,
-        preFilled: debate.panelists,
-      },
-    });
+    navigate(`/d/${debate.id}`);
   };
 
   const handleProceedToDebate = () => {

@@ -47,14 +47,14 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 
 ## Phase 3: User Story 6 - Topic Discovery via History Integration (Priority: P3) 🎯
 
-**Goal**: Enable users to see autocomplete suggestions of previous debates as they type, streamlining topic discovery by combining history browsing with topic entry
+**Goal**: Enable users to see autocomplete suggestions of previous debates as they type, providing quick access to view existing debates without re-entering topics or regenerating content
 
 **Independent Test**: 
 1. Generate 3-5 debates via existing flow (ensure saved to Firestore)
 2. Return to home page, type 3+ characters matching existing topics
 3. Verify autocomplete dropdown appears with matching debates showing topic, avatars, panelist count, and date
-4. Select debate from dropdown → verify navigation to PanelistSelection with pre-filled panelists
-5. Keep or modify panelists → click "Generate Debate" → verify new debate generated with selected panelists
+4. Select debate from dropdown → verify navigation to /d/{debate.id} with complete debate displayed
+5. Navigate back to home → verify can select other autocomplete suggestions or create new debate via "Find Panelists"
 
 ### Implementation for User Story 6
 
@@ -76,8 +76,8 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 - [X] T009 [US6] Add TopicAutocompleteDropdown.module.css with dropdown positioning (absolute, below input), hover states, keyboard navigation styles, and loading indicator
 - [X] T010 [US6] Implement keyboard navigation in TopicAutocompleteDropdown (arrow keys, Enter to select, Escape to close) with ARIA accessibility attributes
 - [X] T011 [US6] Update TopicInput component in frontend/src/components/TopicInput/TopicInput.jsx to integrate useTopicAutocomplete hook and render TopicAutocompleteDropdown conditionally
-- [X] T012 [US6] Update Home.jsx in frontend/src/pages/Home.jsx to handle autocomplete selection, navigate to /panelist-selection with state: {source: 'autocomplete', topic, preFilled: panelists}
-- [X] T013 [US6] Update PanelistSelection.jsx in frontend/src/pages/PanelistSelection.jsx to detect autocomplete source from navigation state and pre-fill panelists from state.preFilled
+- [X] T012 [US6] Update Home.jsx in frontend/src/pages/Home.jsx to handle autocomplete selection and navigate to /d/{debate.id} to view existing debate
+- [X] T013 [US6] **CHANGED**: PanelistSelection pre-fill not needed - autocomplete navigates directly to debate viewer. Task marked complete but implementation uses different approach (view existing debate instead of pre-fill for regeneration)
 
 #### Input Sanitization
 
@@ -103,7 +103,18 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 - [X] T021 Update DEPLOYMENT.md with list-debates function autocomplete enhancement
 - [X] T022 Add error logging for autocomplete API failures in backend/functions/list-debates/handler.go with context about query and Firestore errors
 - [X] T023 [P] Add performance monitoring for autocomplete API response times (consider Cloud Function metrics)
-- [X] T024 Run quickstart.md validation: generate debates, test autocomplete flow, verify panelist pre-fill, test graceful degradation
+- [X] T024 Run quickstart.md validation: generate debates, test autocomplete flow, verify direct navigation to debate viewer, test graceful degradation
+
+---
+
+## Implementation Notes
+
+**UX Simplification (2025-12-13)**: During implementation, the navigation flow was simplified from the original specification:
+- **Original Design**: Select autocomplete → navigate to PanelistSelection with pre-filled panelists → modify/keep panelists → generate new debate
+- **Implemented Design**: Select autocomplete → navigate directly to /d/{debate.id} to view existing debate
+- **Rationale**: Simpler UX with fewer clicks; clear separation between viewing existing debates (autocomplete) and creating new ones ("Find Panelists" button)
+- **Tasks Affected**: T012 (navigation destination changed), T013 (PanelistSelection pre-fill not needed)
+- **Specification Updated**: 2025-12-13 to align with implemented behavior
 
 ---
 
@@ -133,7 +144,7 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 - T008, T009, T010 (TopicAutocompleteDropdown) - depends on T007
 - T011 (TopicInput update) - depends on T007, T008
 - T012 (Home.jsx update) - depends on T011
-- T013 (PanelistSelection pre-fill) - can run in parallel with T012
+- T013 (marked CHANGED - not needed in revised flow)
 
 **Cross-cutting**:
 - T014 (sanitization) - can run in parallel with T011
@@ -200,7 +211,7 @@ Task: "Add performance monitoring for autocomplete API response times"
 2. Add Frontend Utilities (T006) → Test debounce independently
 3. Add TopicAutocompleteDropdown (T008-T010) → Test component in isolation
 4. Integrate with TopicInput (T011) → Test autocomplete dropdown appears
-5. Add navigation logic (T012-T013) → Test panelist pre-fill workflow
+5. Add navigation logic (T012) → Test direct navigation to debate viewer
 6. Polish and deploy (Phase 4)
 
 ### Single Developer Strategy
@@ -230,5 +241,5 @@ Sequential execution in priority order:
 - Debouncing is mandatory to prevent Firestore quota exhaustion
 - All input must be sanitized before Firestore queries
 - Extending list-debates maintains single source of truth and reduces deployment complexity
-- No cache hit detection needed - panelist names may vary across LLM responses, always generate new debate
+- Direct navigation to debate viewer simplifies UX - autocomplete for viewing existing debates, "Find Panelists" for creating new ones
 - No Firestore index needed - fetch recent debates and filter by substring in code for true full-text search

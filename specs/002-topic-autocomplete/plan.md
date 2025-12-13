@@ -7,21 +7,21 @@
 ## Clarifications (Session 2025-12-13)
 
 - **Concurrent Writes**: Allow duplicates - multiple debates on same topic are acceptable (last write wins, Firestore default behavior)
-- **Button Labeling**: "View Debate" for cache hit, "Modify Panelists" alternate button, "Generate New Debate" after modifications
 - **Duplicate Differentiation**: Show panelist avatars + generation date in dropdown to distinguish debates with identical topics
 - **Input Sanitization**: All autocomplete query input must be sanitized (strip HTML tags, special characters) before Firestore query
 - **Keyboard Navigation**: Yes - arrow keys, Enter to select, Escape to close (standard accessibility practice per WCAG 2.1)
-- **CRITICAL UX**: ONE single input field for topics (not two separate flows). Autocomplete suggestions appear as users type but "Find Panelists" button always remains available. Users can select from dropdown OR ignore autocomplete and proceed with normal Claude validation.
+- **CRITICAL UX**: ONE single input field for topics (not two separate flows). Autocomplete suggestions appear as users type but "Find Panelists" button always remains available. Users can select from dropdown to view existing debate OR ignore autocomplete and proceed with normal Claude validation.
+- **NAVIGATION FLOW**: Selecting from autocomplete navigates directly to /d/{debate.id} to view the existing debate (no panelist modification, no regeneration). This provides quick access to previously generated debates without additional steps.
 
 ## Summary
 
 Enhance the existing topic input field (Home.jsx) with autocomplete suggestions from Firestore debate history. As users type ≥3 characters, a dropdown displays up to 10 matching previous debates ordered by recency, showing topic text, panelist avatars, panelist count, and generation date. Users can either:
-- **Option A**: Select from dropdown → navigate to PanelistSelection with pre-filled panelists → modify or keep panelists → generate new debate
+- **Option A**: Select from dropdown → navigate directly to /d/{debate.id} to view the existing debate
 - **Option B**: Ignore autocomplete, click "Find Panelists" → proceed with normal Claude validation (US1 flow)
 
 This is a **gracefully-degrading enhancement** that never blocks the existing workflow. Autocomplete failures or empty results hide the dropdown and allow normal topic entry.
 
-**Key Architecture Decision**: Extend existing `list-debates` Cloud Function with optional `q` query parameter for autocomplete filtering, rather than creating separate function. Pre-filling panelists saves user time but always generates a new debate (no cache hit detection needed since panelist names may vary across LLM responses).
+**Key Architecture Decision**: Extend existing `list-debates` Cloud Function with optional `q` query parameter for autocomplete filtering, rather than creating separate function. Autocomplete provides quick access to view previously generated debates without requiring topic validation or panelist selection.
 
 ## Technical Context
 
@@ -138,25 +138,21 @@ if query != "" {
 
 **Alternative Considered**: Pre-fetch all debate avatars during autocomplete query (rejected: slower API response, unnecessary for debates user won't select)
 
-### R004: Navigation State Management
-**Decision**: Use React Router `navigate(path, { state: {...} })` to pass debate metadata
-**Rationale**: Avoid prop drilling; allows PanelistSelection to access original debate ID and panelists from history
+### R004: Navigation to Debate Viewer
+**Decision**: Navigate directly to existing debate route (/d/{debate.id}) when user selects from autocomplete
+**Rationale**: Simplifies UX - autocomplete is for quick access to existing debates, not for regeneration with modifications. Users who want to create new debates with similar topics can use the normal "Find Panelists" flow.
 **Implementation**:
 ```javascript
 // Home.jsx - on autocomplete selection
-navigate('/panelist-selection', {
-  state: {
-    source: 'autocomplete',
-    debateId: selectedDebate.id,
-    topic: selectedDebate.topic,
-    preFilled: selectedDebate.panelists,
-  }
-});
-
-// PanelistSelection.jsx
-const { state } = useLocation();
-const isFromAutocomplete = state?.source === 'autocomplete';
+const handleAutocompleteSelect = (debate) => {
+  navigate(`/d/${debate.id}`);
+};
 ```
+**Benefits**: 
+- Fewer clicks to view existing debates
+- Clear separation: autocomplete = view existing, "Find Panelists" = generate new
+- No need for cache detection logic or button labeling complexity
+- Reuses existing DebateViewer component without modifications
 
 ### R006: Dropdown Component Library
 **Decision**: Custom dropdown component (no external library)
@@ -186,14 +182,7 @@ const isFromAutocomplete = state?.source === 'autocomplete';
 ```
 
 #### Frontend Navigation State
-```typescript
-interface AutocompleteNavigationState {
-  source: 'autocomplete' | 'manual';
-  debateId?: string;           // Original debate UUID (if from autocomplete)
-  topic: string;
-  preFilled?: Panelist[];      // Pre-selected panelists (if from autocomplete)
-}
-```
+**Not needed** - Direct navigation to /d/{debate.id} uses URL parameter only, no React Router state required.
 
 ### API Contracts
 
@@ -463,8 +452,7 @@ frontend/src/
 │   ├── api.js                          # MODIFIED: Add list-debates query parameter
 │   └── topicService.js                 # EXISTING: No changes
 └── pages/
-    ├── Home.jsx                        # MODIFIED: Handle autocomplete selection
-    └── PanelistSelection.jsx           # MODIFIED: Pre-fill panelists from navigation state
+    └── Home.jsx                        # MODIFIED: Handle autocomplete selection, navigate to /d/{debate.id}
 ```
 
 #### New Hook: useTopicAutocomplete
@@ -556,16 +544,8 @@ interface TopicAutocompleteDropdownProps {
 
 **Changes**:
 - Add handler for autocomplete selection: `handleAutocompleteSelect(debate)`
-- Navigate to PanelistSelection with state: `{ source: 'autocomplete', debateId, topic, preFilled }`
+- Navigate directly to debate viewer: `navigate(\`/d/${debate.id}\`)`
 - Existing "Find Panelists" flow remains unchanged (manual Claude validation)
-
-#### Modified Page: PanelistSelection.jsx
-
-**Changes**:
-- Check `location.state.source === 'autocomplete'`
-- If autocomplete: pre-select panelists from `location.state.preFilled`
-- User can modify pre-filled panelists or keep them as-is
-- Normal debate generation flow proceeds (always generates new debate)
 
 ---
 
@@ -594,8 +574,7 @@ interface TopicAutocompleteDropdownProps {
 1. `frontend/src/services/api.js` - Modify `listDebates()` to accept optional `query` parameter
 2. `frontend/src/components/TopicInput/TopicInput.jsx` - Integrate autocomplete hook + dropdown
 3. `frontend/src/components/TopicInput/TopicInput.module.css` - Add dropdown positioning styles
-4. `frontend/src/pages/Home.jsx` - Handle autocomplete selection, navigation with state
-5. `frontend/src/pages/PanelistSelection.jsx` - Pre-fill panelists from navigation state
+4. `frontend/src/pages/Home.jsx` - Handle autocomplete selection, navigation to /d/{debate.id}
 
 ### Deployment Updates
 
@@ -656,15 +635,15 @@ gcloud functions deploy list-debates \
 
 **Integration Tests** (MSW):
 - Mock autocomplete API response
-- Verify navigation state passed to PanelistSelection
-- Cache hit detection triggers "View Debate" button
-- Panelist modification changes button to "Generate New Debate"
+- Verify navigation to /d/{debate.id} when selecting from dropdown
+- Verify "Find Panelists" button triggers normal validation flow
+- Graceful degradation when autocomplete fails
 
 ### End-to-End Tests
 
-1. Generate debate → return home → type topic → verify autocomplete appears
-2. Select topic from dropdown → verify panelists pre-filled
-3. Keep or modify pre-filled panelists → verify new debate generated
+1. Generate debate → return home → type matching topic → verify autocomplete appears
+2. Select topic from dropdown → verify navigation to /d/{debate.id} and complete debate displays
+3. Navigate back to home → verify can select other autocomplete suggestions or create new debate
 4. Firestore failure → verify dropdown hidden, "Find Panelists" still works
 
 ---
@@ -681,10 +660,9 @@ gcloud functions deploy list-debates \
 - Create TopicAutocompleteDropdown component
 - Integrate into TopicInput (no breaking changes)
 
-### Step 3: Navigation & Cache Detection
+### Step 3: Navigation Flow
 - Update Home.jsx to handle autocomplete selection
-- Update PanelistSelection.jsx with pre-fill logic
-- Implement cache detection utility
+- Navigate directly to /d/{debate.id} (reuses existing DebateViewer)
 
 ### Step 4: Testing & Validation
 - Run backend integration tests (Firestore emulator)
@@ -705,8 +683,8 @@ gcloud functions deploy list-debates \
 **Functional**:
 - ✅ Autocomplete appears when typing ≥3 characters
 - ✅ Dropdown shows max 10 results ordered by recency
-- ✅ Selecting debate navigates to PanelistSelection with pre-filled panelists
-- ✅ User can modify or keep pre-filled panelists before generating debate
+- ✅ Selecting debate navigates directly to /d/{debate.id} debate viewer
+- ✅ Complete existing debate displays with all messages and panelists
 - ✅ "Find Panelists" button always works (graceful degradation)
 
 **Non-Functional**:
@@ -721,7 +699,7 @@ gcloud functions deploy list-debates \
 - ✅ Firestore failure: graceful degradation to manual entry
 - ✅ Network timeout: dropdown closes, "Find Panelists" available
 - ✅ Duplicate topics: differentiated by avatars + date
-- ✅ Pre-filled panelists: user can modify before generating new debate
+- ✅ User wants to regenerate: Must use "Find Panelists" flow (autocomplete is view-only)
 
 ---
 
