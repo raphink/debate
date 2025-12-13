@@ -49,8 +49,11 @@ func queryDebates(ctx context.Context, client *firestore.Client, limit, offset i
 			for _, p := range panelists {
 				if panelistMap, ok := p.(map[string]interface{}); ok {
 					debate.Panelists = append(debate.Panelists, PanelistInfo{
-						ID:   getString(panelistMap, "id"),
-						Name: getString(panelistMap, "name"),
+						ID:        getString(panelistMap, "id"),
+						Name:      getString(panelistMap, "name"),
+						AvatarURL: getString(panelistMap, "avatarUrl"),
+						Tagline:   getString(panelistMap, "tagline"),
+						Bio:       getString(panelistMap, "biography"),
 					})
 				}
 			}

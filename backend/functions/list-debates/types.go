@@ -6,8 +6,11 @@ import (
 
 // PanelistInfo represents minimal panelist information
 type PanelistInfo struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	AvatarURL string `json:"avatarUrl"`
+	Tagline   string `json:"tagline"`
+	Bio       string `json:"bio"`
 }
 
 // DebateSummary represents a debate summary for the list view
