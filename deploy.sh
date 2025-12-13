@@ -214,7 +214,7 @@ deploy_backend() {
         --runtime="$RUNTIME" \
         --region="$REGION" \
         --source=./backend/functions/list-debates \
-        --entry-point=ListDebates \
+        --entry-point=HandleListDebates \
         --trigger-http \
         --allow-unauthenticated \
         --set-env-vars=ALLOWED_ORIGIN=https://debates.jollygood.ch,GCP_PROJECT_ID=$PROJECT_ID \
