@@ -71,8 +71,8 @@ services:
   # List Debates Cloud Function (Port 8086)
   list-debates:
     build:
-      context: ./backend/functions/list-debates
-      dockerfile: Dockerfile
+      context: ./backend
+      dockerfile: functions/list-debates/Dockerfile
     ports:
       - "${BIND_ADDRESS:-0.0.0.0}:8086:8080"
     environment:
