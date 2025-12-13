@@ -46,7 +46,7 @@ const DebateHistory = () => {
   }, [debates, searchQuery]);
 
   const handleDebateClick = (debateId) => {
-    navigate(`/debate/${debateId}`);
+    navigate(`/d/${debateId}`);
   };
 
   if (isLoading) {
