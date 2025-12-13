@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import useDebateLoader from '../hooks/useDebateLoader';
 import DebateView from '../components/DebateView/DebateView';
 import PanelistModal from '../components/DebateView/PanelistModal';
@@ -81,13 +81,18 @@ const DebateViewer = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <button
-          onClick={() => navigate('/')}
-          className={styles.backButton}
-          aria-label="Go back to home"
-        >
-          ← Back
-        </button>
+        <div className={styles.headerActions}>
+          <Link to="/debates" className={styles.historyLink}>
+            ← Back to History
+          </Link>
+          <button
+            onClick={() => navigate('/')}
+            className={styles.backButton}
+            aria-label="Go back to home"
+          >
+            Home
+          </button>
+        </div>
         <div className={styles.topicDisplay}>
           <h1 className={styles.title}>
             <span className={styles.topicLabel}>Topic: </span>

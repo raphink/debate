@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import PanelistSelection from './pages/PanelistSelection';
 import DebateGeneration from './pages/DebateGeneration';
 import DebateViewer from './pages/DebateViewer';
+import DebateHistory from './pages/DebateHistory';
 import NotFound from './pages/NotFound';
 import './App.css';
 
@@ -23,6 +24,7 @@ function App() {
               <Route path="/select-panelists" element={<PanelistSelection />} />
               <Route path="/debate" element={<DebateGeneration />} />
               <Route path="/d/:uuid" element={<DebateViewer />} />
+              <Route path="/debates" element={<DebateHistory />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

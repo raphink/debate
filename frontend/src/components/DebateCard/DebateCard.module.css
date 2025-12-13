@@ -1,0 +1,124 @@
+.card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+  border-color: #7c3aed;
+  box-shadow: 0 8px 16px rgba(124, 58, 237, 0.1);
+  transform: translateY(-2px);
+}
+
+.card:focus {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+  border-color: #7c3aed;
+}
+
+.topicLabel {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #7c3aed;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.topic {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+}
+
+.panelists {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.avatar {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar:hover {
+  transform: scale(1.1);
+  z-index: 1;
+}
+
+.avatar:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.5);
+}
+
+.avatar:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.5);
+}
+
+.avatar:active {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.7);
+}
+
+.avatarImage {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+  background: white;
+  transition: border-color 0.2s ease;
+}
+
+.avatar:hover .avatarImage {
+  border-color: #7c3aed;
+}
+
+.timestamp {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 16px;
+  }
+
+  .topicLabel {
+    font-size: 11px;
+  }
+
+  .topic {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .avatarImage {
+    width: 40px;
+    height: 40px;
+  }
+
+  .panelists {
+    margin-bottom: 12px;
+    gap: 6px;
+  }
+
+  .timestamp {
+    font-size: 12px;
+  }
+}

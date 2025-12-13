@@ -103,6 +103,28 @@ export const generateDebateStream = (topic, selectedPanelists, onMessage, onErro
   };
 };
 
+/**
+ * Fetch debate history with pagination
+ * 
+ * @param {number} limit - Maximum number of debates to fetch (default 20)
+ * @param {number} offset - Number of debates to skip (default 0)
+ * @returns {Promise<{debates: Array, total: number, hasMore: boolean}>}
+ */
+export const fetchDebateHistory = async (limit = 20, offset = 0) => {
+  const baseURL = process.env.REACT_APP_LIST_DEBATES_URL || 'http://localhost:8086';
+  const url = `${baseURL}/list-debates?limit=${limit}&offset=${offset}`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || `Failed to fetch debates: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
 export default {
   generateDebateStream,
+  fetchDebateHistory,
 };

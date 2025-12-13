@@ -1,0 +1,116 @@
+{
+  "endpoint": "/list-debates",
+  "method": "GET",
+  "description": "Fetch paginated list of debates from Firestore",
+  "queryParameters": {
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "default": 20,
+      "min": 1,
+      "max": 100,
+      "description": "Number of debates to return"
+    },
+    "offset": {
+      "type": "integer",
+      "required": false,
+      "default": 0,
+      "min": 0,
+      "description": "Number of debates to skip (pagination)"
+    }
+  },
+  "responses": {
+    "200": {
+      "description": "Success - debates fetched",
+      "schema": {
+        "debates": {
+          "type": "array",
+          "items": {
+            "id": "string (UUID)",
+            "topic": "string",
+            "panelists": "array of {id: string, name: string}",
+            "startedAt": "string (ISO 8601)"
+          }
+        },
+        "total": "integer (total debate count in collection)",
+        "hasMore": "boolean (true if more results exist)"
+      },
+      "example": {
+        "debates": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "topic": "Should Christians defy authorities when the law is unfair?",
+            "panelists": [
+              {
+                "id": "Augustine354",
+                "name": "Augustine of Hippo"
+              },
+              {
+                "id": "MLKJr",
+                "name": "Martin Luther King Jr."
+              }
+            ],
+            "startedAt": "2025-12-13T10:30:00Z"
+          }
+        ],
+        "total": 42,
+        "hasMore": true
+      }
+    },
+    "400": {
+      "description": "Bad Request - invalid parameters",
+      "schema": {
+        "error": "string"
+      },
+      "example": {
+        "error": "Invalid limit: must be between 1 and 100"
+      }
+    },
+    "500": {
+      "description": "Internal Server Error - Firestore failure",
+      "schema": {
+        "error": "string"
+      },
+      "example": {
+        "error": "Failed to query debates from Firestore"
+      }
+    }
+  },
+  "testCases": [
+    {
+      "name": "Fetch first page of debates",
+      "request": "GET /list-debates?limit=10",
+      "expectedStatus": 200,
+      "expectedResponse": {
+        "debates": "array of 10 debates (or fewer if less exist)",
+        "total": "integer",
+        "hasMore": "boolean"
+      }
+    },
+    {
+      "name": "Fetch second page with offset",
+      "request": "GET /list-debates?limit=10&offset=10",
+      "expectedStatus": 200,
+      "expectedResponse": {
+        "debates": "array of next 10 debates",
+        "hasMore": "boolean based on total"
+      }
+    },
+    {
+      "name": "Invalid limit exceeds max",
+      "request": "GET /list-debates?limit=200",
+      "expectedStatus": 400,
+      "expectedResponse": {
+        "error": "Invalid limit: must be between 1 and 100"
+      }
+    },
+    {
+      "name": "Negative offset",
+      "request": "GET /list-debates?offset=-5",
+      "expectedStatus": 400,
+      "expectedResponse": {
+        "error": "Invalid offset: must be >= 0"
+      }
+    }
+  ]
+}

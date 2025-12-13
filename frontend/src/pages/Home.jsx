@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import TopicInput from '../components/TopicInput/TopicInput';
 import ValidationResult from '../components/ValidationResult/ValidationResult';
 import LoadingSpinner from '../components/common/LoadingSpinner/LoadingSpinner';
@@ -60,6 +60,12 @@ const Home = () => {
         {!isValidating && !validationResult && (
           <div className={styles.inputSection}>
             <TopicInput onSubmit={handleSubmit} isLoading={isValidating} />
+            
+            <div className={styles.historyLinkContainer}>
+              <Link to="/debates" className={styles.historyLink}>
+                📜 View Debate History
+              </Link>
+            </div>
           </div>
         )}
 
