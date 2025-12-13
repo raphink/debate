@@ -22,7 +22,7 @@ Generate engaging debates between historical theological and philosophical figur
 - **Summon GCP Plugin** - Must be installed at `/usr/local/lib/summon/gcloud`
 - **GCP Secret Manager Access** - Required secrets: `anthropic-api-key`, `gcp-project-id`
 - **OR** Manual setup:
-  - **Go 1.23+** - [Download](https://golang.org/dl/)
+  - **Go 1.24+** - [Download](https://golang.org/dl/)
   - **Node.js 18+** - [Download](https://nodejs.org/)
   - **gcloud CLI** - [Install](https://cloud.google.com/sdk/docs/install)
 - **Anthropic API Key** - [Get one](https://console.anthropic.com) and store in GCP Secret Manager
@@ -32,8 +32,6 @@ Generate engaging debates between historical theological and philosophical figur
 1. **Clone the repository**
    ```bash
    git clone https://github.com/raphink/debate.git
-   cd debate
-   git checkout 001-debate-generator
    ```
 
 2. **Configure secrets in GCP Secret Manager**
