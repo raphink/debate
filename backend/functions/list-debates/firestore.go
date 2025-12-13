@@ -41,7 +41,7 @@ func queryDebates(ctx context.Context, client *firestore.Client, limit, offset i
 		// Extract debate summary
 		debate := DebateSummary{
 			ID:    doc.Ref.ID,
-			Topic: getString(data, "topic"),
+			Topic: getTopicText(data),
 		}
 
 		// Extract panelists
@@ -101,6 +101,16 @@ func getTotalDebateCount(ctx context.Context, client *firestore.Client) (int, er
 func getString(m map[string]interface{}, key string) string {
 	if val, ok := m[key].(string); ok {
 		return val
+	}
+	return ""
+}
+
+// getTopicText extracts the text field from the nested topic object
+func getTopicText(data map[string]interface{}) string {
+	if topicObj, ok := data["topic"].(map[string]interface{}); ok {
+		if text, ok := topicObj["text"].(string); ok {
+			return text
+		}
 	}
 	return ""
 }
