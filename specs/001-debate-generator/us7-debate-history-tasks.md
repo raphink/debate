@@ -9,75 +9,75 @@
 ### Phase 1: Backend - list-debates Cloud Function (2-3 hours)
 
 **T201: Setup list-debates function structure** (15 min)
-- [ ] Create `backend/functions/list-debates/` directory
-- [ ] Initialize `go.mod` with module name `github.com/raphink/debate/functions/list-debates`
-- [ ] Add dependencies: `cloud.google.com/go/firestore`, `google.golang.org/api/option`
-- [ ] Create `main.go`, `handler.go`, `firestore.go`, `types.go`
-- [ ] Create `cmd/main.go` for local development server
+- [X] Create `backend/functions/list-debates/` directory
+- [X] Initialize `go.mod` with module name `github.com/raphink/debate/functions/list-debates`
+- [X] Add dependencies: `cloud.google.com/go/firestore`, `google.golang.org/api/option`
+- [X] Create `main.go`, `handler.go`, `firestore.go`, `types.go`
+- [X] Create `cmd/main.go` for local development server
 - Files: `backend/functions/list-debates/{main.go,handler.go,firestore.go,types.go,go.mod,cmd/main.go}`
 
 **T202: Implement request/response types** (15 min)
-- [ ] Define `ListDebatesRequest` struct with Limit, Offset fields
-- [ ] Define `DebateSummary` struct with ID, Topic, Panelists, StartedAt
-- [ ] Define `PanelistInfo` struct with ID, Name
-- [ ] Define `ListDebatesResponse` struct with Debates, Total, HasMore
-- [ ] Add JSON tags to all structs
+- [X] Define `ListDebatesRequest` struct with Limit, Offset fields
+- [X] Define `DebateSummary` struct with ID, Topic, Panelists, StartedAt
+- [X] Define `PanelistInfo` struct with ID, Name
+- [X] Define `ListDebatesResponse` struct with Debates, Total, HasMore
+- [X] Add JSON tags to all structs
 - Files: `backend/functions/list-debates/types.go`
 
 **T203: Implement Firestore query logic** (45 min)
-- [ ] Create `queryDebates()` function accepting Firestore client, limit, offset
-- [ ] Build query: `Collection("debates").OrderBy("startedAt", firestore.Desc)`
-- [ ] Apply `Limit(limit)` and `Offset(offset)`
-- [ ] Execute query and iterate over documents
-- [ ] Map Firestore documents to `DebateSummary` structs
-- [ ] Implement separate count query to get total debate count
-- [ ] Return debates slice, total count, error
+- [X] Create `queryDebates()` function accepting Firestore client, limit, offset
+- [X] Build query: `Collection("debates").OrderBy("startedAt", firestore.Desc)`
+- [X] Apply `Limit(limit)` and `Offset(offset)`
+- [X] Execute query and iterate over documents
+- [X] Map Firestore documents to `DebateSummary` structs
+- [X] Implement separate count query to get total debate count
+- [X] Return debates slice, total count, error
 - Files: `backend/functions/list-debates/firestore.go`
 
 **T204: Implement HTTP handler with validation** (30 min)
-- [ ] Parse query parameters `limit` (default 20, max 100) and `offset` (default 0)
-- [ ] Validate limit is between 1 and 100, return 400 if invalid
-- [ ] Validate offset is >= 0, return 400 if invalid
-- [ ] Initialize Firestore client with credentials from environment
-- [ ] Call `queryDebates()` with validated parameters
-- [ ] Handle Firestore errors and return 500 with error message
-- [ ] Calculate `hasMore = (offset + len(debates)) < total`
-- [ ] Return JSON response with debates, total, hasMore
+- [X] Parse query parameters `limit` (default 20, max 100) and `offset` (default 0)
+- [X] Validate limit is between 1 and 100, return 400 if invalid
+- [X] Validate offset is >= 0, return 400 if invalid
+- [X] Initialize Firestore client with credentials from environment
+- [X] Call `queryDebates()` with validated parameters
+- [X] Handle Firestore errors and return 500 with error message
+- [X] Calculate `hasMore = (offset + len(debates)) < total`
+- [X] Return JSON response with debates, total, hasMore
 - Files: `backend/functions/list-debates/handler.go`
 
 **T205: Add CORS support** (15 min)
-- [ ] Add CORS headers to response: `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`
-- [ ] Read allowed origin from environment variable `ALLOWED_ORIGIN`
-- [ ] Handle preflight OPTIONS requests
-- [ ] Apply CORS middleware to handler
+- [X] Add CORS headers to response: `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`
+- [X] Read allowed origin from environment variable `ALLOWED_ORIGIN`
+- [X] Handle preflight OPTIONS requests
+- [X] Apply CORS middleware to handler
 - Files: `backend/functions/list-debates/handler.go`
 
 **T206: Create Cloud Functions entry point** (10 min)
-- [ ] Implement `ListDebates()` function with Cloud Functions HTTP signature
-- [ ] Register handler in `main.go`
-- [ ] Ensure function name matches GCP deployment requirements
+- [X] Implement `ListDebates()` function with Cloud Functions HTTP signature
+- [X] Register handler in `main.go`
+- [X] Ensure function name matches GCP deployment requirements
 - Files: `backend/functions/list-debates/main.go`
 
 **T207: Create local development server** (10 min)
-- [ ] Implement HTTP server in `cmd/main.go` on port 8086
-- [ ] Route requests to handler function
-- [ ] Add logging for local debugging
+- [X] Implement HTTP server in `cmd/main.go` on port 8086
+- [X] Route requests to handler function
+- [X] Add logging for local debugging
 - Files: `backend/functions/list-debates/cmd/main.go`
 
 **T208: Create Dockerfile for list-debates** (15 min)
-- [ ] Create multi-stage Dockerfile (golang:1.24-alpine → distroless)
-- [ ] Set build context to `./backend/functions/list-debates`
-- [ ] Copy source and build binary from `./cmd/main.go`
-- [ ] Expose port 8080
-- [ ] Set entrypoint to run binary
+- [X] Create multi-stage Dockerfile (golang:1.24-alpine → distroless)
+- [X] Set build context to `./backend/functions/list-debates`
+- [X] Copy source and build binary from `./cmd/main.go`
+- [X] Expose port 8080
+- [X] Set entrypoint to run binary
 - Files: `backend/functions/list-debates/Dockerfile`
 
 **T209: Add list-debates to docker-compose** (10 min)
-- [ ] Add `list-debates` service to `docker-compose.yml`
-- [ ] Set build context and Dockerfile path
-- [ ] Map port 8086:8080
-- [ ] Add environment variables: `GOOGLE_APPLICATION_CREDENTIALS`, `ALLOWED_ORIGIN`
-- [ ] Mount secrets volume
+- [X] Add `list-debates` service to `docker-compose.yml`
+- [X] Set build context and Dockerfile path
+- [X] Map port 8086:8080
+- [X] Add environment variables: `GOOGLE_APPLICATION_CREDENTIALS`, `ALLOWED_ORIGIN`
+- [X] Mount secrets volume
 - Files: `docker-compose.yml`
 
 **T210: Test backend locally** (20 min)
@@ -94,95 +94,95 @@
 ### Phase 2: Frontend - DebateHistory Page (3-4 hours)
 
 **T211: Create DebateCard component** (30 min)
-- [ ] Create `frontend/src/components/DebateCard/DebateCard.jsx`
-- [ ] Accept props: debate (object), onClick (function)
-- [ ] Display topic (truncated to 100 chars with ellipsis)
-- [ ] Display panelists (show first 3 names + "+N more" if applicable)
-- [ ] Display relative timestamp using `formatRelativeTime()` helper
-- [ ] Add click handler to call `onClick`
-- [ ] Make card keyboard accessible (role, tabIndex, onKeyDown)
+- [X] Create `frontend/src/components/DebateCard/DebateCard.jsx`
+- [X] Accept props: debate (object), onClick (function)
+- [X] Display topic (truncated to 100 chars with ellipsis)
+- [X] Display panelists (show first 3 names + "+N more" if applicable)
+- [X] Display relative timestamp using `formatRelativeTime()` helper
+- [X] Add click handler to call `onClick`
+- [X] Make card keyboard accessible (role, tabIndex, onKeyDown)
 - Files: `frontend/src/components/DebateCard/DebateCard.jsx`
 
 **T212: Style DebateCard** (20 min)
-- [ ] Create `frontend/src/components/DebateCard/DebateCard.module.css`
-- [ ] Card layout: padding, border, border-radius, shadow
-- [ ] Hover effect: shadow lift, border color change
-- [ ] Focus state: outline for keyboard navigation
-- [ ] Topic: font-size 18px, bold, margin-bottom
-- [ ] Panelists: color gray-600, margin-bottom
-- [ ] Timestamp: color gray-400, font-size 14px
-- [ ] Responsive: full width on mobile, fixed width on desktop
+- [X] Create `frontend/src/components/DebateCard/DebateCard.module.css`
+- [X] Card layout: padding, border, border-radius, shadow
+- [X] Hover effect: shadow lift, border color change
+- [X] Focus state: outline for keyboard navigation
+- [X] Topic: font-size 18px, bold, margin-bottom
+- [X] Panelists: color gray-600, margin-bottom
+- [X] Timestamp: color gray-400, font-size 14px
+- [X] Responsive: full width on mobile, fixed width on desktop
 - Files: `frontend/src/components/DebateCard/DebateCard.module.css`
 
 **T213: Create SearchInput component** (20 min)
-- [ ] Create `frontend/src/components/SearchInput/SearchInput.jsx`
-- [ ] Accept props: value, onChange, placeholder
-- [ ] Render input with controlled value
-- [ ] Add search icon (🔍 or SVG)
-- [ ] Add clear button (×) that appears when value is not empty
-- [ ] Clear button calls `onChange('')` to reset search
-- [ ] Add ARIA label for accessibility
+- [X] Create `frontend/src/components/SearchInput/SearchInput.jsx`
+- [X] Accept props: value, onChange, placeholder
+- [X] Render input with controlled value
+- [X] Add search icon (🔍 or SVG)
+- [X] Add clear button (×) that appears when value is not empty
+- [X] Clear button calls `onChange('')` to reset search
+- [X] Add ARIA label for accessibility
 - Files: `frontend/src/components/SearchInput/SearchInput.jsx`
 
 **T214: Style SearchInput** (15 min)
-- [ ] Create `frontend/src/components/SearchInput/SearchInput.module.css`
-- [ ] Input container: flexbox, border, border-radius, padding
-- [ ] Search icon: positioned left inside input
-- [ ] Clear button: positioned right, cursor pointer, hover effect
-- [ ] Input field: flex-grow, no border, focus outline
-- [ ] Responsive: full width with padding on mobile
+- [X] Create `frontend/src/components/SearchInput/SearchInput.module.css`
+- [X] Input container: flexbox, border, border-radius, padding
+- [X] Search icon: positioned left inside input
+- [X] Clear button: positioned right, cursor pointer, hover effect
+- [X] Input field: flex-grow, no border, focus outline
+- [X] Responsive: full width with padding on mobile
 - Files: `frontend/src/components/SearchInput/SearchInput.module.css`
 
 **T215: Update debateService with fetchDebateHistory** (15 min)
-- [ ] Open `frontend/src/services/debateService.js`
-- [ ] Add `fetchDebateHistory(limit = 20, offset = 0)` function
-- [ ] Build URL with query parameters using `REACT_APP_LIST_DEBATES_URL`
-- [ ] Fetch and parse JSON response
-- [ ] Handle errors and throw with descriptive message
+- [X] Open `frontend/src/services/debateService.js`
+- [X] Add `fetchDebateHistory(limit = 20, offset = 0)` function
+- [X] Build URL with query parameters using `REACT_APP_LIST_DEBATES_URL`
+- [X] Fetch and parse JSON response
+- [X] Handle errors and throw with descriptive message
 - Files: `frontend/src/services/debateService.js`
 
 **T216: Create helper functions** (15 min)
-- [ ] Create `frontend/src/utils/formatters.js`
-- [ ] Implement `formatPanelists(panelists)`: returns "Name1, Name2, Name3 +2 more"
-- [ ] Implement `formatRelativeTime(isoTimestamp)`: uses date-fns `formatDistanceToNow`
-- [ ] Implement `truncate(text, maxLength)`: adds "..." if text exceeds length
+- [X] Create `frontend/src/utils/formatters.js`
+- [X] Implement `formatPanelists(panelists)`: returns "Name1, Name2, Name3 +2 more"
+- [X] Implement `formatRelativeTime(isoTimestamp)`: uses date-fns `formatDistanceToNow`
+- [X] Implement `truncate(text, maxLength)`: adds "..." if text exceeds length
 - Files: `frontend/src/utils/formatters.js`
 
 **T217: Install date-fns dependency** (5 min)
-- [ ] Add `date-fns` to package.json
+- [X] Add `date-fns` to package.json
 - Command: `cd frontend && npm install date-fns`
 - Files: `frontend/package.json`
 
 **T218: Create DebateHistory page** (45 min)
-- [ ] Create `frontend/src/pages/DebateHistory.jsx`
-- [ ] Add state: debates, searchQuery, isLoading, error
-- [ ] Add `useEffect` to fetch debates on mount via `fetchDebateHistory()`
-- [ ] Compute `filteredDebates` with `useMemo` based on searchQuery
-- [ ] Filter by topic and panelist names (case-insensitive)
-- [ ] Render SearchInput with searchQuery state
-- [ ] Render grid of DebateCards from filteredDebates
-- [ ] Handle empty state: "No debates yet. Create your first debate!"
-- [ ] Handle no results: "No debates found matching '{searchQuery}'"
-- [ ] Handle error state with error message
+- [X] Create `frontend/src/pages/DebateHistory.jsx`
+- [X] Add state: debates, searchQuery, isLoading, error
+- [X] Add `useEffect` to fetch debates on mount via `fetchDebateHistory()`
+- [X] Compute `filteredDebates` with `useMemo` based on searchQuery
+- [X] Filter by topic and panelist names (case-insensitive)
+- [X] Render SearchInput with searchQuery state
+- [X] Render grid of DebateCards from filteredDebates
+- [X] Handle empty state: "No debates yet. Create your first debate!"
+- [X] Handle no results: "No debates found matching '{searchQuery}'"
+- [X] Handle error state with error message
 - [X] Add click handler to navigate to `/d/{id}` using `useNavigate`
 - Files: `frontend/src/pages/DebateHistory.jsx`
 
 **T219: Style DebateHistory page** (25 min)
-- [ ] Create `frontend/src/pages/DebateHistory.module.css`
-- [ ] Page container: max-width, margin auto, padding
-- [ ] Header: title "Debate History", back link
-- [ ] Search section: margin-bottom, centered
-- [ ] Results info: "Showing X of Y debates" below search
-- [ ] Cards grid: CSS Grid, 1 column mobile, 2-3 columns desktop, gap
-- [ ] Empty state: centered, icon, message, button
-- [ ] Loading spinner: centered
+- [X] Create `frontend/src/pages/DebateHistory.module.css`
+- [X] Page container: max-width, margin auto, padding
+- [X] Header: title "Debate History", back link
+- [X] Search section: margin-bottom, centered
+- [X] Results info: "Showing X of Y debates" below search
+- [X] Cards grid: CSS Grid, 1 column mobile, 2-3 columns desktop, gap
+- [X] Empty state: centered, icon, message, button
+- [X] Loading spinner: centered
 - Files: `frontend/src/pages/DebateHistory.module.css`
 
 **T220: Add route for DebateHistory** (10 min)
-- [ ] Open `frontend/src/App.jsx`
-- [ ] Import DebateHistory component
-- [ ] Add route: `<Route path="/debates" element={<DebateHistory />} />`
-- [ ] Verify route is accessible
+- [X] Open `frontend/src/App.jsx`
+- [X] Import DebateHistory component
+- [X] Add route: `<Route path="/debates" element={<DebateHistory />} />`
+- [X] Verify route is accessible
 - Files: `frontend/src/App.jsx`
 
 ---
