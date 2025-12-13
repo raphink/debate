@@ -1,0 +1,60 @@
+.card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+  border-color: #7c3aed;
+  box-shadow: 0 8px 16px rgba(124, 58, 237, 0.1);
+  transform: translateY(-2px);
+}
+
+.card:focus {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+  border-color: #7c3aed;
+}
+
+.topic {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.panelists {
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.timestamp {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 16px;
+  }
+
+  .topic {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .panelists {
+    font-size: 13px;
+  }
+
+  .timestamp {
+    font-size: 12px;
+  }
+}

@@ -68,7 +68,27 @@ services:
       - debate-network
     restart: unless-stopped
 
-  # Frontend React Application (Port 3000)
+  # List Debates Cloud Function (Port 8086)
+  list-debates:
+    build:
+      context: ./backend/functions/list-debates
+      dockerfile: Dockerfile
+    ports:
+      - "${BIND_ADDRESS:-0.0.0.0}:8086:8080"
+    environment:
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
+      - PORT=8080
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:-http://localhost:3000}
+      - GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/gcloud-adc.json
+      - REACT_APP_LIST_DEBATES_URL=http://localhost:8086
+    networks:
+      - debate-network
+    depends_on:
+      - validate-topic
+      - generate-debate
+      - get-portrait
+      - get-debate
+      - list-debates Application (Port 3000)
   frontend:
     build:
       context: ./frontend

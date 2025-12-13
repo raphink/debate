@@ -36,6 +36,31 @@
   animation: fadeIn 0.3s ease-in;
 }
 
+.historyLinkContainer {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.historyLink {
+  display: inline-block;
+  padding: 12px 28px;
+  color: #7c3aed;
+  text-decoration: none;
+  border: 2px solid #7c3aed;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.2s;
+  background: white;
+}
+
+.historyLink:hover {
+  background: #7c3aed;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
 .loadingContainer {
   display: flex;
   flex-direction: column;
