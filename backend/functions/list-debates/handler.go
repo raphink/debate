@@ -24,7 +24,12 @@ func initFirestore() error {
 		return fmt.Errorf("GOOGLE_APPLICATION_CREDENTIALS not set")
 	}
 
-	client, err := firestore.NewClient(ctx, "debate-generator-442403", option.WithCredentialsFile(credentialsPath))
+	projectID := os.Getenv("GCP_PROJECT_ID")
+	if projectID == "" {
+		return fmt.Errorf("GCP_PROJECT_ID not set")
+	}
+
+	client, err := firestore.NewClient(ctx, projectID, option.WithCredentialsFile(credentialsPath))
 	if err != nil {
 		return fmt.Errorf("failed to create Firestore client: %w", err)
 	}
