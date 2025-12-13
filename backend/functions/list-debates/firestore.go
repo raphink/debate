@@ -1,5 +1,4 @@
-package main
-package main
+package listdebates
 
 import (
 	"context"

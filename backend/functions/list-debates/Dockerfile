@@ -10,8 +10,8 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build the binary from cmd/main.go
-RUN CGO_ENABLED=0 GOOS=linux go build -o list-debates ./cmd/main.go
+# Build the binary from cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -o list-debates ./cmd
 
 # Runtime stage
 FROM gcr.io/distroless/static-debian11

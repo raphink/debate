@@ -3,10 +3,12 @@ package main
 import (
 	"log"
 	"net/http"
+
+	listdebates "github.com/raphink/debate/functions/list-debates"
 )
 
 func main() {
-	http.HandleFunc("/", ListDebatesHandler)
+	http.HandleFunc("/", listdebates.ListDebatesHandler)
 
 	port := "8080"
 	log.Printf("list-debates server starting on port %s", port)

@@ -1,5 +1,4 @@
 package listdebates
-package main
 
 import (
 	"time"
