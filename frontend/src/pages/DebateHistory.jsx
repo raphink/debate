@@ -108,7 +108,7 @@ const DebateHistory = () => {
 
           {showNoResults ? (
             <div className={styles.noResults}>
-              <p>No debates found matching "{searchQuery}"</p>
+              <p>No debates found matching &ldquo;{searchQuery}&rdquo;</p>
               <button onClick={() => setSearchQuery('')} className={styles.clearSearchButton}>
                 Clear search
               </button>

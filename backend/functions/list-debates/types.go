@@ -25,8 +25,7 @@ type ListDebatesResponse struct {
 	HasMore bool            `json:"hasMore"`
 }
 
-
-
-
-
-}	Error string `json:"error"`type ErrorResponse struct {// ErrorResponse is the error response structure
+// ErrorResponse is the error response structure
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
