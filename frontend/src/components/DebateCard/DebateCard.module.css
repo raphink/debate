@@ -49,6 +49,10 @@
   position: relative;
   cursor: pointer;
   transition: transform 0.2s ease;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .avatar:hover {
@@ -57,15 +61,18 @@
 }
 
 .avatar:focus {
-  outline: 2px solid #7c3aed;
-  outline-offset: 2px;
-  border-radius: 50%;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.5);
 }
 
 .avatar:focus-visible {
-  outline: 2px solid #7c3aed;
-  outline-offset: 2px;
-  border-radius: 50%;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.5);
+}
+
+.avatar:active {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.7);
 }
 
 .avatarImage {
