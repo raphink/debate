@@ -38,23 +38,17 @@ Users see autocomplete suggestions of previous debates as they type in the singl
 
 5. **Given** user types topic and autocomplete appears, **When** user ignores dropdown and clicks "Find Panelists" button, **Then** system proceeds with normal Claude validation flow (US1) with optional suggested panelist names
 
-6. **Given** user is on panelist selection with pre-filled panelists from history, **When** user makes no changes to panelist list, **Then** system detects cache hit and shows "View Debate" button (bypasses generation)
+6. **Given** topic autocomplete is loading, **When** API call is in progress, **Then** system shows subtle loading indicator without blocking typing or "Find Panelists" button
 
-6. **Given** user is on panelist selection with pre-filled panelists from history, **When** user makes no changes to panelist list, **Then** system detects cache hit and shows "View Debate" button (bypasses generation)
+7. **Given** no previous topics match user input or Firestore fails, **When** user types, **Then** autocomplete dropdown is hidden and user can click "Find Panelists" normally (graceful degradation)
 
-7. **Given** user is on panelist selection with pre-filled panelists, **When** user clicks "Modify Panelists" button, **Then** system allows editing chips, changes main button to "Generate New Debate", and generates new debate from scratch if user proceeds
-
-8. **Given** topic autocomplete is loading, **When** API call is in progress, **Then** system shows subtle loading indicator without blocking typing or "Find Panelists" button
-
-9. **Given** no previous topics match user input or Firestore fails, **When** user types, **Then** autocomplete dropdown is hidden and user can click "Find Panelists" normally (graceful degradation)
-
-10. **Given** user selects historical topic with modified panelists, **When** user proceeds to generate debate, **Then** system generates new debate (no cache hit) and saves as new debate instance
+8. **Given** user selects debate from autocomplete, **When** user proceeds to PanelistSelection with pre-filled panelists, **Then** user can modify panelists or keep them as-is before generating debate
 
 ## Functional Requirements
 
 ### Backend API
 
-- **FR-001**: System MUST provide autocomplete-topics Cloud Function endpoint: GET /api/autocomplete-topics?q={query}&limit=10
+- **FR-001**: System MUST extend list-debates Cloud Function endpoint to support autocomplete: GET /api/list-debates?q={query}&limit=10
 - **FR-002**: System MUST sanitize query parameter (strip HTML tags, special characters) before querying Firestore
 - **FR-003**: System MUST query Firestore debates collection by topic substring (case-insensitive)
 - **FR-004**: System MUST order results by createdAt timestamp descending (most recent first)
@@ -78,19 +72,9 @@ Users see autocomplete suggestions of previous debates as they type in the singl
 
 - **FR-017**: System MUST skip Claude validation ONLY when user selects topic from autocomplete dropdown (clicking "Find Panelists" always triggers Claude validation)
 - **FR-018**: System MUST navigate to PanelistSelection page with panelists pre-selected from historical debate when user selects from dropdown
-- **FR-019**: System MUST pass original debate ID via navigation state for cache detection
-- **FR-020**: System MUST display "View Debate" button when cache hit detected (topic + panelists unchanged)
-- **FR-021**: System MUST display alternate "Modify Panelists" button when panelists are pre-filled from history
-- **FR-022**: System MUST change main button to "Generate New Debate" when user clicks "Modify Panelists" and unlock panelist chips for editing
-
-### Cache Detection
-
-- **FR-023**: System MUST implement deep comparison utility to detect exact match: topic text + panelist array (id, name order-independent)
-- **FR-024**: System MUST show "View Debate" button when cache hit detected (clicking redirects to /d/{uuid})
-- **FR-025**: System MUST skip debate generation if user clicks "View Debate" button
-- **FR-026**: System MUST show visual indicator "Saved debate from [date]" when cache hit detected
-- **FR-027**: System MUST generate new debate from scratch (assign new UUID, full Claude streaming) if user modifies panelist list and clicks "Generate New Debate"
-- **FR-028**: System MUST show visual indicator "Creating new debate" when user proceeds after modifying panelists
+- **FR-019**: System MUST pass topic and panelist data via navigation state for pre-filling
+- **FR-020**: System MUST allow user to modify pre-filled panelists before generating debate
+- **FR-021**: System MUST always generate new debate when proceeding from autocomplete selection (no cache hit detection)
 
 ## Non-Functional Requirements
 
@@ -98,7 +82,6 @@ Users see autocomplete suggestions of previous debates as they type in the singl
 - **NFR-002**: Debouncing MUST prevent excessive API calls (max 1 request per 300ms)
 - **NFR-003**: Dropdown UI MUST be keyboard-accessible (arrow keys, Enter to select, Escape to close)
 - **NFR-004**: System MUST handle Firestore quota limits gracefully (read throttling, error messages)
-- **NFR-005**: Cache detection comparison MUST complete in <50ms (synchronous, client-side)
 
 ## Edge Cases & Error Handling
 
@@ -109,7 +92,7 @@ Users see autocomplete suggestions of previous debates as they type in the singl
 - **EC-005**: User clears input field after dropdown displayed: Hide dropdown
 - **EC-006**: User clicks outside dropdown: Close dropdown without selection
 - **EC-007**: Duplicate topics in Firestore: Show all instances differentiated by panelist avatars and generation dates (multiple debates on same topic are acceptable)
-- **EC-008**: User modifies pre-filled panelists then restores original: Treat as cache hit (re-run comparison)
+- **EC-008**: User modifies pre-filled panelists: Allow any modifications before generating new debate
 
 ## Out of Scope
 
@@ -160,16 +143,15 @@ Users see autocomplete suggestions of previous debates as they type in the singl
 
 ## Success Metrics
 
-- Autocomplete adoption rate: % of debates created via autocomplete vs manual entry
-- Cache hit rate: % of autocomplete selections that result in cache hit (no re-generation)
+- Autocomplete adoption rate: % of debates created via autocomplete pre-fill vs manual entry
+- Time saved: Reduction in time to reach debate generation when using autocomplete
 - API performance: p95 response time <500ms
 - User satisfaction: qualitative feedback on workflow improvement
 
 ## Testing Strategy
 
 ### Unit Tests
-- AutocompleteTopics Cloud Function: query parsing, limit enforcement
-- Cache detection utility: deep comparison, order independence
+- list-debates Cloud Function: query parsing, autocomplete mode, limit enforcement
 - Debounce hook: timing, cancellation
 
 ### Integration Tests
@@ -180,9 +162,8 @@ Users see autocomplete suggestions of previous debates as they type in the singl
 ### End-to-End Tests
 1. Generate debate → return home → type 3+ chars → verify autocomplete appears
 2. Select topic from dropdown → verify panelists pre-filled on PanelistSelection page
-3. Pre-filled panelists unchanged → verify redirect to /d/{uuid} (cache hit)
-4. Click "Modify Panelists" → change list → verify new debate generated
-5. Firestore disabled → verify graceful degradation to manual topic entry
+3. Keep or modify panelists → verify new debate generated with pre-filled/modified panelists
+4. Firestore disabled → verify graceful degradation to manual topic entry
 
 ## Dependencies & Prerequisites
 

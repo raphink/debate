@@ -58,9 +58,7 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 2. Return to home page, type 3+ characters matching existing topics
 3. Verify autocomplete dropdown appears with matching debates showing topic, avatars, panelist count, and date
 4. Select debate from dropdown → verify navigation to PanelistSelection with pre-filled panelists
-5. Make no changes → verify "View Debate" button appears (cache hit)
-6. Click "View Debate" → verify redirect to /d/{uuid} without generation
-7. Return to home, select same debate, click "Modify Panelists" → change panelists → verify "Generate New Debate" button and full generation flow
+5. Keep or modify panelists → click "Generate Debate" → verify new debate generated with selected panelists
 
 ### Implementation for User Story 6
 
@@ -70,36 +68,31 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 
 #### Frontend Utilities
 
-- [ ] T007 [P] [US6] Create cache detection utility in frontend/src/utils/cacheDetection.js with isCacheHit function performing deep comparison (topic exact match + panelist array order-independent)
-- [ ] T008 [P] [US6] Create debounce utility hook in frontend/src/hooks/useDebounce.js with 300ms delay for autocomplete queries
+- [ ] T007 [P] [US6] Create debounce utility hook in frontend/src/hooks/useDebounce.js with 300ms delay for autocomplete queries
 
 #### Frontend Hooks
 
-- [ ] T009 [US6] Create useTopicAutocomplete hook in frontend/src/hooks/useTopicAutocomplete.js managing autocomplete state (suggestions, loading, error) with debounced API calls and cleanup
-- [ ] T010 [US6] Update useDebateLoader hook in frontend/src/hooks/useDebateLoader.js to check navigation state for autocomplete-sourced debates and pre-fill panelists
+- [ ] T008 [US6] Create useTopicAutocomplete hook in frontend/src/hooks/useTopicAutocomplete.js managing autocomplete state (suggestions, loading, error) with debounced API calls and cleanup
 
 #### Frontend Components
 
-- [ ] T011 [US6] Create TopicAutocompleteDropdown component in frontend/src/components/TopicAutocompleteDropdown/TopicAutocompleteDropdown.jsx displaying suggestions with topic text, panelist avatars, count badge, and generation date
-- [ ] T012 [US6] Add TopicAutocompleteDropdown.module.css with dropdown positioning (absolute, below input), hover states, keyboard navigation styles, and loading indicator
-- [ ] T013 [US6] Implement keyboard navigation in TopicAutocompleteDropdown (arrow keys, Enter to select, Escape to close) with ARIA accessibility attributes
-- [ ] T014 [US6] Update TopicInput component in frontend/src/components/TopicInput/TopicInput.jsx to integrate useTopicAutocomplete hook and render TopicAutocompleteDropdown conditionally
-- [ ] T015 [US6] Update Home.jsx in frontend/src/pages/Home.jsx to handle autocomplete selection, navigate to /panelist-selection with state: {source: 'autocomplete', debateId, topic, preFilled: panelists}
-- [ ] T016 [US6] Update PanelistSelection.jsx in frontend/src/pages/PanelistSelection.jsx to detect autocomplete source from navigation state, pre-fill panelists from state.preFilled, and run cache detection
-- [ ] T017 [US6] Add conditional button rendering in PanelistSelection.jsx showing "View Debate" button when cache hit detected, "Modify Panelists" button when pre-filled, and "Generate New Debate" after modifications
-- [ ] T018 [US6] Implement cache hit redirect logic in PanelistSelection.jsx to navigate directly to /d/{uuid} when user clicks "View Debate" without triggering debate generation
-- [ ] T019 [US6] Add "Modify Panelists" button handler in PanelistSelection.jsx to unlock panelist chip editing and change main button label to "Generate New Debate"
+- [ ] T009 [US6] Create TopicAutocompleteDropdown component in frontend/src/components/TopicAutocompleteDropdown/TopicAutocompleteDropdown.jsx displaying suggestions with topic text, panelist avatars, count badge, and generation date
+- [ ] T010 [US6] Add TopicAutocompleteDropdown.module.css with dropdown positioning (absolute, below input), hover states, keyboard navigation styles, and loading indicator
+- [ ] T011 [US6] Implement keyboard navigation in TopicAutocompleteDropdown (arrow keys, Enter to select, Escape to close) with ARIA accessibility attributes
+- [ ] T012 [US6] Update TopicInput component in frontend/src/components/TopicInput/TopicInput.jsx to integrate useTopicAutocomplete hook and render TopicAutocompleteDropdown conditionally
+- [ ] T013 [US6] Update Home.jsx in frontend/src/pages/Home.jsx to handle autocomplete selection, navigate to /panelist-selection with state: {source: 'autocomplete', topic, preFilled: panelists}
+- [ ] T014 [US6] Update PanelistSelection.jsx in frontend/src/pages/PanelistSelection.jsx to detect autocomplete source from navigation state and pre-fill panelists from state.preFilled
 
 #### Input Sanitization
 
-- [ ] T020 [US6] Add input sanitization to TopicInput component stripping HTML tags and special characters before passing to autocomplete API (reuse backend sanitization logic pattern)
+- [ ] T015 [US6] Add input sanitization to TopicInput component stripping HTML tags and special characters before passing to autocomplete API (reuse backend sanitization logic pattern)
 
 #### Error Handling & Edge Cases
 
-- [ ] T021 [US6] Add graceful degradation in TopicAutocompleteDropdown to hide dropdown on API failures or empty results without blocking "Find Panelists" button
-- [ ] T022 [US6] Add loading state indicator in TopicAutocompleteDropdown shown when API response takes >300ms
-- [ ] T023 [US6] Implement click-outside detection in TopicAutocompleteDropdown to close dropdown when user clicks outside
-- [ ] T024 [US6] Add dropdown auto-hide logic when user input length drops below 3 characters
+- [ ] T016 [US6] Add graceful degradation in TopicAutocompleteDropdown to hide dropdown on API failures or empty results without blocking "Find Panelists" button
+- [ ] T017 [US6] Add loading state indicator in TopicAutocompleteDropdown shown when API response takes >300ms
+- [ ] T018 [US6] Implement click-outside detection in TopicAutocompleteDropdown to close dropdown when user clicks outside
+- [ ] T019 [US6] Add dropdown auto-hide logic when user input length drops below 3 characters
 
 **Checkpoint**: At this point, User Story 6 should be fully functional and testable independently
 
@@ -109,12 +102,12 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 
 **Purpose**: Improvements affecting multiple components
 
-- [ ] T025 [P] Update README.md with autocomplete feature documentation including setup instructions for Firestore index
-- [ ] T026 [P] Add autocomplete feature section to quickstart.md validation checklist
-- [ ] T027 Update DEPLOYMENT.md with list-debates function autocomplete enhancement and Firestore index requirements
-- [ ] T028 Add error logging for autocomplete API failures in backend/functions/list-debates/handler.go with context about query and Firestore errors
-- [ ] T029 [P] Add performance monitoring for autocomplete API response times (consider Cloud Function metrics)
-- [ ] T030 Run quickstart.md validation: generate debates, test autocomplete flow, verify cache detection, test graceful degradation
+- [ ] T020 [P] Update README.md with autocomplete feature documentation including setup instructions for Firestore index
+- [ ] T021 [P] Add autocomplete feature section to quickstart.md validation checklist
+- [ ] T022 Update DEPLOYMENT.md with list-debates function autocomplete enhancement and Firestore index requirements
+- [ ] T023 Add error logging for autocomplete API failures in backend/functions/list-debates/handler.go with context about query and Firestore errors
+- [ ] T024 [P] Add performance monitoring for autocomplete API response times (consider Cloud Function metrics)
+- [ ] T025 Run quickstart.md validation: generate debates, test autocomplete flow, verify panelist pre-fill, test graceful degradation
 
 ---
 
@@ -136,23 +129,20 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 - T003, T004, T006 can proceed in parallel
 
 **Frontend Utilities (can run in parallel once T005 done)**:
-- T007 (cache detection) - no dependencies
-- T008 (debounce hook) - no dependencies
+- T007 (debounce hook) - no dependencies
 
-**Frontend Hooks (sequential dependencies)**:
-- T009 (useTopicAutocomplete) - depends on T005, T008
-- T010 (useDebateLoader update) - depends on T007
+**Frontend Hooks**:
+- T008 (useTopicAutocomplete) - depends on T005, T007
 
-**Frontend Components (complex dependencies)**:
-- T011, T012, T013 (TopicAutocompleteDropdown) - depends on T009
-- T014 (TopicInput update) - depends on T009, T011
-- T015 (Home.jsx update) - depends on T014
-- T016 (PanelistSelection detection) - depends on T007, T010
-- T017, T018, T019 (PanelistSelection buttons) - depends on T016
+**Frontend Components (sequential dependencies)**:
+- T009, T010, T011 (TopicAutocompleteDropdown) - depends on T008
+- T012 (TopicInput update) - depends on T008, T009
+- T013 (Home.jsx update) - depends on T012
+- T014 (PanelistSelection pre-fill) - can run in parallel with T013
 
 **Cross-cutting**:
-- T020 (sanitization) - can run in parallel with T014
-- T021-T024 (error handling) - run after corresponding components complete
+- T015 (sanitization) - can run in parallel with T012
+- T016-T019 (error handling) - run after corresponding components complete
 
 ### Parallel Opportunities
 
@@ -166,14 +156,15 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 **User Story 6 - Backend**:
 - T006 can run in parallel with T003-T004
 
-**User Story 6 - Frontend Utilities**:
-- T007, T008 can run in parallel once T005 complete
+**User Story 6 - Frontend**:
+- T007 standalone once T005 complete
 
-**User Story 6 - Components (after T011)**:
-- T012, T013 can run in parallel with T011
+**User Story 6 - Components**:
+- T010, T011 can run in parallel with T009
+- T013, T014 can run in parallel
 
 **Polish Phase**:
-- T025, T026, T029 can run in parallel
+- T020, T021, T024 can run in parallel
 
 ---
 
@@ -185,9 +176,9 @@ Task: "Extend backend/functions/list-debates/handler.go for autocomplete mode"
 Task: "Add AutocompleteDebates query function in backend/functions/list-debates/firestore.go"
 Task: "Add DebateMetadata type to backend/functions/list-debates/types.go"
 
-# Launch frontend utilities together (after T005):
-Task: "Create cache detection utility in frontend/src/utils/cacheDetection.js"
-Task: "Create debounce utility hook in frontend/src/hooks/useDebounce.js"
+# Launch frontend components together (after T009):
+Task: "Add TopicAutocompleteDropdown.module.css with dropdown positioning"
+Task: "Implement keyboard navigation in TopicAutocompleteDropdown"
 
 # Launch documentation tasks together:
 Task: "Update README.md with autocomplete feature documentation"
@@ -211,25 +202,24 @@ Task: "Add performance monitoring for autocomplete API response times"
 ### Incremental Delivery
 
 1. Complete Setup + Foundational → Backend API ready
-2. Add Frontend Utilities (T007-T008) → Test independently
-3. Add TopicAutocompleteDropdown (T011-T013) → Test component in isolation
-4. Integrate with TopicInput (T014) → Test autocomplete dropdown appears
-5. Add navigation logic (T015) → Test navigation to PanelistSelection
-6. Add cache detection (T016-T019) → Test full workflow
-7. Polish and deploy (Phase 4)
+2. Add Frontend Utilities (T007) → Test debounce independently
+3. Add TopicAutocompleteDropdown (T009-T011) → Test component in isolation
+4. Integrate with TopicInput (T012) → Test autocomplete dropdown appears
+5. Add navigation logic (T013-T014) → Test panelist pre-fill workflow
+6. Polish and deploy (Phase 4)
 
 ### Single Developer Strategy
 
 Sequential execution in priority order:
 1. Phase 1: Setup (T001-T002) - ~30 minutes
 2. Phase 2: Foundational (T003-T005) - ~2-3 hours
-3. Phase 3: User Story 6 - ~6-8 hours
+3. Phase 3: User Story 6 - ~4-6 hours
    - Backend: T006
-   - Utilities: T007-T008
-   - Components: T011-T024 (most time-consuming)
+   - Utilities: T007
+   - Components: T008-T019 (most time-consuming)
 4. Phase 4: Polish - ~1-2 hours
 
-**Total Estimated Time**: ~10-14 hours for complete feature
+**Total Estimated Time**: ~8-12 hours for complete feature
 
 ---
 
@@ -240,9 +230,9 @@ Sequential execution in priority order:
 - User Story 6 should be independently completable and testable
 - Commit after each task or logical group (e.g., complete component with its styles)
 - Stop at Phase 2 checkpoint to validate backend before frontend work
-- Avoid: same file conflicts (coordinate T014, T020 edits to TopicInput)
+- Avoid: same file conflicts (coordinate T012, T015 edits to TopicInput)
 - Graceful degradation is CRITICAL - autocomplete failures must never block normal topic entry workflow
-- Cache detection must be synchronous (<50ms) - no API calls in comparison logic
 - Debouncing is mandatory to prevent Firestore quota exhaustion
 - All input must be sanitized before Firestore queries
 - Extending list-debates maintains single source of truth and reduces deployment complexity
+- No cache hit detection needed - panelist names may vary across LLM responses, always generate new debate

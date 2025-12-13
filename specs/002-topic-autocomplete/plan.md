@@ -16,12 +16,12 @@
 ## Summary
 
 Enhance the existing topic input field (Home.jsx) with autocomplete suggestions from Firestore debate history. As users type ≥3 characters, a dropdown displays up to 10 matching previous debates ordered by recency, showing topic text, panelist avatars, panelist count, and generation date. Users can either:
-- **Option A**: Select from dropdown → navigate to PanelistSelection with pre-filled panelists → detect cache hit → show "View Debate" button
+- **Option A**: Select from dropdown → navigate to PanelistSelection with pre-filled panelists → modify or keep panelists → generate new debate
 - **Option B**: Ignore autocomplete, click "Find Panelists" → proceed with normal Claude validation (US1 flow)
 
 This is a **gracefully-degrading enhancement** that never blocks the existing workflow. Autocomplete failures or empty results hide the dropdown and allow normal topic entry.
 
-**Key Architecture Decision**: Extend existing `list-debates` Cloud Function with optional `q` query parameter for autocomplete filtering, rather than creating separate function. Cache detection happens client-side via deep comparison utility (topic text + panelist array, order-independent). When cache hit detected, system bypasses debate generation and redirects directly to /d/{uuid}. When user modifies panelists, system generates entirely new debate with new UUID.
+**Key Architecture Decision**: Extend existing `list-debates` Cloud Function with optional `q` query parameter for autocomplete filtering, rather than creating separate function. Pre-filling panelists saves user time but always generates a new debate (no cache hit detection needed since panelist names may vary across LLM responses).
 
 ## Technical Context
 
@@ -140,24 +140,7 @@ gcloud firestore indexes composite create \
 
 **Alternative Considered**: Pre-fetch all debate avatars during autocomplete query (rejected: slower API response, unnecessary for debates user won't select)
 
-### R004: Cache Detection Deep Comparison
-**Decision**: Custom JavaScript utility using lodash.isEqual or manual implementation
-**Rationale**: Must compare topic text (exact string match) + panelist array (order-independent, id + name fields only)
-**Implementation**:
-```javascript
-export function isCacheHit(originalDebate, currentState) {
-  if (originalDebate.topic !== currentState.topic) return false;
-  
-  // Extract comparable panelist fields
-  const normalize = (p) => ({ id: p.id, name: p.name });
-  const origPanelists = originalDebate.panelists.map(normalize).sort((a,b) => a.id.localeCompare(b.id));
-  const currPanelists = currentState.selectedPanelists.map(normalize).sort((a,b) => a.id.localeCompare(b.id));
-  
-  return isEqual(origPanelists, currPanelists);
-}
-```
-
-### R005: Navigation State Management
+### R004: Navigation State Management
 **Decision**: Use React Router `navigate(path, { state: {...} })` to pass debate metadata
 **Rationale**: Avoid prop drilling; allows PanelistSelection to access original debate ID and panelists from history
 **Implementation**:
@@ -483,13 +466,11 @@ frontend/src/
 │   ├── useTopicValidation.js           # EXISTING: No changes
 │   └── useTopicAutocomplete.js         # NEW: Autocomplete state + debouncing
 ├── services/
-│   ├── api.js                          # MODIFIED: Add autocompleteTopics method
+│   ├── api.js                          # MODIFIED: Add list-debates query parameter
 │   └── topicService.js                 # EXISTING: No changes
-├── utils/
-│   └── cacheDetection.js               # NEW: Deep comparison utility
 └── pages/
     ├── Home.jsx                        # MODIFIED: Handle autocomplete selection
-    └── PanelistSelection.jsx           # MODIFIED: Pre-fill panelists, cache detection
+    └── PanelistSelection.jsx           # MODIFIED: Pre-fill panelists from navigation state
 ```
 
 #### New Hook: useTopicAutocomplete
@@ -589,10 +570,8 @@ interface TopicAutocompleteDropdownProps {
 **Changes**:
 - Check `location.state.source === 'autocomplete'`
 - If autocomplete: pre-select panelists from `location.state.preFilled`
-- Run cache detection: `isCacheHit(location.state.debateId, currentPanelists)`
-- If cache hit: show "View Debate" button (redirects to /d/{uuid})
-- If cache hit: show "Modify Panelists" button (unlocks chips, changes to "Generate New Debate")
-- If cache miss (panelists modified): normal debate generation flow
+- User can modify pre-filled panelists or keep them as-is
+- Normal debate generation flow proceeds (always generates new debate)
 
 ---
 
@@ -616,14 +595,13 @@ interface TopicAutocompleteDropdownProps {
 1. `frontend/src/hooks/useTopicAutocomplete.js` - Debouncing, API calls, state management
 2. `frontend/src/components/TopicInput/TopicAutocompleteDropdown.jsx` - Dropdown UI component
 3. `frontend/src/components/TopicInput/TopicAutocompleteDropdown.module.css` - Dropdown styles
-4. `frontend/src/utils/cacheDetection.js` - Deep comparison utility
 
 **Files to Modify**:
 1. `frontend/src/services/api.js` - Modify `listDebates()` to accept optional `query` parameter
 2. `frontend/src/components/TopicInput/TopicInput.jsx` - Integrate autocomplete hook + dropdown
 3. `frontend/src/components/TopicInput/TopicInput.module.css` - Add dropdown positioning styles
 4. `frontend/src/pages/Home.jsx` - Handle autocomplete selection, navigation with state
-5. `frontend/src/pages/PanelistSelection.jsx` - Pre-fill panelists, cache detection, button logic
+5. `frontend/src/pages/PanelistSelection.jsx` - Pre-fill panelists from navigation state
 
 ### Deployment Updates
 
@@ -692,19 +670,16 @@ gcloud functions deploy list-debates \
 
 1. Generate debate → return home → type topic → verify autocomplete appears
 2. Select topic from dropdown → verify panelists pre-filled
-3. Pre-filled panelists unchanged → verify "View Debate" button → click → verify redirect to /d/{uuid}
-4. Click "Modify Panelists" → change list → verify "Generate New Debate" → verify new debate generated
-5. Firestore failure → verify dropdown hidden, "Find Panelists" still works
+3. Keep or modify pre-filled panelists → verify new debate generated
+4. Firestore failure → verify dropdown hidden, "Find Panelists" still works
 
 ---
 
 ## Phase 5: Rollout Plan
 
-### Step 1: Backend Modifications
+### Step 1: Backend Infrastructure
 - Create Firestore composite index
-- Modify list-debates handler.go to support `q` parameter
-- Add AutocompleteDebates function to firestore.go
-- Test autocomplete mode locally
+- Deploy autocomplete-topics Cloud Function
 - Verify CORS headers and response format
 
 ### Step 2: Frontend Components
@@ -725,7 +700,7 @@ gcloud functions deploy list-debates \
 
 ### Step 5: Deployment
 - Deploy frontend to GitHub Pages
-- Redeploy list-debates to GCP (with autocomplete modifications)
+- Deploy autocomplete-topics to GCP
 - Monitor Firestore quota usage
 - Collect user feedback
 
@@ -737,8 +712,7 @@ gcloud functions deploy list-debates \
 - ✅ Autocomplete appears when typing ≥3 characters
 - ✅ Dropdown shows max 10 results ordered by recency
 - ✅ Selecting debate navigates to PanelistSelection with pre-filled panelists
-- ✅ Cache hit shows "View Debate" button (redirects to /d/{uuid})
-- ✅ "Modify Panelists" unlocks chips and generates new debate
+- ✅ User can modify or keep pre-filled panelists before generating debate
 - ✅ "Find Panelists" button always works (graceful degradation)
 
 **Non-Functional**:
@@ -753,6 +727,7 @@ gcloud functions deploy list-debates \
 - ✅ Firestore failure: graceful degradation to manual entry
 - ✅ Network timeout: dropdown closes, "Find Panelists" available
 - ✅ Duplicate topics: differentiated by avatars + date
+- ✅ Pre-filled panelists: user can modify before generating new debate
 
 ---
 

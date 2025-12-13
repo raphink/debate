@@ -1,7 +1,7 @@
 {
-  "endpoint": "/api/autocomplete-topics",
+  "endpoint": "/api/list-debates",
   "method": "GET",
-  "description": "Search debates collection by topic substring, return matching debates with metadata for autocomplete dropdown",
+  "description": "Extended list-debates endpoint with optional autocomplete query parameter. When q parameter provided, searches debates collection by topic substring and returns matching debates with metadata for autocomplete dropdown. Without q parameter, functions as standard paginated debate list.",
   
   "queryParameters": {
     "q": {
