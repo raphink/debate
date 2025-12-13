@@ -5,6 +5,15 @@
 **Status**: Draft  
 **Input**: User description: "web app to generate debates on specific topics"
 
+## Clarifications
+
+### Session 2025-12-13
+
+- Q: How should the debate completion be determined? → A: Token/word count threshold (~5000 words generated)
+- Q: Are autocomplete features (main spec US6 & US7) deferred or should they be implemented? → A: Deferred - US6 & US7 are post-MVP, only basic debate history (list-debates) is current scope
+- Q: What should the Firestore security model be? → A: Completely locked down - no direct client access. All reads AND writes happen exclusively via backend Cloud Functions
+- Q: What should the portrait fallback strategy be? → A: SVG placeholder only - standardize on placeholder-avatar.svg for all missing portraits
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Topic Entry and Validation (Priority: P1)
@@ -64,7 +73,7 @@ User launches debate generation and watches the conversation unfold in real-time
 3. **Given** debate is streaming, **When** a panelist's turn begins, **Then** their chat bubble appears with loading indicator before text streams in
 4. **Given** debate is in progress, **When** user views the conversation, **Then** different panelists' responses and moderator interventions are visually distinguishable by avatar and styling
 5. **Given** debate includes moderator, **When** moderator intervenes, **Then** moderator may redirect conversation, ask clarifying questions, highlight contrasts, or summarize progress between panelist exchanges
-6. **Given** debate is nearing completion, **When** panelists have made their main arguments, **Then** moderator provides a concluding summary that synthesizes the key points and ends the debate
+6. **Given** debate is nearing completion (approximately 5000 words generated), **When** panelists have made their main arguments, **Then** moderator provides a concluding summary that synthesizes the key points and ends the debate
 7. **Given** debate is streaming, **When** user clicks on a panelist avatar, **Then** a modal opens displaying the panelist's name, tagline, and full biography
 8. **Given** panelist modal is open, **When** user clicks outside modal or presses Escape key, **Then** modal closes and returns focus to debate view
 9. **Given** debate is streaming, **When** user toggles auto-scroll, **Then** conversation view automatically follows new messages (when enabled) or remains at current scroll position (when disabled, default)
@@ -111,9 +120,11 @@ User shares completed debate via URL that loads from cached storage, allowing de
 8. **Given** debate is loaded from cache, **When** user views page, **Then** PDF export and share functions work identically to freshly generated debates
 
 ---
-### User Story 6 - Topic Discovery via History Integration (Priority: P3)
+### User Story 6 - Topic Discovery via History Integration (Priority: P3) [DEFERRED POST-MVP]
 
 User discovers previous debate topics directly within the topic input field as an autocomplete dropdown, allowing quick re-use of existing debates with their original panelists or modifications.
+
+**Status**: DEFERRED - Not included in current implementation scope. Basic debate history browsing via list-debates is available instead.
 
 **Why this priority**: Quality-of-life enhancement that streamlines the workflow by combining topic discovery and input in a single interface. Users can quickly access previous debates or use them as starting points for variations.
 
@@ -130,9 +141,11 @@ User discovers previous debate topics directly within the topic input field as a
 7. **Given** topic autocomplete is loading, **When** API call is in progress, **Then** system shows subtle loading indicator without blocking typing
 8. **Given** no previous topics match user input or Firestore fails, **When** user types, **Then** autocomplete dropdown is hidden and user can submit new topic normally (graceful degradation)
 9. **Given** user selects historical topic with modified panelists, **When** user proceeds to generate debate, **Then** system generates new debate (no cache hit) and saves as new debate instance
+ [DEFERRED POST-MVP]
 
----
-### User Story 7 - Panelist Autocompletion from History (Priority: P3)
+User receives intelligent panelist chip suggestions based on historical debate data, with normalized name matching to handle duplicate panelists identified differently across debates.
+
+**Status**: DEFERRED - Not included in current implementation scope. Manual panelist name suggestions via chip input remain available
 
 User receives intelligent panelist chip suggestions based on historical debate data, with normalized name matching to handle duplicate panelists identified differently across debates.
 
@@ -190,16 +203,17 @@ User receives intelligent panelist chip suggestions based on historical debate d
 - **FR-004c**: If topic is not relevant, Claude returns rejection JSON instead of panelists, eliminating validation/panelist race condition
 - **FR-004d**: System MUST provide separate async portrait service (get-portrait Cloud Function) to fetch panelist portrait URLs from Wikimedia Commons API after panelists stream in, keeping validation fast and non-blocking
 - **FR-004e**: Portrait service MUST fetch 300px portrait images suitable for 48x48px circular display with proper User-Agent header "DebateApp/1.0" to avoid 403 Forbidden errors
-- **FR-004f**: Portrait service MUST fall back to placeholder avatar (placeholder-avatar.svg) if Wikimedia API fails or returns no suitable image
+- **FR-004f**: Portrait service MUST fall back to placeholder-avatar.svg (SVG format standardized) if Wikimedia API fails or returns no suitable image
 - **FR-004g**: Portrait URLs MUST be cached in thread-safe in-memory map (sync.RWMutex) to avoid redundant API calls during debate generation
 - **FR-004h**: Frontend MUST check if portrait URLs are absolute (http/https prefix) before prepending PUBLIC_URL/avatars/ path to avoid treating Wikimedia URLs as relative paths
+- **FR-004i**: All components displaying avatars MUST use placeholder-avatar.svg as the canonical fallback when avatarUrl is empty, null, or fails to load
 - **FR-005**: Users MUST be able to select between 2 and 5 panelists from the suggested list
 - **FR-006**: System MUST visually distinguish selected vs unselected panelists in the UI
 - **FR-007**: System MUST prevent debate generation unless at least 2 panelists are selected
 - **FR-008**: System MUST send debate configuration (topic + selected panelists) to Claude API via GCP function proxy
 - **FR-009**: System MUST stream debate responses progressively and display them in real-time
 - **FR-010**: System MUST parse streaming responses to identify which panelist or moderator is speaking
-- **FR-011**: System MUST display each panelist's response in a distinct chat bubble with their avatar
+- **FR-011**: System MUST display each panelist's response in a distinct chat bubble with their avatarwhen word count reaches approximately 5000 words or when arguments are naturally exhauste
 - **FR-011a**: System MUST include a neutral moderator who introduces the debate, may intervene between panelist exchanges, and provides a concluding summary at the end
 - **FR-011b**: Moderator responses MUST be visually distinguished from panelist responses with unique avatar and styling
 - **FR-012**: System MUST show loading/typing indicators while waiting for next response
@@ -239,29 +253,29 @@ User receives intelligent panelist chip suggestions based on historical debate d
 - **FR-027c**: System MUST provide "Share" button that copies debate URL to clipboard with visual confirmation
 - **FR-027d**: Loading debate from backend API MUST complete within 2 seconds on stable connection
 - **FR-027e**: Frontend MUST update browser URL to /d/{uuid} after receiving debate ID from backend (History API, no page reload)
-- **FR-028**: Firestore security rules MUST prevent all direct client access (read/write)
-- **FR-028a**: Backend API MUST validate debate ID format before querying Firestore
+- **FR-028**: Firestore security rules MUST prevent all direct client access - all reads and writes happen exclusively via backend Cloud Functions (get-debate, list-debates, generate-debate)
+- **FR-028a**: Backend Cloud Functions MUST validate debate ID format before querying Firestore
 - **FR-028b**: Backend API MUST return 404 for non-existent debates and 500 for Firestore errors
 - **FR-028c**: Firestore documents MUST be immutable (no updates or deletes after creation)
-- **FR-029**: System MUST provide topic autocomplete endpoint: GET /api/autocomplete-topics?q={query}&limit=10 (US6)
-- **FR-029a**: Topic autocomplete endpoint MUST search historical debate topics from Firestore matching query substring (case-insensitive)
-- **FR-029b**: Topic autocomplete response MUST return debates ordered by creation timestamp descending (newest first)
-- **FR-029c**: Topic autocomplete response MUST include: debate ID, topic text, panelist count, panelist IDs/names, created timestamp
-- **FR-029d**: Topic autocomplete dropdown MUST appear when user types ≥3 characters in topic input field on home page
-- **FR-029e**: Topic autocomplete MUST show up to 10 matching results with full topic text and panelist count (e.g., "3 panelists")
-- **FR-029f**: Selecting topic from autocomplete MUST skip Claude validation and pre-fill panelists on panelist selection page
-- **FR-029g**: System MUST detect cache hit when topic + panelists match exactly and load debate from Firestore without regenerating
-- **FR-029h**: Panelist selection page MUST show "Modify Panelists" button when panelists are pre-filled from history
-- **FR-029i**: Topic autocomplete MUST degrade gracefully if Firestore unavailable (hide dropdown, allow manual topic entry)
-- **FR-030**: System MUST provide panelist autocomplete endpoint: GET /api/autocomplete-panelists?q={query} (US7)
-- **FR-030a**: Autocomplete endpoint MUST aggregate panelists from all historical debates in Firestore
-- **FR-030b**: Autocomplete MUST normalize panelist names for deduplication (lowercase, remove titles like "St.", "Dr.", strip punctuation)
-- **FR-030c**: Autocomplete MUST use fuzzy matching to deduplicate similar panelists (e.g., "Augustine of Hippo", "St. Augustine", "Augustine")
-- **FR-030d**: Autocomplete response MUST return panelists ranked by frequency (most common first), limited to top 10 matches
-- **FR-030e**: Autocomplete MUST return canonical panelist data (id, name, slug) from the most frequently used variant
-- **FR-030f**: Autocomplete dropdown MUST appear when user types ≥2 characters in chip input field on panelist selection page
-- **FR-030g**: Autocomplete feature MUST degrade gracefully if Firestore unavailable (hide dropdown, allow manual chip creation)
-- **FR-030h**: Autocomplete API MUST respond within 500ms; if slower, frontend shows loading indicator without blocking input
+- **FR-029**: [DEFERRED POST-MVP] System SHOULD provide topic autocomplete endpoint: GET /api/autocomplete-topics?q={query}&limit=10 (US6 - deferred)
+- **FR-029a**: [DEFERRED] Topic autocomplete endpoint SHOULD search historical debate topics from Firestore matching query substring (case-insensitive)
+- **FR-029b**: [DEFERRED] Topic autocomplete response SHOULD return debates ordered by creation timestamp descending (newest first)
+- **FR-029c**: [DEFERRED] Topic autocomplete response SHOULD include: debate ID, topic text, panelist count, panelist IDs/names, created timestamp
+- **FR-029d**: [DEFERRED] Topic autocomplete dropdown SHOULD appear when user types ≥3 characters in topic input field on home page
+- **FR-029e**: [DEFERRED] Topic autocomplete SHOULD show up to 10 matching results with full topic text and panelist count (e.g., "3 panelists")
+- **FR-029f**: [DEFERRED] Selecting topic from autocomplete SHOULD skip Claude validation and pre-fill panelists on panelist selection page
+- **FR-029g**: [DEFERRED] System SHOULD detect cache hit when topic + panelists match exactly and load debate from Firestore without regenerating
+- **FR-029h**: [DEFERRED] Panelist selection page SHOULD show "Modify Panelists" button when panelists are pre-filled from history
+- **FR-029i**: [DEFERRED] Topic autocomplete SHOULD degrade gracefully if Firestore unavailable (hide dropdown, allow manual topic entry)
+- **FR-030**: [DEFERRED POST-MVP] System SHOULD provide panelist autocomplete endpoint: GET /api/autocomplete-panelists?q={query} (US7 - deferred)
+- **FR-030a**: [DEFERRED] Autocomplete endpoint SHOULD aggregate panelists from all historical debates in Firestore
+- **FR-030b**: [DEFERRED] Autocomplete SHOULD normalize panelist names for deduplication (lowercase, remove titles like "St.", "Dr.", strip punctuation)
+- **FR-030c**: [DEFERRED] Autocomplete SHOULD use fuzzy matching to deduplicate similar panelists (e.g., "Augustine of Hippo", "St. Augustine", "Augustine")
+- **FR-030d**: [DEFERRED] Autocomplete response SHOULD return panelists ranked by frequency (most common first), limited to top 10 matches
+- **FR-030e**: [DEFERRED] Autocomplete SHOULD return canonical panelist data (id, name, slug) from the most frequently used variant
+- **FR-030f**: [DEFERRED] Autocomplete dropdown SHOULD appear when user types ≥2 characters in chip input field on panelist selection page
+- **FR-030g**: [DEFERRED] Autocomplete feature SHOULD degrade gracefully if Firestore unavailable (hide dropdown, allow manual chip creation)
+- **FR-030h**: [DEFERRED] Autocomplete API SHOULD respond within 500ms; if slower, frontend shows loading indicator without blocking input
 
 ### Key Entities
 
