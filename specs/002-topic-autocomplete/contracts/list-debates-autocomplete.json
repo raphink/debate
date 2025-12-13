@@ -1,0 +1,219 @@
+{
+  "endpoint": "/api/autocomplete-topics",
+  "method": "GET",
+  "description": "Search debates collection by topic substring, return matching debates with metadata for autocomplete dropdown",
+  
+  "queryParameters": {
+    "q": {
+      "type": "string",
+      "required": true,
+      "minLength": 3,
+      "maxLength": 500,
+      "description": "Search query (substring of topic, case-insensitive)"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "default": 10,
+      "min": 1,
+      "max": 10,
+      "description": "Maximum results to return"
+    }
+  },
+  
+  "responses": {
+    "200": {
+      "description": "Successful autocomplete results",
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "debates": {
+            "type": "array",
+            "description": "Array of matching debates ordered by recency",
+            "items": {
+              "type": "object",
+              "required": ["id", "topic", "panelistCount", "panelists", "createdAt"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Unique debate identifier"
+                },
+                "topic": {
+                  "type": "string",
+                  "description": "Original debate topic text"
+                },
+                "panelistCount": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 5,
+                  "description": "Number of panelists in debate"
+                },
+                "panelists": {
+                  "type": "array",
+                  "description": "Array of panelist metadata for pre-filling",
+                  "minItems": 2,
+                  "maxItems": 5,
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "name", "slug"],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Panelist unique identifier (slug-based)"
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "Panelist display name"
+                      },
+                      "slug": {
+                        "type": "string",
+                        "description": "URL-safe panelist identifier"
+                      },
+                      "avatarUrl": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Wikimedia Commons portrait URL or null"
+                      }
+                    }
+                  }
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "ISO 8601 timestamp of debate creation"
+                }
+              }
+            }
+          }
+        }
+      },
+      "example": {
+        "debates": [
+          {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "topic": "Is free will compatible with divine omniscience?",
+            "panelistCount": 3,
+            "panelists": [
+              {
+                "id": "augustine",
+                "name": "Augustine of Hippo",
+                "slug": "augustine-of-hippo",
+                "avatarUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/St-augustine-portrait.jpg/300px-St-augustine-portrait.jpg"
+              },
+              {
+                "id": "aquinas",
+                "name": "Thomas Aquinas",
+                "slug": "thomas-aquinas",
+                "avatarUrl": null
+              },
+              {
+                "id": "descartes",
+                "name": "René Descartes",
+                "slug": "rene-descartes",
+                "avatarUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Frans_Hals_-_Portret_van_René_Descartes.jpg/300px-Frans_Hals_-_Portret_van_René_Descartes.jpg"
+              }
+            ],
+            "createdAt": "2025-12-10T14:23:00Z"
+          },
+          {
+            "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+            "topic": "Does divine foreknowledge eliminate human freedom?",
+            "panelistCount": 2,
+            "panelists": [
+              {
+                "id": "boethius",
+                "name": "Boethius",
+                "slug": "boethius",
+                "avatarUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Boethius_initial_consolation_philosophy.jpg/300px-Boethius_initial_consolation_philosophy.jpg"
+              },
+              {
+                "id": "molina",
+                "name": "Luis de Molina",
+                "slug": "luis-de-molina",
+                "avatarUrl": null
+              }
+            ],
+            "createdAt": "2025-12-09T10:15:00Z"
+          }
+        ]
+      }
+    },
+    
+    "400": {
+      "description": "Invalid query parameters",
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        }
+      },
+      "examples": [
+        { "error": "Query must be at least 3 characters" },
+        { "error": "Limit must be between 1 and 10" }
+      ]
+    },
+    
+    "500": {
+      "description": "Server error (Firestore query failure)",
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Generic error message (details logged server-side)"
+          }
+        }
+      },
+      "example": {
+        "error": "Failed to query debates"
+      }
+    }
+  },
+  
+  "headers": {
+    "request": {
+      "Origin": {
+        "required": false,
+        "description": "CORS preflight header"
+      }
+    },
+    "response": {
+      "Access-Control-Allow-Origin": {
+        "value": "${ALLOWED_ORIGIN}",
+        "description": "CORS header matching frontend domain (http://localhost:3000 for dev, https://raphink.github.io for prod)"
+      },
+      "Access-Control-Allow-Methods": {
+        "value": "GET, OPTIONS",
+        "description": "Allowed HTTP methods"
+      },
+      "Access-Control-Allow-Headers": {
+        "value": "Content-Type",
+        "description": "Allowed request headers"
+      },
+      "Content-Type": {
+        "value": "application/json",
+        "description": "Response content type"
+      }
+    }
+  },
+  
+  "securityConsiderations": {
+    "inputSanitization": "Query parameter MUST be sanitized (HTML tag stripping) before Firestore query to prevent injection",
+    "rateLimiting": "Client-side debouncing (300ms) prevents API spam; consider server-side rate limiting if abuse detected",
+    "quotaManagement": "Firestore free tier: 50K reads/day. Each query reads max 10 documents. Monitor quota usage.",
+    "errorHandling": "Firestore errors logged server-side but return generic 500 error to client (avoid leaking implementation details)"
+  },
+  
+  "performanceConsiderations": {
+    "firestoreIndex": "Requires composite index: topicLowercase (ASC) + createdAt (DESC). Create via: gcloud firestore indexes composite create --collection-group=debates --field-config=field-path=topicLowercase,order=ascending --field-config=field-path=createdAt,order=descending",
+    "caching": "No server-side caching (stateless function). Client-side debouncing reduces query frequency.",
+    "targetLatency": "p95 response time <500ms for queries returning <10 results"
+  }
+}
