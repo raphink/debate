@@ -4,6 +4,13 @@
 **Input**: Design documents from `/specs/001-debate-generator/`  
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/
 
+## Clarifications (Session 2025-12-13)
+
+- **Debate Completion**: Word count threshold (~5000 words). Moderator provides concluding summary when threshold reached.
+- **Autocomplete Features**: US6 (Topic Discovery) and US7 (Panelist Autocompletion) DEFERRED post-MVP. Current scope: basic debate history (list-debates).
+- **Firestore Security**: Complete backend-only lockdown. All reads/writes via Cloud Functions (get-debate, list-debates, generate-debate). No direct client access.
+- **Portrait Fallback**: Standardized on placeholder-avatar.svg (SVG format) across all components.
+
 ## Format: `[ID] [P?] [Story?] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
@@ -157,7 +164,7 @@
 - [X] T054a [P] [US2] Create portrait request/response structs in backend/functions/get-portrait/types.go (panelistId, panelistName)
 - [X] T054b [P] [US2] Implement Wikimedia Commons API client in backend/functions/get-portrait/wikimedia.go (fetch 300px thumbnails with proper User-Agent)
 - [X] T054c [P] [US2] Implement in-memory cache in backend/functions/get-portrait/cache.go (thread-safe map for portrait URLs)
-- [X] T054d [US2] Implement HTTP handler in backend/functions/get-portrait/handler.go (validate input, fetch/cache portrait, return URL)
+- [X] T054d [US2] Implement HTTP handler in backend/functions/get-portrait/handler.go (validate input, fetch/cache portrait, return URL or empty string for frontend fallback to placeholder-avatar.svg)
 - [X] T054e [US2] Create main entry point in backend/functions/get-portrait/main.go (Cloud Function registration)
 - [X] T054f [US2] Create local dev binary in backend/functions/get-portrait/cmd/main.go (HTTP server for local testing)
 - [ ] T054g [US2] Add unit tests for Wikimedia API client in backend/functions/get-portrait/wikimedia_test.go
@@ -169,7 +176,7 @@
 - [X] T054j [US2] Update useTopicValidation hook to fetch portraits when panelists arrive and update avatarUrl state
 - [ ] T054k [US2] Add loading shimmer effect to avatars while portraits are being fetched
 - [ ] T054l [US2] Ensure portraits are cached in React state to avoid redundant fetches during debate generation
-- [X] T054m [US2] Fix PanelistCard.jsx avatar URL handling to check for absolute URLs (http/https prefix) before prepending PUBLIC_URL/avatars/ path, matching pattern from DebateBubble, PanelistModal, and PanelistSelector components
+- [X] T054m [US2] Update all avatar components (PanelistCard, DebateBubble, PanelistModal, PanelistSelector) to use placeholder-avatar.svg (SVG format standardized) when avatarUrl is empty, null, or fails to load
 
 **Checkpoint**: Panelist avatars progressively enhanced with real portraits
 
@@ -187,7 +194,7 @@
 - [X] T059 [P] [US3] Create StreamChunk response structs in backend/functions/generate-debate/types.go (message, error, done events)
 - [X] T060 [P] [US3] Implement input validation in backend/functions/generate-debate/validator.go (2-5 panelists, valid topic)
 - [X] T061 [US3] Implement Claude API streaming client in backend/functions/generate-debate/claude.go (SSE with debate prompt)
-- [X] T061a [US3] Update debate prompt in claude.go to ensure moderator provides concluding summary at end of debate
+- [X] T061a [US3] Update debate prompt in claude.go to ensure moderator provides concluding summary when word count reaches ~5000 words or when arguments naturally exhausted
 - [X] T061b [US3] Migrate generate-debate to Anthropic Go SDK v1.19.0 for reliable streaming (replaces manual HTTP/SSE)
 - [X] T062 [US3] Implement streaming proxy in claude.go streamResponse function (character-by-character forwarding with pattern buffering)
 - [X] T062a [US3] Fix UTF-8 handling in streamResponse (use runes not bytes, WriteRune not WriteByte)
@@ -277,10 +284,10 @@
 ### Firestore Security
 
 - [ ] T120 [P] [US5] Create Firestore database: `gcloud firestore databases create --database="(default)" --location=europe-west1`
-- [X] T121 [P] [US5] Create firestore.rules with deny all direct client access (read/write: false)
+- [X] T121 [P] [US5] Create firestore.rules with complete lockdown - deny all direct client access (read/write: false, all operations via backend Cloud Functions)
 - [X] T122 [P] [US5] Create .firebaserc with Firebase project ID configuration
 - [X] T123 [P] [US5] Create firebase.json with Firestore rules deployment configuration
-- [ ] T124 [P] [US5] Update DEPLOYMENT.md with Firebase project setup and security rules deployment instructions
+- [ ] T124 [P] [US5] Update DEPLOYMENT.md with Firebase project setup and Firestore security rules deployment instructions (backend-only access model)
 
 ### Frontend: API Integration
 
@@ -318,7 +325,9 @@
 
 ---
 
-## Phase 11: Recent Debates Discovery (User Story 6)
+## Phase 11: Topic Discovery via Autocomplete (User Story 6) [DEFERRED POST-MVP]
+
+**Status**: DEFERRED - Not included in current implementation scope. Basic debate history browsing via list-debates is available instead.
 
 **Goal**: Display subtle list of recent debates on home page for discovery and quick access
 
@@ -366,7 +375,9 @@
 
 **Checkpoint**: User Story 6 complete - users discover and reuse previous debates via integrated topic autocomplete
 
-### User Story 7 - Panelist Autocomplete (P3)
+### User Story 7 - Panelist Autocomplete (P3) [DEFERRED POST-MVP]
+
+**Status**: DEFERRED - Not included in current implementation scope. Manual panelist name suggestions via chip input remain available.
 
 **Backend - Autocomplete API Function** (Depends: Firestore integration US5)
 - [ ] T172 [US7] Backend: Create autocomplete-panelists Cloud Function scaffolding
@@ -555,9 +566,13 @@ Each phase must pass these gates before proceeding:
 
 **Architecture Notes**: 
 - Portrait service (get-portrait) runs as independent Cloud Function with async frontend integration
-- Firestore operations managed entirely by backend (generate-debate saves, get-debate retrieves) using Firebase Admin SDK
+- Portrait fallback: Standardized on placeholder-avatar.svg (SVG format) across all avatar display components
+- Firestore operations managed entirely by backend (generate-debate saves, get-debate retrieves, list-debates browses) using Firebase Admin SDK
+- Firestore security: Complete lockdown - NO direct client access (read or write). All operations exclusively via backend Cloud Functions.
 - Frontend has NO direct Firestore access - all operations via backend API endpoints for security and control
 - All backend services use ALLOWED_ORIGIN environment variable for CORS security
+- Debate completion: Word count threshold (~5000 words). Backend monitors generation progress and signals moderator to conclude.
+- Autocomplete features (US6 topic autocomplete, US7 panelist autocomplete): DEFERRED post-MVP
 - Frontend avatar components check for absolute URLs before prepending local path prefix
 - PDF export uses async image loading with CORS-enabled fetch, converts portraits to base64 data URLs for embedding
 - Firestore security rules deny all direct client access (read/write: false), enforcing API-only pattern
