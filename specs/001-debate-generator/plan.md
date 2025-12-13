@@ -3,6 +3,13 @@
 **Branch**: `001-debate-generator` | **Date**: 2025-12-11 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `/specs/001-debate-generator/spec.md`
 
+## Clarifications (Session 2025-12-13)
+
+- **Debate Completion**: Determined by token/word count threshold (~5000 words generated). Moderator provides concluding summary when this threshold is reached.
+- **Autocomplete Features**: US6 (Topic Discovery) and US7 (Panelist Autocompletion) are deferred post-MVP. Current scope includes only basic debate history browsing (list-debates).
+- **Firestore Security**: Completely locked down - no direct client access. All reads AND writes happen exclusively via backend Cloud Functions (get-debate, list-debates, generate-debate).
+- **Portrait Fallback**: Standardized on placeholder-avatar.svg (SVG format) for all missing portraits across all components.
+
 ## Summary
 
 Build a web application that generates AI-powered theological/philosophical debates between historical figures. Users enter a topic and click "Find Panelists" to trigger validation with an engaging "Looking for Panelists" loading animation. Users can optionally suggest up to 5 panelist names they'd like considered (with PRIORITY weighting - included unless fictional/non-existent). The system validates the topic and streams panelists progressively via Server-Sent Events (SSE) - Claude returns each panelist as a complete JSON line, and the backend emits them immediately as they're detected (through GCP Cloud Functions proxy in Go using official Anthropic SDK) for true progressive loading. Users select 2-5 panelists, then watch the debate stream in real-time as a chat-style conversation with avatars. A neutral moderator introduces the debate, may intervene between panelist exchanges to redirect/clarify/summarize, and MUST provide a concluding summary at the end. Completed debates can be exported as PDF.
@@ -15,8 +22,9 @@ Build a web application that generates AI-powered theological/philosophical deba
 - **Wikimedia API Client** (wikimedia.go): Queries Wikipedia API with action=query, prop=pageimages, pithumbsize=300 to fetch 300px thumbnails suitable for 48x48px circular display
 - **User-Agent Requirement**: All Wikimedia API requests MUST include User-Agent header "DebateApp/1.0 (https://github.com/raphink/debate; debate@example.com)" to avoid 403 Forbidden errors (Wikimedia policy)
 - **In-Memory Cache** (cache.go): Thread-safe map using sync.RWMutex to cache portrait URLs per session, preventing redundant API calls when same panelists appear in debate generation
-- **Fallback Strategy**: Returns empty string on Wikimedia failure, frontend falls back to placeholder-avatar.svg
+- **Fallback Strategy**: Returns empty string on Wikimedia failure, frontend falls back to placeholder-avatar.svg (SVG format standardized)
 - **Frontend Integration**: portraitService.js calls get-portrait endpoint asynchronously when panelists arrive via useTopicValidation hook, updates avatarUrl in state progressively
+- **Canonical Placeholder**: All avatar display components (PanelistCard, DebateBubble, PanelistModal, PanelistSelector) use placeholder-avatar.svg when avatarUrl is empty, null, or fails to load
 - **URL Handling Fix**: All avatar display components (PanelistCard, DebateBubble, PanelistModal, PanelistSelector) check if avatarUrl starts with 'http' or '/' before prepending PUBLIC_URL/avatars/ path, enabling both absolute Wikimedia URLs and relative local paths to work correctly
 - **CORS Security**: get-portrait handler uses ALLOWED_ORIGIN environment variable (http://localhost:3000 for dev, https://raphink.github.io for prod) matching validate-topic and generate-debate services
 - **Local Development**: cmd/main.go provides standalone HTTP server for testing portrait service locally on port 8083
@@ -29,7 +37,9 @@ Build a web application that generates AI-powered theological/philosophical deba
 
 **Button Design**: All action buttons feature gradient backgrounds (purple for primary actions, gray for secondary), smooth hover animations with lift effects, shine sweeps across on hover, enhanced shadows, and improved focus states for accessibility.
 
-**Moderator Behavior**: The moderator is responsible for introducing the debate, optionally intervening between panelist exchanges (to ask clarifying questions, highlight contrasts, or summarize progress), and providing a concluding summary that synthesizes the key points at the end of the debate.
+**Moderator Behavior**: The moderator is responsible for introducing the debate, optionally intervening between panelist exchanges (to ask clarifying questions, highlight contrasts, or summarize progress), and providing a concluding summary that synthesizes the key points when word count reaches approximately 5000 words or when arguments are naturally exhausted.
+
+**Debate Completion**: Backend monitors word count during generation. When approximately 5000 words are generated, Claude is signaled to have the moderator provide concluding summary and end the debate gracefully.
 
 **Future Enhancement**: User-as-moderator functionality is out of scope for MVP but documented as a potential future feature where users could interactively ask questions during the debate.
 
@@ -73,8 +83,8 @@ Build a web application that generates AI-powered theological/philosophical deba
 - UUID v4 generated at debate start using Web Crypto API
 - Debate saved to Firestore after generation completes
 - Document structure: {id, topic, panelists, messages, status, timestamps, metadata}
-- Public read access (anyone with UUID can view)
-- Write-only from authenticated Cloud Functions (no client writes)
+- **Security Model**: Complete lockdown - NO direct client access (read or write). All Firestore operations exclusively via backend Cloud Functions (get-debate, list-debates, generate-debate)
+- Backend uses Application Default Credentials (ADC) or service account for Firestore access
 - Graceful degradation: Firestore save failures don't block viewing/export
 - Average document size: ~25 KB (topic + 3 panelists + 15 messages)
 - Free tier capacity: ~40,000 debates (1 GB storage)
@@ -90,9 +100,10 @@ Build a web application that generates AI-powered theological/philosophical deba
 **Scale/Scope**: 
 - MVP: Single-user sessions, no concurrent debate limit
 - Expected load: <100 concurrent users initially
-- Debate length: ~10-20 exchanges (5000-10000 words typical)
+- Debate length: ~10-20 exchanges (~5000 words typical, completion threshold)
 - Frontend: ~15-20 components, 5-8 pages/views
-- Backend: 2-3 Cloud Functions
+- Backend: 5 Cloud Functions (validate-topic, generate-debate, get-portrait, get-debate, list-debates)
+- **Deferred Features**: US6 (topic autocomplete), US7 (panelist autocomplete) - post-MVP enhancements
 
 ## Constitution Check
 
@@ -291,13 +302,19 @@ start-local.sh                   # Quick start script
 **Architecture Decision**: Backend (Cloud Functions) manages all Firestore operations. Frontend never directly accesses Firestore - all reads/writes go through backend API endpoints. This provides:
 - Centralized access control
 - Prevents client-side spam/abuse
-- Simplified frontend (no Firebase SDK required)
-- Better security (service account credentials only in backend)
+- Complete security lockdown (Firestore rules prevent all direct client access)
+- Better security (Application Default Credentials or service account only in backend)
 - Consistent error handling
 
 **Configuration Requirements**:
 - `GCP_PROJECT_ID` environment variable must be set for Firestore initialization
 - Firestore uses the `(default)` database in the specified GCP project
+- Firestore security rules deployed to prevent all direct client read/write access
+
+**Backend Endpoints for Firestore**:
+- `get-debate?id={uuid}` - Retrieve single debate by UUID
+- `list-debates?limit={n}&offset={m}` - Paginated debate history browsing
+- `generate-debate` - Save completed debate after generation (automatic)
 - **Firestore database must be created before first use**: `gcloud firestore databases create --database="(default)" --location=europe-west1 --project=${GCP_PROJECT_ID}`
 
 **Authentication Setup**:
