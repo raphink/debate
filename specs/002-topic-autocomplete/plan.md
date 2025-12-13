@@ -101,34 +101,32 @@ This is a **gracefully-degrading enhancement** that never blocks the existing wo
 // In backend/functions/list-debates/handler.go
 query := r.URL.Query().Get("q")
 if query != "" {
-    // Autocomplete mode: filter by topic substring
+    // Autocomplete mode: fetch recent debates and filter in code
     queryLower := strings.ToLower(sanitize.StripHTML(query))
     
+    // Fetch recent debates (e.g., last 100)
     docs, err := client.Collection("debates").
-        Where("topicLowercase", ">=", queryLower).
-        Where("topicLowercase", "<", queryLower+"~").
-        OrderBy("topicLowercase", firestore.Asc).
         OrderBy("createdAt", firestore.Desc).
-        Limit(10).
+        Limit(100).
         Documents(ctx).GetAll()
+    
+    // Filter in code for true substring matching
+    matches := []DebateMetadata{}
+    for _, doc := range docs {
+        var debate DebateDocument
+        doc.DataTo(&debate)
+        if strings.Contains(strings.ToLower(debate.Topic.Text), queryLower) {
+            matches = append(matches, toDebateMetadata(debate))
+            if len(matches) >= 10 { break }
+        }
+    }
 } else {
     // List mode: existing pagination logic
     // ...existing code...
 }
 ```
-**Trade-offs**: Requires storing `topicLowercase` field; only supports prefix matching (not substring); requires composite index
-**Benefits**: No new Cloud Function deployment, reuses existing CORS/auth configuration, simpler frontend API surface
-
-### R002: Firestore Composite Index
-**Decision**: Create composite index for `topicLowercase` (ASC) + `createdAt` (DESC)
-**Command**:
-```bash
-gcloud firestore indexes composite create \
-  --collection-group=debates \
-  --field-config=field-path=topicLowercase,order=ascending \
-  --field-config=field-path=createdAt,order=descending
-```
-**Alternative**: Use Firestore auto-indexing (slower, requires first query to trigger index creation)
+**Trade-offs**: Must fetch and filter in memory (limited to ~100 recent debates for performance)
+**Benefits**: No schema changes, no Firestore index needed, true substring matching (not just prefix), simpler deployment
 
 ### R003: Avatar Fetching Strategy for Dropdown
 **Decision**: Fetch avatars asynchronously after dropdown renders
@@ -172,10 +170,11 @@ const isFromAutocomplete = state?.source === 'autocomplete';
 ### Data Model Updates
 
 #### Firestore Debates Collection (Extended)
-**New Field**:
+**No schema changes needed** - autocomplete will fetch recent debates and filter by substring in code
+
 ```typescript
 {
-  // Existing fields from US5
+  // Existing fields from US5 (no changes)
   id: string;
   topic: string;
   panelists: Panelist[];
@@ -183,13 +182,8 @@ const isFromAutocomplete = state?.source === 'autocomplete';
   status: 'completed' | 'generating';
   createdAt: Timestamp;
   updatedAt: Timestamp;
-  
-  // NEW for US6
-  topicLowercase: string; // Auto-generated on save: topic.toLowerCase()
 }
 ```
-
-**Migration**: Update backend/shared/firebase/debates.go `SaveDebate` function to auto-populate `topicLowercase`
 
 #### Frontend Navigation State
 ```typescript
