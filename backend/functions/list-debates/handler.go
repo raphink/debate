@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	"cloud.google.com/go/firestore"
-	"google.golang.org/api/option"
 )
 
 var firestoreClient *firestore.Client
@@ -18,11 +17,6 @@ var firestoreClient *firestore.Client
 // initFirestore initializes the Firestore client
 func initFirestore() error {
 	ctx := context.Background()
-
-	credentialsPath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	if credentialsPath == "" {
-		return fmt.Errorf("GOOGLE_APPLICATION_CREDENTIALS not set")
-	}
 
 	projectID := os.Getenv("GCP_PROJECT_ID")
 	if projectID == "" {
