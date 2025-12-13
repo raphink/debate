@@ -141,7 +141,7 @@ THEN I navigate to /debates page showing my debate history
 ## Dependencies
 
 - Firestore database with debates stored from previous sessions
-- Existing debate viewer page at `/debate/:id`
+- Existing debate viewer page at `/d/:id`
 - React Router for navigation
 
 ## Assumptions
@@ -171,7 +171,7 @@ GIVEN I have generated 8 debates
 WHEN I navigate to /debates
 THEN I see all 8 debates sorted newest first
 WHEN I click on the 3rd debate card
-THEN I navigate to /debate/{id} and see that debate's full conversation
+THEN I navigate to /d/{id} and see that debate's full conversation
 ```
 
 ### Scenario 3: Search filters results

@@ -111,7 +111,7 @@ const filteredDebates = useMemo(() => {
 
 **Card Design**:
 ```jsx
-<div className={styles.debateCard} onClick={() => navigate(`/debate/${debate.id}`)}>
+<div className={styles.debateCard} onClick={() => navigate(`/d/${debate.id}`))}>
   <h3 className={styles.topic}>{truncate(debate.topic, 100)}</h3>
   <div className={styles.panelists}>
     {formatPanelists(debate.panelists)} {/* "Name1, Name2, Name3 +2" */}
@@ -133,7 +133,7 @@ const filteredDebates = useMemo(() => {
 - Add "View Debate History" button below topic input section
 - Button style: Secondary action (not primary gradient)
 
-**Debate Viewer** (`/debate/:id`):
+**Debate Viewer** (`/d/:id`):
 - Add "← Back to History" link in header
 - Link appears next to "Export as PDF" button
 

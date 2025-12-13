@@ -164,7 +164,7 @@
 - [ ] Handle empty state: "No debates yet. Create your first debate!"
 - [ ] Handle no results: "No debates found matching '{searchQuery}'"
 - [ ] Handle error state with error message
-- [ ] Add click handler to navigate to `/debate/{id}` using `useNavigate`
+- [X] Add click handler to navigate to `/d/{id}` using `useNavigate`
 - Files: `frontend/src/pages/DebateHistory.jsx`
 
 **T219: Style DebateHistory page** (25 min)
@@ -243,7 +243,7 @@
 
 **T228: Test navigation flow** (15 min)
 - [ ] Start at Home, click "View Debate History", verify navigation to `/debates`
-- [ ] Click a debate card, verify navigation to `/debate/{id}`
+- [ ] Click a debate card, verify navigation to `/d/{id}`
 - [ ] Click "Back to History", verify navigation to `/debates`
 - [ ] Click "Back to Home", verify navigation to `/`
 
