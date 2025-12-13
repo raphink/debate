@@ -5,6 +5,7 @@ go 1.24
 require (
 	cloud.google.com/go/firestore v1.17.0
 	github.com/GoogleCloudPlatform/functions-framework-go v1.9.0
+	github.com/raphink/debate/shared v0.0.0
 	google.golang.org/api v0.206.0
 )
 
@@ -49,3 +50,6 @@ require (
 	google.golang.org/grpc v1.67.1 // indirect
 	google.golang.org/protobuf v1.35.1 // indirect
 )
+
+
+replace github.com/raphink/debate/shared => ../../shared

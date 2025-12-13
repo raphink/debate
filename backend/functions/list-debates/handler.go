@@ -3,45 +3,42 @@ package listdebates
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 
-	"cloud.google.com/go/firestore"
+	_ "github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
+	"github.com/raphink/debate/shared/firebase"
 )
 
-var firestoreClient *firestore.Client
+var allowedOrigin string
 
-// initFirestore initializes the Firestore client
-func initFirestore() error {
+func init() {
+	allowedOrigin = os.Getenv("ALLOWED_ORIGIN")
+	if allowedOrigin == "" {
+		allowedOrigin = "*"
+	}
+	log.Printf("ALLOWED_ORIGIN set to: %s", allowedOrigin)
+
+	// Initialize Firestore client
 	ctx := context.Background()
-
-	projectID := os.Getenv("GCP_PROJECT_ID")
-	if projectID == "" {
-		return fmt.Errorf("GCP_PROJECT_ID not set")
+	if err := firebase.InitFirestore(ctx); err != nil {
+		log.Printf("Failed to initialize Firestore: %v", err)
 	}
+}
 
-	client, err := firestore.NewClient(ctx, projectID, option.WithCredentialsFile(credentialsPath))
-	if err != nil {
-		return fmt.Errorf("failed to create Firestore client: %w", err)
-	}
-
-	firestoreClient = client
-	return nil
+func HandleListDebates(w http.ResponseWriter, r *http.Request) {
+	ListDebatesHandler(w, r)
 }
 
 // ListDebatesHandler handles GET requests to fetch debate history
 func ListDebatesHandler(w http.ResponseWriter, r *http.Request) {
-	// Handle CORS
-	allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
-	if allowedOrigin == "" {
-		allowedOrigin = "http://localhost:3000"
-	}
+	// Set CORS headers
 	w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Content-Type", "application/json")
 
 	// Handle preflight
 	if r.Method == http.MethodOptions {
@@ -81,17 +78,19 @@ func ListDebatesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Initialize Firestore client if needed
-	if firestoreClient == nil {
-		if err := initFirestore(); err != nil {
+	ctx := r.Context()
+	client := firebase.GetClient()
+	if client == nil {
+		if err := firebase.InitFirestore(ctx); err != nil {
 			log.Printf("Failed to initialize Firestore: %v", err)
 			sendError(w, "Failed to initialize database connection", http.StatusInternalServerError)
 			return
 		}
+		client = firebase.GetClient()
 	}
 
 	// Query debates
-	ctx := context.Background()
-	debates, total, err := queryDebates(ctx, firestoreClient, limit, offset)
+	debates, total, err := queryDebates(ctx, client, limit, offset)
 	if err != nil {
 		log.Printf("Failed to query debates: %v", err)
 		sendError(w, "Failed to query debates from Firestore", http.StatusInternalServerError)
