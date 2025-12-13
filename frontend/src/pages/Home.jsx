@@ -35,6 +35,18 @@ const Home = () => {
     clearSelection();
   };
 
+  // Handle autocomplete selection - navigate to panelist selection with pre-filled data
+  const handleAutocompleteSelect = (debate) => {
+    navigate('/panelist-selection', {
+      state: {
+        source: 'autocomplete',
+        debateId: debate.id,
+        topic: debate.topic,
+        preFilled: debate.panelists,
+      },
+    });
+  };
+
   const handleProceedToDebate = () => {
     if (isValidSelection() && validationResult) {
       navigate('/debate', {
@@ -59,7 +71,11 @@ const Home = () => {
         {/* Show input section only if not validating and no results yet */}
         {!isValidating && !validationResult && (
           <div className={styles.inputSection}>
-            <TopicInput onSubmit={handleSubmit} isLoading={isValidating} />
+            <TopicInput 
+              onSubmit={handleSubmit} 
+              isLoading={isValidating}
+              onAutocompleteSelect={handleAutocompleteSelect}
+            />
             
             <div className={styles.historyLinkContainer}>
               <Link to="/debates" className={styles.historyLink}>

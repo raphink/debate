@@ -37,9 +37,9 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 
 **⚠️ CRITICAL**: Frontend autocomplete cannot work until this phase is complete
 
-- [ ] T002 Extend backend/functions/list-debates/handler.go to handle optional q query parameter with query validation (≥3 chars), sanitization, and autocomplete mode branching
-- [ ] T003 Add AutocompleteDebates query function in backend/functions/list-debates/firestore.go that fetches recent debates, filters by topic substring (case-insensitive) in code, and returns top 10 matches ordered by createdAt DESC
-- [ ] T004 Update frontend/src/services/api.js listDebates function to accept optional query parameter for GET /api/list-debates?q={query}&limit=10
+- [X] T002 Extend backend/functions/list-debates/handler.go to handle optional q query parameter with query validation (≥3 chars), sanitization, and autocomplete mode branching
+- [X] T003 Add AutocompleteDebates query function in backend/functions/list-debates/firestore.go that fetches recent debates, filters by topic substring (case-insensitive) in code, and returns top 10 matches ordered by createdAt DESC
+- [X] T004 Update frontend/src/services/api.js listDebates function to accept optional query parameter for GET /api/list-debates?q={query}&limit=10
 
 **Checkpoint**: Backend autocomplete API operational - can be tested via curl/Postman with `curl "http://localhost:8084/api/list-debates?q=free"`
 
@@ -60,35 +60,35 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 
 #### Backend Enhancements
 
-- [ ] T005 [US6] Add DebateMetadata type to backend/functions/list-debates/types.go for autocomplete response format per contracts/list-debates-autocomplete.json (if not already present)
+- [X] T005 [US6] Add DebateMetadata type to backend/functions/list-debates/types.go for autocomplete response format per contracts/list-debates-autocomplete.json (if not already present)
 
 #### Frontend Utilities
 
-- [ ] T006 [P] [US6] Create debounce utility hook in frontend/src/hooks/useDebounce.js with 300ms delay for autocomplete queries
+- [X] T006 [P] [US6] Create debounce utility hook in frontend/src/hooks/useDebounce.js with 300ms delay for autocomplete queries
 
 #### Frontend Hooks
 
-- [ ] T007 [US6] Create useTopicAutocomplete hook in frontend/src/hooks/useTopicAutocomplete.js managing autocomplete state (suggestions, loading, error) with debounced API calls and cleanup
+- [X] T007 [US6] Create useTopicAutocomplete hook in frontend/src/hooks/useTopicAutocomplete.js managing autocomplete state (suggestions, loading, error) with debounced API calls and cleanup
 
 #### Frontend Components
 
-- [ ] T008 [US6] Create TopicAutocompleteDropdown component in frontend/src/components/TopicAutocompleteDropdown/TopicAutocompleteDropdown.jsx displaying suggestions with topic text, panelist avatars, count badge, and generation date
-- [ ] T009 [US6] Add TopicAutocompleteDropdown.module.css with dropdown positioning (absolute, below input), hover states, keyboard navigation styles, and loading indicator
-- [ ] T010 [US6] Implement keyboard navigation in TopicAutocompleteDropdown (arrow keys, Enter to select, Escape to close) with ARIA accessibility attributes
-- [ ] T011 [US6] Update TopicInput component in frontend/src/components/TopicInput/TopicInput.jsx to integrate useTopicAutocomplete hook and render TopicAutocompleteDropdown conditionally
-- [ ] T012 [US6] Update Home.jsx in frontend/src/pages/Home.jsx to handle autocomplete selection, navigate to /panelist-selection with state: {source: 'autocomplete', topic, preFilled: panelists}
-- [ ] T013 [US6] Update PanelistSelection.jsx in frontend/src/pages/PanelistSelection.jsx to detect autocomplete source from navigation state and pre-fill panelists from state.preFilled
+- [X] T008 [US6] Create TopicAutocompleteDropdown component in frontend/src/components/TopicAutocompleteDropdown/TopicAutocompleteDropdown.jsx displaying suggestions with topic text, panelist avatars, count badge, and generation date
+- [X] T009 [US6] Add TopicAutocompleteDropdown.module.css with dropdown positioning (absolute, below input), hover states, keyboard navigation styles, and loading indicator
+- [X] T010 [US6] Implement keyboard navigation in TopicAutocompleteDropdown (arrow keys, Enter to select, Escape to close) with ARIA accessibility attributes
+- [X] T011 [US6] Update TopicInput component in frontend/src/components/TopicInput/TopicInput.jsx to integrate useTopicAutocomplete hook and render TopicAutocompleteDropdown conditionally
+- [X] T012 [US6] Update Home.jsx in frontend/src/pages/Home.jsx to handle autocomplete selection, navigate to /panelist-selection with state: {source: 'autocomplete', topic, preFilled: panelists}
+- [X] T013 [US6] Update PanelistSelection.jsx in frontend/src/pages/PanelistSelection.jsx to detect autocomplete source from navigation state and pre-fill panelists from state.preFilled
 
 #### Input Sanitization
 
-- [ ] T014 [US6] Add input sanitization to TopicInput component stripping HTML tags and special characters before passing to autocomplete API (reuse backend sanitization logic pattern)
+- [X] T014 [US6] Add input sanitization to TopicInput component stripping HTML tags and special characters before passing to autocomplete API (reuse backend sanitization logic pattern)
 
 #### Error Handling & Edge Cases
 
-- [ ] T015 [US6] Add graceful degradation in TopicAutocompleteDropdown to hide dropdown on API failures or empty results without blocking "Find Panelists" button
-- [ ] T016 [US6] Add loading state indicator in TopicAutocompleteDropdown shown when API response takes >300ms
-- [ ] T017 [US6] Implement click-outside detection in TopicAutocompleteDropdown to close dropdown when user clicks outside
-- [ ] T018 [US6] Add dropdown auto-hide logic when user input length drops below 3 characters
+- [X] T015 [US6] Add graceful degradation in TopicAutocompleteDropdown to hide dropdown on API failures or empty results without blocking "Find Panelists" button
+- [X] T016 [US6] Add loading state indicator in TopicAutocompleteDropdown shown when API response takes >300ms
+- [X] T017 [US6] Implement click-outside detection in TopicAutocompleteDropdown to close dropdown when user clicks outside
+- [X] T018 [US6] Add dropdown auto-hide logic when user input length drops below 3 characters
 
 **Checkpoint**: At this point, User Story 6 should be fully functional and testable independently
 
@@ -98,12 +98,12 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 
 **Purpose**: Improvements affecting multiple components
 
-- [ ] T019 [P] Update README.md with autocomplete feature documentation
-- [ ] T020 [P] Add autocomplete feature section to quickstart.md validation checklist
-- [ ] T021 Update DEPLOYMENT.md with list-debates function autocomplete enhancement
-- [ ] T022 Add error logging for autocomplete API failures in backend/functions/list-debates/handler.go with context about query and Firestore errors
-- [ ] T023 [P] Add performance monitoring for autocomplete API response times (consider Cloud Function metrics)
-- [ ] T024 Run quickstart.md validation: generate debates, test autocomplete flow, verify panelist pre-fill, test graceful degradation
+- [X] T019 [P] Update README.md with autocomplete feature documentation
+- [X] T020 [P] Add autocomplete feature section to quickstart.md validation checklist
+- [X] T021 Update DEPLOYMENT.md with list-debates function autocomplete enhancement
+- [X] T022 Add error logging for autocomplete API failures in backend/functions/list-debates/handler.go with context about query and Firestore errors
+- [X] T023 [P] Add performance monitoring for autocomplete API response times (consider Cloud Function metrics)
+- [X] T024 Run quickstart.md validation: generate debates, test autocomplete flow, verify panelist pre-fill, test graceful degradation
 
 ---
 

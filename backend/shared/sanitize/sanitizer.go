@@ -1,81 +1,75 @@
-package sanitize
 // Package sanitize provides HTML sanitization and XSS prevention utilities
 package sanitize
 
 import (
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}	return alphanumericPattern.MatchString(id)	alphanumericPattern := regexp.MustCompile(`^[a-zA-Z0-9]+$`)		}		return false	if len(id) < 3 || len(id) > 20 {func ValidatePanelistID(id string) bool {// ValidatePanelistID checks if panelist ID is alphanumeric only}	return StripHTML(text)func SanitizeTextField(text string) string {// SanitizeTextField sanitizes any text field for safe storage and display}	return e.Messagefunc (e *ValidationError) Error() string {}	Code    string	Message string	Field   stringtype ValidationError struct {// ValidationError represents a sanitization validation error}	return cleaned, nil		}		}			Code:    "INVALID_TOPIC_LENGTH",			Message: "Topic must not exceed " + string(rune(maxLength)) + " characters",			Field:   "topic",		return "", &ValidationError{	if len(cleaned) > maxLength {		}		}			Code:    "INVALID_TOPIC_LENGTH",			Message: "Topic must be at least " + string(rune(minLength)) + " characters long",			Field:   "topic",		return "", &ValidationError{	if len(cleaned) < minLength {	// Validate length		cleaned := StripHTML(topic)	// Strip HTML and trimfunc ValidateTopicText(topic string, minLength, maxLength int) (string, error) {// Returns sanitized text and validation error if any// ValidateTopicText sanitizes and validates topic text input}	return strings.TrimSpace(cleaned)	// Trim whitespace		cleaned = htmlTagPattern.ReplaceAllString(cleaned, "")	// Remove all HTML tags		cleaned := scriptPattern.ReplaceAllString(input, "")	// Remove script tags first for safetyfunc StripHTML(input string) string {// StripHTML removes all HTML tags from input string)	scriptPattern = regexp.MustCompile(`(?i)<script[^>]*>.*?</script>|javascript:`)	// scriptPattern matches script tags and javascript: protocols		htmlTagPattern = regexp.MustCompile(`<[^>]*>`)	// htmlTagPattern matches HTML tagsvar ()	"strings"	"regexp"
+	"regexp"
+	"strings"
+)
+
+var (
+	// htmlTagPattern matches HTML tags
+	htmlTagPattern = regexp.MustCompile(`<[^>]*>`)
+	// scriptPattern matches script tags and javascript: protocols
+	scriptPattern = regexp.MustCompile(`(?i)<script[^>]*>.*?</script>|javascript:`)
+)
+
+// StripHTML removes all HTML tags from input string
+func StripHTML(input string) string {
+	// Remove script tags first for safety
+	cleaned := scriptPattern.ReplaceAllString(input, "")
+	// Remove all HTML tags
+	cleaned = htmlTagPattern.ReplaceAllString(cleaned, "")
+	// Trim whitespace
+	return strings.TrimSpace(cleaned)
+}
+
+// ValidateTopicText sanitizes and validates topic text input
+// Returns sanitized text and validation error if any
+func ValidateTopicText(topic string, minLength, maxLength int) (string, error) {
+	// Strip HTML and trim
+	cleaned := StripHTML(topic)
+	
+	// Validate length
+	if len(cleaned) < minLength {
+		return "", &ValidationError{
+			Field:   "topic",
+			Message: "Topic must be at least " + string(rune(minLength)) + " characters long",
+			Code:    "INVALID_TOPIC_LENGTH",
+		}
+	}
+	
+	if len(cleaned) > maxLength {
+		return "", &ValidationError{
+			Field:   "topic",
+			Message: "Topic must not exceed " + string(rune(maxLength)) + " characters",
+			Code:    "INVALID_TOPIC_LENGTH",
+		}
+	}
+	
+	return cleaned, nil
+}
+
+// SanitizeTextField sanitizes any text field for safe storage and display
+func SanitizeTextField(text string) string {
+	return StripHTML(text)
+}
+
+// ValidatePanelistID checks if panelist ID is alphanumeric only
+func ValidatePanelistID(id string) bool {
+	if len(id) < 3 || len(id) > 20 {
+		return false
+	}
+	alphanumericPattern := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+	return alphanumericPattern.MatchString(id)
+}
+
+// ValidationError represents a sanitization validation error
+type ValidationError struct {
+	Field   string
+	Message string
+	Code    string
+}
+
+func (e *ValidationError) Error() string {
+	return e.Message
+}

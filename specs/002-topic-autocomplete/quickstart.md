@@ -29,17 +29,18 @@ Before implementing US6, ensure:
          ↓
 ┌─────────────────────────────┐
 │ useTopicAutocomplete hook   │  Debounce 300ms
-│ ↓ autocompleteTopics(query) │  
+│ ↓ fetchDebateHistory(query) │  
 └──────────┬──────────────────┘
-           │ GET /api/autocomplete-topics?q=...
+           │ GET /api/list-debates?q=...
            ↓
 ┌───────────────────────────────┐
-│ autocomplete-topics Function  │
+│ list-debates Function         │
 │ ├─ Sanitize query             │
-│ ├─ Query Firestore            │
-│ │   WHERE topicLowercase >= q │
+│ ├─ Fetch recent debates (100) │
+│ ├─ Filter by substring in Go  │
+│ │   strings.Contains(lower)   │
 │ │   ORDER BY createdAt DESC   │
-│ │   LIMIT 10                  │
+│ │   LIMIT 10 matches          │
 │ └─ Return debates metadata    │
 └───────────┬───────────────────┘
             │ JSON response
@@ -65,19 +66,16 @@ Before implementing US6, ensure:
 │  PanelistSelection.jsx      │
 │  ├─ Check state.source      │
 │  ├─ Pre-fill panelists      │
-│  ├─ Run cache detection     │
-│  └─ Show "View Debate" or   │
-│      "Modify Panelists"     │
+│  └─ User can modify or      │
+│      proceed to generate    │
 └─────────────────────────────┘
 ```
 
 ## Implementation Steps
 
-### Step 1: Firestore Preparation (5 min)
+### Step 1: Verify Firestore Access (2 min)
 
-Create composite index for efficient querying:
-
-```bash
+No special index needed - autocomplete fetches recent debates and filters in code:
 gcloud firestore indexes composite create \
   --collection-group=debates \
   --field-config=field-path=topicLowercase,order=ascending \
