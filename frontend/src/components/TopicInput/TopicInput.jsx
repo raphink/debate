@@ -226,7 +226,6 @@ const TopicInput = ({ onSubmit, isLoading, onAutocompleteSelect }) => {
           />
         </div>
         <span id="names-help" className={styles.help}>
-  onAutocompleteSelect: PropTypes.func,
           Type a name and press comma, Tab, or Enter to add (up to 5). AI will prioritize them if relevant.
         </span>
       </div>

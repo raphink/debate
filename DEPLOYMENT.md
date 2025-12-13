@@ -99,7 +99,7 @@ gcloud functions deploy generate-debate \
 # Deploy list-debates (supports autocomplete via ?q= parameter)
 gcloud functions deploy list-debates \
   --gen2 \
-  --runtime=go123 \
+  --runtime=go124 \
   --region=europe-west1 \
   --source=./backend/functions/list-debates \
   --entry-point=main \

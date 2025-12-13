@@ -11,15 +11,13 @@ import styles from './TopicAutocompleteDropdown.module.css';
  * @param {Function} onSelect - Callback when user selects a suggestion
  * @param {number} selectedIndex - Currently focused suggestion index (for keyboard nav)
  * @param {Function} onClose - Callback to close dropdown
- * @param {Function} onKeyboardNav - Callback for arrow key navigation (direction: 'up' | 'down')
  */
 const TopicAutocompleteDropdown = ({ 
   suggestions, 
   isLoading, 
   onSelect, 
   selectedIndex,
-  onClose,
-  onKeyboardNav
+  onClose
 }) => {
   const dropdownRef = useRef(null);
   const itemRefs = useRef([]);
@@ -121,7 +119,7 @@ const TopicAutocompleteDropdown = ({
               </span>
               
               <span className={styles.date}>
-                {formatDate(debate.startedAt)}
+                {formatDate(debate.createdAt)}
               </span>
             </div>
           </div>
@@ -140,10 +138,9 @@ TopicAutocompleteDropdown.propTypes = {
       name: PropTypes.string,
       avatarUrl: PropTypes.string,
     })),
-    startedAt: PropTypes.string.isRequired,
+    createdAt: PropTypes.string.isRequired,
   })),
   isLoading: PropTypes.bool,
-  onKeyboardNav: PropTypes.func,
   onSelect: PropTypes.func.isRequired,
   selectedIndex: PropTypes.number,
   onClose: PropTypes.func.isRequired,

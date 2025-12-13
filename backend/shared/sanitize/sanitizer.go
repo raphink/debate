@@ -4,6 +4,7 @@ package sanitize
 import (
 	"regexp"
 	"strings"
+	"fmt"
 )
 
 var (
@@ -33,7 +34,7 @@ func ValidateTopicText(topic string, minLength, maxLength int) (string, error) {
 	if len(cleaned) < minLength {
 		return "", &ValidationError{
 			Field:   "topic",
-			Message: "Topic must be at least " + string(rune(minLength)) + " characters long",
+			Message: fmt.Sprintf("Topic must be at least %d characters long", minLength),
 			Code:    "INVALID_TOPIC_LENGTH",
 		}
 	}
@@ -41,7 +42,7 @@ func ValidateTopicText(topic string, minLength, maxLength int) (string, error) {
 	if len(cleaned) > maxLength {
 		return "", &ValidationError{
 			Field:   "topic",
-			Message: "Topic must not exceed " + string(rune(maxLength)) + " characters",
+			Message: fmt.Sprintf("Topic must not exceed %d characters", maxLength),
 			Code:    "INVALID_TOPIC_LENGTH",
 		}
 	}

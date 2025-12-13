@@ -53,21 +53,17 @@ Before implementing US6, ensure:
          │ User selects debate
          ↓
 ┌──────────────────────────┐
-│ navigate('/panelist-...  │
-│   state: {               │
-│     source: 'autocomplete'
-│     debateId: uuid       │
-│     preFilled: [...]     │
-│   }                      │
+│ navigate(`/d/${debate.id}`)│
+│                          │
+│ Direct to DebateViewer   │
 └────────┬─────────────────┘
          │
          ↓
 ┌─────────────────────────────┐
-│  PanelistSelection.jsx      │
-│  ├─ Check state.source      │
-│  ├─ Pre-fill panelists      │
-│  └─ User can modify or      │
-│      proceed to generate    │
+│  DebateViewer.jsx           │
+│  ├─ Load debate by ID       │
+│  ├─ Display all messages    │
+│  └─ Show panelist info      │
 └─────────────────────────────┘
 ```
 
@@ -75,23 +71,15 @@ Before implementing US6, ensure:
 
 ### Step 1: Verify Firestore Access (2 min)
 
-No special index needed - autocomplete fetches recent debates and filters in code:
-gcloud firestore indexes composite create \
-  --collection-group=debates \
-  --field-config=field-path=topicLowercase,order=ascending \
-  --field-config=field-path=createdAt,order=descending \
-  --project=${GCP_PROJECT_ID}
-```
+**No special Firestore index needed** - Per R001 decision in plan.md, the implementation fetches recent debates (~100) and filters by substring in code. This approach:
+- Avoids complex Firestore range queries
+- Provides true substring matching (not just prefix)
+- Eliminates index creation and maintenance
 
-Modify `backend/shared/firebase/debates.go` to auto-populate `topicLowercase`:
-
-```go
-func SaveDebate(ctx context.Context, debate *DebateDocument) error {
-    // Add lowercase field for autocomplete
-    debate.TopicLowercase = strings.ToLower(debate.Topic)
-    
-    // Rest of SaveDebate logic...
-}
+**Verification**:
+```bash
+# Check that debates collection exists and has data
+gcloud firestore collections describe debates --project=${GCP_PROJECT_ID}
 ```
 
 ### Step 2: Backend Implementation (1 hour)
@@ -247,46 +235,13 @@ return (
 **Modify `Home.jsx`**:
 ```javascript
 const handleAutocompleteSelect = (debate) => {
-  navigate('/panelist-selection', {
-    state: {
-      source: 'autocomplete',
-      debateId: debate.id,
-      topic: debate.topic,
-      preFilled: debate.panelists,
-    }
-  });
+  navigate(`/d/${debate.id}`);
 };
 ```
 
-**Modify `PanelistSelection.jsx`**:
-```javascript
-const { state } = useLocation();
-const isFromAutocomplete = state?.source === 'autocomplete';
+**No changes needed to PanelistSelection.jsx** - Autocomplete navigates directly to debate viewer.
 
-useEffect(() => {
-  if (isFromAutocomplete) {
-    setSelectedPanelists(state.preFilled);
-    const cacheHit = isCacheHit(state.debateId, state.preFilled);
-    setShowViewDebateButton(cacheHit);
-  }
-}, []);
-```
-
-### Step 6: Cache Detection Utility (30 min)
-
-Create `frontend/src/utils/cacheDetection.js`:
-
-```javascript
-export function isCacheHit(originalDebateId, currentPanelists, originalPanelists) {
-  // Deep comparison: topic exact match + panelist array (order-independent)
-  const normalize = (p) => ({ id: p.id, name: p.name });
-  
-  const orig = originalPanelists.map(normalize).sort((a,b) => a.id.localeCompare(b.id));
-  const curr = currentPanelists.map(normalize).sort((a,b) => a.id.localeCompare(b.id));
-  
-  return JSON.stringify(orig) === JSON.stringify(curr);
-}
-```
+### Step 6: Test Integration (15 min)
 
 ## Local Development
 
@@ -350,7 +305,7 @@ const AUTOCOMPLETE_URL = process.env.REACT_APP_AUTOCOMPLETE_URL ||
 
 - [ ] Backend: Query parameter validation (min 3 chars, max 10 limit)
 - [ ] Backend: Sanitization strips HTML tags
-- [ ] Backend: Firestore query returns correct substring matches
+- [ ] Backend: Substring matching works correctly (case-insensitive)
 - [ ] Backend: Results ordered by createdAt descending
 - [ ] Backend: CORS headers present
 - [ ] Frontend: Debouncing prevents rapid API calls
@@ -358,9 +313,8 @@ const AUTOCOMPLETE_URL = process.env.REACT_APP_AUTOCOMPLETE_URL ||
 - [ ] Frontend: Dropdown shows avatars, count, date
 - [ ] Frontend: Keyboard navigation works (↑↓, Enter, Escape)
 - [ ] Frontend: Click-outside closes dropdown
-- [ ] Integration: Selecting debate navigates with pre-filled panelists
-- [ ] Integration: Cache hit shows "View Debate" button
-- [ ] Integration: Modifying panelists shows "Generate New Debate"
+- [ ] Integration: Selecting debate navigates to /d/{debate.id}
+- [ ] Integration: Debate viewer displays complete existing debate
 - [ ] Edge case: Empty Firestore hides dropdown
 - [ ] Edge case: Firestore failure doesn't break "Find Panelists"
 
@@ -369,14 +323,14 @@ const AUTOCOMPLETE_URL = process.env.REACT_APP_AUTOCOMPLETE_URL ||
 **Issue**: Dropdown doesn't appear when typing  
 **Fix**: Check browser console for CORS errors; verify ALLOWED_ORIGIN environment variable
 
-**Issue**: Firestore query returns no results  
-**Fix**: Verify `topicLowercase` field exists in debate documents; rebuild index if needed
+**Issue**: Autocomplete returns no results  
+**Fix**: Verify debates exist in Firestore; check substring filtering logic in backend/functions/list-debates/firestore.go
 
 **Issue**: Avatars not loading in dropdown  
 **Fix**: Check get-portrait endpoint is running; verify CORS headers
 
-**Issue**: Cache detection always shows "Generate New Debate"  
-**Fix**: Verify `isCacheHit` utility comparison logic; check console for panelist data structure
+**Issue**: Navigation doesn't work after selecting suggestion  
+**Fix**: Verify DebateViewer route is configured at /d/:uuid in App.jsx; check debate.id is valid UUID
 
 ## Performance Monitoring
 

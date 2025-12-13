@@ -396,42 +396,50 @@ func HandleListDebates(w http.ResponseWriter, r *http.Request) {
 
 **New Function in firestore.go**:
 ```go
-// AutocompleteDebates queries debates by topic substring (prefix matching)
+// AutocompleteDebates fetches recent debates and filters by topic substring in code
+// Per R001 decision: No Firestore index needed - true substring matching
 func AutocompleteDebates(ctx context.Context, queryLower string, limit int) ([]DebateMetadata, error) {
     client := firebase.GetFirestoreClient(ctx)
     
+    // Fetch recent debates (e.g., last 100)
     docs, err := client.Collection("debates").
-        Where("topicLowercase", ">=", queryLower).
-        Where("topicLowercase", "<", queryLower+"~").
-        OrderBy("topicLowercase", firestore.Asc).
         OrderBy("createdAt", firestore.Desc).
-        Limit(limit).
+        Limit(100).
         Documents(ctx).GetAll()
     
     if err != nil {
         return nil, err
     }
     
-    // Transform to DebateMetadata format
-    debates := make([]DebateMetadata, 0, len(docs))
+    // Filter in code for true substring matching
+    debates := make([]DebateMetadata, 0, limit)
     for _, doc := range docs {
         var debate firebase.DebateDocument
         if err := doc.DataTo(&debate); err != nil {
             continue
         }
         
-        debates = append(debates, DebateMetadata{
-            ID:            debate.ID,
-            Topic:         debate.Topic,
-            PanelistCount: len(debate.Panelists),
-            Panelists:     debate.Panelists,
-            CreatedAt:     debate.CreatedAt.Format(time.RFC3339),
-        })
+        // Case-insensitive substring match
+        if strings.Contains(strings.ToLower(debate.Topic), queryLower) {
+            debates = append(debates, DebateMetadata{
+                ID:            debate.ID,
+                Topic:         debate.Topic,
+                PanelistCount: len(debate.Panelists),
+                Panelists:     debate.Panelists,
+                CreatedAt:     debate.CreatedAt.Format(time.RFC3339),
+            })
+            
+            if len(debates) >= limit {
+                break
+            }
+        }
     }
     
     return debates, nil
 }
 ```
+
+**NOTE**: Per R001, do not use Firestore range queries or add new indexes/fields. Fetch recent debates and filter in Go code for simplicity.
 
 ### Frontend Architecture
 
@@ -559,9 +567,10 @@ interface TopicAutocompleteDropdownProps {
 1. `backend/functions/list-debates/handler.go` - Add `q` parameter handling, autocomplete mode
 2. `backend/functions/list-debates/firestore.go` - Add `AutocompleteDebates` function
 3. `backend/functions/list-debates/types.go` - Reuse existing DebateMetadata type (if needed)
-4. `backend/shared/firebase/debates.go` - Add `topicLowercase` field to SaveDebate function
-5. `docker-compose.yml` - No changes needed (list-debates already on port 8084)
-6. `deploy.sh` - No changes needed (list-debates already deployed)
+4. `docker-compose.yml` - No changes needed (list-debates already on port 8084)
+5. `deploy.sh` - No changes needed (list-debates already deployed)
+
+**NOTE**: Per R001 decision, do not add `topicLowercase` field or create Firestore indexes. Filtering happens in code.
 
 ### Frontend Implementation Checklist
 
@@ -578,14 +587,7 @@ interface TopicAutocompleteDropdownProps {
 
 ### Deployment Updates
 
-**Firestore Index**:
-```bash
-gcloud firestore indexes composite create \
-  --collection-group=debates \
-  --field-config=field-path=topicLowercase,order=ascending \
-  --field-config=field-path=createdAt,order=descending \
-  --project=${GCP_PROJECT_ID}
-```
+**No Firestore Index Needed**: Per R001 decision in plan.md, autocomplete fetches recent debates (~100) and filters in Go code. This eliminates the need for composite indexes or new fields.
 
 **Cloud Function Deployment** (deploy.sh - no changes needed):
 ```bash

@@ -6,10 +6,10 @@
   "queryParameters": {
     "q": {
       "type": "string",
-      "required": true,
+      "required": false,
       "minLength": 3,
       "maxLength": 500,
-      "description": "Search query (substring of topic, case-insensitive)"
+      "description": "Optional search query (substring of topic, case-insensitive). When omitted, returns standard paginated debate list."
     },
     "limit": {
       "type": "integer",
