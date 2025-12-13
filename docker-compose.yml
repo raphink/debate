@@ -80,15 +80,13 @@ services:
       - PORT=8080
       - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:-http://localhost:3000}
       - GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/gcloud-adc.json
-      - REACT_APP_LIST_DEBATES_URL=http://localhost:8086
+    volumes:
+      - ${HOME}/.config/gcloud/application_default_credentials.json:/tmp/keys/gcloud-adc.json:ro
     networks:
       - debate-network
-    depends_on:
-      - validate-topic
-      - generate-debate
-      - get-portrait
-      - get-debate
-      - list-debates Application (Port 3000)
+    restart: unless-stopped
+
+  # Frontend React Application (Port 3000)
   frontend:
     build:
       context: ./frontend
@@ -102,13 +100,15 @@ services:
       - REACT_APP_GET_DEBATE_URL=http://localhost:8084
     networks:
       - debate-network
+      - REACT_APP_LIST_DEBATES_URL=http://localhost:8086
+    networks:
+      - debate-network
     depends_on:
       - validate-topic
       - generate-debate
       - get-portrait
       - get-debate
-    restart: unless-stopped
-
+      - list-debates
 networks:
   debate-network:
     driver: bridge
