@@ -76,7 +76,7 @@ const TopicAutocompleteDropdown = ({
     
     // Handle future dates (invalid data)
     if (diffDays < 0) {
-      console.warn('TopicAutocompleteDropdown: Detected future createdAt date:', dateString);
+      console.warn('TopicAutocompleteDropdown: Detected future startedAt date:', dateString);
       return 'Invalid date';
     }
     
@@ -135,7 +135,7 @@ const TopicAutocompleteDropdown = ({
               </span>
               
               <span className={styles.date}>
-                {formatDate(debate.createdAt)}
+                {formatDate(debate.startedAt)}
               </span>
             </div>
           </div>
@@ -154,7 +154,7 @@ TopicAutocompleteDropdown.propTypes = {
       name: PropTypes.string,
       avatarUrl: PropTypes.string,
     })),
-    createdAt: PropTypes.string.isRequired,
+    startedAt: PropTypes.string.isRequired,
   })),
   isLoading: PropTypes.bool,
   onSelect: PropTypes.func.isRequired,

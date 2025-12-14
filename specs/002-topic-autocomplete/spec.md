@@ -50,9 +50,9 @@ Users see autocomplete suggestions of previous debates as they type in the singl
 - **FR-001**: System MUST extend list-debates Cloud Function endpoint to support autocomplete: GET /api/list-debates?q={query}&limit=10
 - **FR-002**: System MUST sanitize query parameter (strip HTML tags, special characters) before querying Firestore
 - **FR-003**: System MUST query Firestore debates collection by topic substring (case-insensitive)
-- **FR-004**: System MUST order results by createdAt timestamp descending (most recent first)
+- **FR-004**: System MUST order results by startedAt timestamp descending (most recent first)
 - **FR-005**: System MUST limit results to max 10 debates per query
-- **FR-006**: System MUST return full debate metadata: {id, topic, panelists: [{id, name, slug, avatarUrl}], panelistCount, createdAt}
+- **FR-006**: System MUST return full debate metadata: {id, topic, panelists: [{id, name, slug, avatarUrl}], panelistCount, startedAt}
 - **FR-007**: System MUST add CORS headers to allow cross-origin requests from frontend domain
 - **FR-008**: System MUST handle Firestore read failures gracefully (return empty array, log error)
 
@@ -124,7 +124,7 @@ Users see autocomplete suggestions of previous debates as they type in the singl
       name: string;
       slug: string;
     }>;
-    createdAt: Timestamp;    // ISO 8601
+    startedAt: Timestamp;    // ISO 8601
   }>;
 }
 ```

@@ -74,7 +74,7 @@ This is a **gracefully-degrading enhancement** that never blocks the existing wo
 ### ✅ Principle III: Simplicity Over Complexity  
 - **Status**: PASS with CLARIFICATION NEEDED
 - **Evidence**: Simple substring matching (no complex fuzzy search); client-side cache detection (no server-side state)
-- **Question**: Should we implement Firestore composite index for debates.topic + createdAt ordering? (Required for case-insensitive substring + sorting)
+- **Question**: Should we implement Firestore composite index for debates.topic + startedAt ordering? (Required for case-insensitive substring + sorting)
 - **Decision Needed**: Confirm index creation via gcloud command is acceptable for deployment
 
 ### ✅ Principle IV: Iterative Development  
@@ -106,7 +106,7 @@ if query != "" {
     
     // Fetch recent debates (e.g., last 100)
     docs, err := client.Collection("debates").
-        OrderBy("createdAt", firestore.Desc).
+        OrderBy("startedAt", firestore.Desc).
         Limit(100).
         Documents(ctx).GetAll()
     
@@ -176,7 +176,7 @@ const handleAutocompleteSelect = (debate) => {
   panelists: Panelist[];
   messages: Message[];
   status: 'completed' | 'generating';
-  createdAt: Timestamp;
+  startedAt: Timestamp;
   updatedAt: Timestamp;
 }
 ```
@@ -246,7 +246,7 @@ No special navigation state management is needed. Direct navigation to `/d/{deba
                     }
                   }
                 },
-                "createdAt": { "type": "string", "format": "date-time" }
+                "startedAt": { "type": "string", "format": "date-time" }
               }
             }
           }
@@ -263,7 +263,7 @@ No special navigation state management is needed. Direct navigation to `/d/{deba
               { "id": "aquinas", "name": "Thomas Aquinas", "slug": "thomas-aquinas", "avatarUrl": null },
               { "id": "descartes", "name": "René Descartes", "slug": "rene-descartes", "avatarUrl": "https://upload.wikimedia.org/..." }
             ],
-            "createdAt": "2025-12-10T14:23:00Z"
+            "startedAt": "2025-12-10T14:23:00Z"
           }
         ]
       }
@@ -357,7 +357,7 @@ type DebateMetadata struct {
     Topic         string      `json:"topic"`
     PanelistCount int         `json:"panelistCount"`
     Panelists     []Panelist  `json:"panelists"`
-    CreatedAt     string      `json:"createdAt"`
+    StartedAt     string      `json:"startedAt"`
 }
 
 func HandleListDebates(w http.ResponseWriter, r *http.Request) {
@@ -404,7 +404,7 @@ func AutocompleteDebates(ctx context.Context, queryLower string, limit int) ([]D
     
     // Fetch recent debates (e.g., last 100)
     docs, err := client.Collection("debates").
-        OrderBy("createdAt", firestore.Desc).
+        OrderBy("startedAt", firestore.Desc).
         Limit(100).
         Documents(ctx).GetAll()
     
@@ -427,7 +427,7 @@ func AutocompleteDebates(ctx context.Context, queryLower string, limit int) ([]D
                 Topic:         debate.Topic,
                 PanelistCount: len(debate.Panelists),
                 Panelists:     debate.Panelists,
-                CreatedAt:     debate.CreatedAt.Format(time.RFC3339),
+                StartedAt:     debate.StartedAt.Format(time.RFC3339),
             })
             
             if len(debates) >= limit {
@@ -618,7 +618,7 @@ gcloud functions deploy list-debates \
 
 **Integration Tests** (Firestore emulator):
 - Substring matching correctness (prefix matching)
-- Ordering by createdAt descending
+- Ordering by startedAt descending
 - Limit enforcement (max 10 results)
 - Empty results handling
 - Firestore failure graceful degradation

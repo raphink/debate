@@ -117,11 +117,11 @@ func getTopicText(data map[string]interface{}) string {
 }
 
 // autocompleteDebates fetches recent debates and filters by topic substring (case-insensitive)
-// Returns up to 10 matching debates ordered by createdAt DESC
+// Returns up to 10 matching debates ordered by startedAt DESC
 func autocompleteDebates(ctx context.Context, client *firestore.Client, query string) ([]DebateSummary, error) {
-	// Fetch last 100 debates ordered by createdAt DESC
+	// Fetch last 50 debates ordered by startedAt DESC
 	dbQuery := client.Collection("debates").
-		OrderBy("createdAt", firestore.Desc).
+		OrderBy("startedAt", firestore.Desc).
 		Limit(50)
 
 	iter := dbQuery.Documents(ctx)
@@ -172,13 +172,12 @@ func autocompleteDebates(ctx context.Context, client *firestore.Client, query st
 			}
 
 			// Extract timestamp
-			if createdAt, ok := data["createdAt"].(time.Time); ok {
-				debate.StartedAt = createdAt
+			if startedAt, ok := data["startedAt"].(time.Time); ok {
+				debate.StartedAt = startedAt
 			}
 
 			matches = append(matches, debate)
 
-			// Stop at 10 matches
 			if len(matches) >= 10 {
 				break
 			}

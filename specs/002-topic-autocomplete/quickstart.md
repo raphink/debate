@@ -7,7 +7,7 @@ Before implementing US6, ensure:
 1. **US5 (Debate Caching & Sharing) is complete**
    - Firestore debates collection exists and is populated
    - backend/shared/firebase module is functional
-   - Debate documents have required fields: id, topic, panelists, createdAt
+   - Debate documents have required fields: id, topic, panelists, startedAt
 
 2. **Development environment ready**
    - Docker & Docker Compose installed
@@ -39,7 +39,7 @@ Before implementing US6, ensure:
 │ ├─ Fetch recent debates (100) │
 │ ├─ Filter by substring in Go  │
 │ │   strings.Contains(lower)   │
-│ │   ORDER BY createdAt DESC   │
+│ │   ORDER BY startedAt DESC   │
 │ │   LIMIT 10 matches          │
 │ └─ Return debates metadata    │
 └───────────┬───────────────────┘
@@ -313,7 +313,7 @@ const AUTOCOMPLETE_URL = process.env.REACT_APP_AUTOCOMPLETE_URL ||
 - [ ] Backend: Query parameter validation (min 3 chars, max 10 limit)
 - [ ] Backend: Sanitization strips HTML tags
 - [ ] Backend: Substring matching works correctly (case-insensitive)
-- [ ] Backend: Results ordered by createdAt descending
+- [ ] Backend: Results ordered by startedAt descending
 - [ ] Backend: CORS headers present
 - [ ] Frontend: Debouncing prevents rapid API calls
 - [ ] Frontend: Dropdown appears when typing ≥3 chars

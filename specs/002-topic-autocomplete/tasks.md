@@ -38,7 +38,7 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 **⚠️ CRITICAL**: Frontend autocomplete cannot work until this phase is complete
 
 - [X] T002 Extend backend/functions/list-debates/handler.go to handle optional q query parameter with query validation (≥3 chars), sanitization, and autocomplete mode branching
-- [X] T003 Add AutocompleteDebates query function in backend/functions/list-debates/firestore.go that fetches recent debates, filters by topic substring (case-insensitive) in code, and returns top 10 matches ordered by createdAt DESC
+- [X] T003 Add AutocompleteDebates query function in backend/functions/list-debates/firestore.go that fetches recent debates, filters by topic substring (case-insensitive) in code, and returns top 10 matches ordered by startedAt DESC
 - [X] T004 Update frontend/src/services/api.js listDebates function to accept optional query parameter for GET /api/list-debates?q={query}&limit=10
 
 **Checkpoint**: Backend autocomplete API operational - can be tested via curl/Postman with `curl "http://localhost:8084/api/list-debates?q=free"`
