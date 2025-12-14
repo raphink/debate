@@ -3,7 +3,7 @@ package listdebates
 import (
 	"context"
 	"fmt"
-	"strings"
+	"sort"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -116,9 +116,17 @@ func getTopicText(data map[string]interface{}) string {
 	return ""
 }
 
-// autocompleteDebates fetches recent debates and filters by topic substring (case-insensitive)
-// Returns up to 10 matching debates ordered by startedAt DESC
+// autocompleteDebates fetches recent debates and filters using normalized token matching
+// Returns up to 10 matching debates ordered by match weight (DESC), then startedAt (DESC)
 func autocompleteDebates(ctx context.Context, client *firestore.Client, query string) ([]DebateSummary, error) {
+	// Normalize and tokenize the query
+	queryTokens := NormalizeAndTokenize(query)
+	
+	// If query has no significant tokens (all words <3 chars), return empty results
+	if len(queryTokens) == 0 {
+		return []DebateSummary{}, nil
+	}
+
 	// Fetch last 50 debates ordered by startedAt DESC
 	dbQuery := client.Collection("debates").
 		OrderBy("startedAt", firestore.Desc).
@@ -127,8 +135,13 @@ func autocompleteDebates(ctx context.Context, client *firestore.Client, query st
 	iter := dbQuery.Documents(ctx)
 	defer iter.Stop()
 
-	var matches []DebateSummary
-	queryLower := strings.ToLower(query)
+	// matchWithWeight holds a debate and its match score
+	type matchWithWeight struct {
+		debate DebateSummary
+		weight int
+	}
+
+	var matches []matchWithWeight
 
 	for {
 		doc, err := iter.Next()
@@ -145,44 +158,70 @@ func autocompleteDebates(ctx context.Context, client *firestore.Client, query st
 			return nil, fmt.Errorf("failed to parse debate data: %w", err)
 		}
 
-		// Extract topic text and check for substring match
+		// Extract topic text and tokenize
 		topicText := getTopicText(data)
-		if strings.Contains(strings.ToLower(topicText), queryLower) {
-			// Build debate summary
-			debate := DebateSummary{
-				ID:    doc.Ref.ID,
-				Topic: topicText,
-			}
+		topicTokens := NormalizeAndTokenize(topicText)
+		
+		// Count matching tokens (bag-of-words)
+		weight := CountMatchingTokens(queryTokens, topicTokens)
+		
+		// Skip if not all query tokens found
+		if weight == 0 {
+			continue
+		}
 
-			// Extract panelists
-			if panelists, ok := data["panelists"].([]interface{}); ok {
-				debate.PanelistCount = len(panelists)
+		// Build debate summary
+		debate := DebateSummary{
+			ID:    doc.Ref.ID,
+			Topic: topicText,
+		}
 
-				for _, p := range panelists {
-					if panelistMap, ok := p.(map[string]interface{}); ok {
-						debate.Panelists = append(debate.Panelists, PanelistInfo{
-							ID:        getString(panelistMap, "id"),
-							Name:      getString(panelistMap, "name"),
-							AvatarURL: getString(panelistMap, "avatarUrl"),
-							Tagline:   getString(panelistMap, "tagline"),
-							Bio:       getString(panelistMap, "biography"),
-						})
-					}
+		// Extract panelists
+		if panelists, ok := data["panelists"].([]interface{}); ok {
+			debate.PanelistCount = len(panelists)
+
+			for _, p := range panelists {
+				if panelistMap, ok := p.(map[string]interface{}); ok {
+					debate.Panelists = append(debate.Panelists, PanelistInfo{
+						ID:        getString(panelistMap, "id"),
+						Name:      getString(panelistMap, "name"),
+						AvatarURL: getString(panelistMap, "avatarUrl"),
+						Tagline:   getString(panelistMap, "tagline"),
+						Bio:       getString(panelistMap, "biography"),
+					})
 				}
 			}
-
-			// Extract timestamp
-			if startedAt, ok := data["startedAt"].(time.Time); ok {
-				debate.StartedAt = startedAt
-			}
-
-			matches = append(matches, debate)
-
-			if len(matches) >= 10 {
-				break
-			}
 		}
+
+		// Extract timestamp
+		if startedAt, ok := data["startedAt"].(time.Time); ok {
+			debate.StartedAt = startedAt
+		}
+
+		matches = append(matches, matchWithWeight{debate, weight})
 	}
 
-	return matches, nil
+	// Sort by weight (DESC), then by startedAt (DESC) for ties
+	sort.Slice(matches, func(i, j int) bool {
+		if matches[i].weight != matches[j].weight {
+			return matches[i].weight > matches[j].weight
+		}
+		return matches[i].debate.StartedAt.After(matches[j].debate.StartedAt)
+	})
+
+	// Extract top 10 debates
+	results := make([]DebateSummary, 0, min(10, len(matches)))
+	for i := 0; i < len(matches) && i < 10; i++ {
+		results = append(results, matches[i].debate)
+	}
+
+	return results, nil
+}
+
+// min returns the smaller of two integers
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

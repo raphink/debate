@@ -24,15 +24,15 @@ Implement normalized topic matching using KISS approach: tokenize queries/topics
 
 ### Backend Utilities
 
-- [ ] T001 Create `backend/functions/list-debates/normalize.go` with constant `minTokenLength = 3` and function `NormalizeAndTokenize(text string) []string` that: converts to lowercase, replaces hyphens/slashes with spaces, removes punctuation using regex `[^a-z0-9\s]+`, splits on whitespace, filters tokens to keep only len(token) ≥ 3
+- [X] T001 Create `backend/functions/list-debates/normalize.go` with constant `minTokenLength = 3` and function `NormalizeAndTokenize(text string) []string` that: converts to lowercase, replaces hyphens/slashes with spaces, removes punctuation using regex `[^a-z0-9\s]+`, splits on whitespace, filters tokens to keep only len(token) ≥ 3
 
-- [ ] T002 Add `CountMatchingTokens(queryTokens, topicTokens []string) int` function to normalize.go that counts how many query tokens appear in topic tokens (bag-of-words), returning 0 if not ALL query tokens are found (failed match)
+- [X] T002 Add `CountMatchingTokens(queryTokens, topicTokens []string) int` function to normalize.go that counts how many query tokens appear in topic tokens (bag-of-words), returning 0 if not ALL query tokens are found (failed match)
 
 ### Unit Tests
 
-- [ ] T003 Create `backend/functions/list-debates/normalize_test.go` with `TestNormalizeAndTokenize` covering: lowercase conversion, hyphen replacement ("climate-change" → ["climate", "change"]), slash replacement ("AI/ML" → ["ai", "ml"]), punctuation removal, token filtering (≥3 chars), edge cases (empty string, all short words like "is it ok", special chars only)
+- [X] T003 Create `backend/functions/list-debates/normalize_test.go` with `TestNormalizeAndTokenize` covering: lowercase conversion, hyphen replacement ("climate-change" → ["climate", "change"]), slash replacement ("AI/ML" → ["ai", "ml"]), punctuation removal, token filtering (≥3 chars), edge cases (empty string, all short words like "is it ok", special chars only)
 
-- [ ] T004 Add `TestCountMatchingTokens` to normalize_test.go verifying: all query tokens found = count > 0, missing query token = 0, bag-of-words matching (order-independent), empty inputs
+- [X] T004 Add `TestCountMatchingTokens` to normalize_test.go verifying: all query tokens found = count > 0, missing query token = 0, bag-of-words matching (order-independent), empty inputs
 
 ---
 
@@ -40,15 +40,15 @@ Implement normalized topic matching using KISS approach: tokenize queries/topics
 
 ### Modify Existing Code
 
-- [ ] T005 [Depends on T001-T002] Update `autocompleteDebates()` in `backend/functions/list-debates/firestore.go` to call `queryTokens := NormalizeAndTokenize(query)` before loop and return empty slice if len(queryTokens) == 0
+- [X] T005 [Depends on T001-T002] Update `autocompleteDebates()` in `backend/functions/list-debates/firestore.go` to call `queryTokens := NormalizeAndTokenize(query)` before loop and return empty slice if len(queryTokens) == 0
 
-- [ ] T006 Add struct `type matchWithWeight struct { debate DebateSummary; weight int }` inside `autocompleteDebates()` function and change matches slice to `var matches []matchWithWeight`
+- [X] T006 Add struct `type matchWithWeight struct { debate DebateSummary; weight int }` inside `autocompleteDebates()` function and change matches slice to `var matches []matchWithWeight`
 
-- [ ] T007 Update matching loop in `autocompleteDebates()` to: call `topicTokens := NormalizeAndTokenize(topicText)` for each debate, call `weight := CountMatchingTokens(queryTokens, topicTokens)`, append to matches if weight > 0 with `matches = append(matches, matchWithWeight{debate, weight})`
+- [X] T007 Update matching loop in `autocompleteDebates()` to: call `topicTokens := NormalizeAndTokenize(topicText)` for each debate, call `weight := CountMatchingTokens(queryTokens, topicTokens)`, append to matches if weight > 0 with `matches = append(matches, matchWithWeight{debate, weight})`
 
-- [ ] T008 Add sorting logic after loop using `sort.Slice(matches, ...)` to sort by weight DESC (primary), then startedAt DESC (secondary tie-breaker)
+- [X] T008 Add sorting logic after loop using `sort.Slice(matches, ...)` to sort by weight DESC (primary), then startedAt DESC (secondary tie-breaker)
 
-- [ ] T009 Update result extraction to: create `results := make([]DebateSummary, 0, min(10, len(matches)))`, loop through matches extracting just debate field for top 10, return results
+- [X] T009 Update result extraction to: create `results := make([]DebateSummary, 0, min(10, len(matches)))`, loop through matches extracting just debate field for top 10, return results
 
 ### Integration Tests
 
