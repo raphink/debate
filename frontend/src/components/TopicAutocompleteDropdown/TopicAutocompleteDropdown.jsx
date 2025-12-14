@@ -21,7 +21,6 @@ const TopicAutocompleteDropdown = ({
 }) => {
   const dropdownRef = useRef(null);
   const itemRefs = useRef([]);
-  const [hoveredIndex, setHoveredIndex] = React.useState(-1);
 
   // Scroll selected item into view when keyboard navigation changes selection
   useEffect(() => {
@@ -36,12 +35,15 @@ const TopicAutocompleteDropdown = ({
   // Handle click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        // Don't close if clicking on the input field itself
-        const inputElement = dropdownRef.current.parentElement?.querySelector('textarea');
-        if (inputElement && !inputElement.contains(event.target)) {
-          onClose();
-        }
+      const dropdownEl = dropdownRef.current;
+      const inputElement = dropdownEl?.parentElement?.querySelector('textarea');
+      
+      if (
+        dropdownEl &&
+        !dropdownEl.contains(event.target) &&
+        (!inputElement || !inputElement.contains(event.target))
+      ) {
+        onClose();
       }
     };
 
@@ -72,14 +74,10 @@ const TopicAutocompleteDropdown = ({
     if (diffDays === 1) return 'Yesterday';
     if (diffDays > 1 && diffDays < 7) return `${diffDays} days ago`;
     
-    // Handle future dates
+    // Handle future dates (invalid data)
     if (diffDays < 0) {
-      const futureDays = Math.abs(diffDays);
-      if (futureDays === 1) return 'Tomorrow';
-      if (futureDays < 7) return `In ${futureDays} days`;
-      
-      // For further in the future, show the date
-      return dateOnly.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      console.warn('TopicAutocompleteDropdown: Detected future createdAt date:', dateString);
+      return 'Invalid date';
     }
     
     return dateOnly.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -113,8 +111,6 @@ const TopicAutocompleteDropdown = ({
                 onSelect(debate);
               }
             }}
-            onMouseEnter={() => setHoveredIndex(index)}
-            onMouseLeave={() => setHoveredIndex(-1)}
           >
             <div className={styles.topicText}>{debate.topic}</div>
             

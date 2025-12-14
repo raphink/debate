@@ -134,7 +134,7 @@ const TopicInput = ({ onSubmit, isLoading, onAutocompleteSelect }) => {
         } else {
           // Explicitly trigger form submit if no suggestion is selected
           if (typeof onSubmit === 'function') {
-            onSubmit(topic);
+            onSubmit(topic, suggestedNames);
           }
         }
         break;

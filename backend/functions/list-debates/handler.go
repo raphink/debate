@@ -2,6 +2,8 @@ package listdebates
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -98,7 +100,9 @@ func ListDebatesHandler(w http.ResponseWriter, r *http.Request) {
 		// Query autocomplete debates
 		debates, err := autocompleteDebates(ctx, client, sanitizedQuery)
 		if err != nil {
-			log.Printf("Autocomplete query failed: query=%q, sanitized=%q, error=%v", queryParam, sanitizedQuery, err)
+			// Log only sanitized query and a hash of the original query for correlation
+			queryHash := sha256.Sum256([]byte(queryParam))
+			log.Printf("Autocomplete query failed: sanitized=%q, queryHash=%s, error=%v", sanitizedQuery, hex.EncodeToString(queryHash[:]), err)
 			sendError(w, "Failed to query autocomplete results", http.StatusInternalServerError)
 			return
 		}
