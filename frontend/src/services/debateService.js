@@ -121,7 +121,9 @@ export const fetchDebateHistory = async ({ limit = 20, offset = 0, query } = {})
   if (query) {
     // Autocomplete mode - query parameter takes precedence
     params.append('q', query);
-    params.append('limit', '10'); // Autocomplete always returns max 10
+    // Respect user-provided limit, capped between 1 and 10
+    const cappedLimit = Math.max(1, Math.min(Number(limit) || 10, 10));
+    params.append('limit', cappedLimit.toString());
   } else {
     // Pagination mode
     params.append('limit', limit.toString());

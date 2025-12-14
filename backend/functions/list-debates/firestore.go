@@ -156,6 +156,7 @@ func autocompleteDebates(ctx context.Context, client *firestore.Client, query st
 
 			// Extract panelists
 			if panelists, ok := data["panelists"].([]interface{}); ok {
+				debate.PanelistCount = len(panelists)
 				for _, p := range panelists {
 					if panelistMap, ok := p.(map[string]interface{}); ok {
 						debate.Panelists = append(debate.Panelists, PanelistInfo{
@@ -170,8 +171,8 @@ func autocompleteDebates(ctx context.Context, client *firestore.Client, query st
 			}
 
 			// Extract timestamp
-			if startedAt, ok := data["startedAt"].(time.Time); ok {
-				debate.StartedAt = startedAt
+			if createdAt, ok := data["createdAt"].(time.Time); ok {
+				debate.StartedAt = createdAt
 			}
 
 			matches = append(matches, debate)

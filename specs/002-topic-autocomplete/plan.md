@@ -28,7 +28,7 @@ This is a **gracefully-degrading enhancement** that never blocks the existing wo
 **Language/Version**: Go 1.24 (backend), JavaScript/React 18+ (frontend)  
 **Primary Dependencies**: 
 - Backend: Existing backend/shared/firebase module (Firestore client already initialized)
-- Frontend: Existing React Router navigation state, lodash.isequal for deep comparison (or custom utility)
+- Frontend: Existing React Router for navigation
 **Storage**: Cloud Firestore (debates collection already exists from US5)  
 **Testing**: 
 - Backend: Go testing package, Firestore emulator for integration tests
@@ -181,8 +181,9 @@ const handleAutocompleteSelect = (debate) => {
 }
 ```
 
-#### Frontend Navigation State
-**Not needed** - Direct navigation to /d/{debate.id} uses URL parameter only, no React Router state required.
+### Frontend Navigation
+
+No special navigation state management is needed. Direct navigation to `/d/{debate.id}` uses the URL parameter only; no React Router state is required.
 
 ### API Contracts
 

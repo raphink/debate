@@ -89,6 +89,12 @@ func ListDebatesHandler(w http.ResponseWriter, r *http.Request) {
 		sanitizedQuery := sanitize.StripHTML(queryParam)
 		sanitizedQuery = strings.ToLower(sanitizedQuery)
 
+		// Validate sanitized query length (after HTML stripping)
+		if len(sanitizedQuery) < 3 {
+			sendError(w, "Query must be at least 3 characters after sanitization", http.StatusBadRequest)
+			return
+		}
+
 		// Query autocomplete debates
 		debates, err := autocompleteDebates(ctx, client, sanitizedQuery)
 		if err != nil {

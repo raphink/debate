@@ -21,6 +21,7 @@ const TopicAutocompleteDropdown = ({
 }) => {
   const dropdownRef = useRef(null);
   const itemRefs = useRef([]);
+  const [hoveredIndex, setHoveredIndex] = React.useState(-1);
 
   // Scroll selected item into view when keyboard navigation changes selection
   useEffect(() => {
@@ -36,7 +37,11 @@ const TopicAutocompleteDropdown = ({
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        onClose();
+        // Don't close if clicking on the input field itself
+        const inputElement = dropdownRef.current.parentElement?.querySelector('textarea');
+        if (inputElement && !inputElement.contains(event.target)) {
+          onClose();
+        }
       }
     };
 
@@ -53,15 +58,31 @@ const TopicAutocompleteDropdown = ({
 
   // Format date for display
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    // Zero out the time part for both dates to compare only the date
+    const dateOnly = new Date(dateString);
+    dateOnly.setHours(0, 0, 0, 0);
+    
+    const nowOnly = new Date();
+    nowOnly.setHours(0, 0, 0, 0);
+    
+    const diffMs = nowOnly - dateOnly;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays > 1 && diffDays < 7) return `${diffDays} days ago`;
     
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    // Handle future dates
+    if (diffDays < 0) {
+      const futureDays = Math.abs(diffDays);
+      if (futureDays === 1) return 'Tomorrow';
+      if (futureDays < 7) return `In ${futureDays} days`;
+      
+      // For further in the future, show the date
+      return dateOnly.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    
+    return dateOnly.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   return (
@@ -84,17 +105,16 @@ const TopicAutocompleteDropdown = ({
             className={`${styles.suggestion} ${selectedIndex === index ? styles.selected : ''}`}
             role="option"
             aria-selected={selectedIndex === index}
-            tabIndex={0}
+            tabIndex={-1}
             onClick={() => onSelect(debate)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
+              if (e.key === 'Enter') {
                 e.preventDefault();
                 onSelect(debate);
               }
             }}
-            onMouseEnter={() => {
-              // Optional: update selectedIndex on hover for keyboard consistency
-            }}
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(-1)}
           >
             <div className={styles.topicText}>{debate.topic}</div>
             

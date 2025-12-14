@@ -82,9 +82,15 @@ Before implementing US6, ensure:
 gcloud firestore collections describe debates --project=${GCP_PROJECT_ID}
 ```
 
-### Step 2: Backend Implementation (1 hour)
+### Step 2: Backend Implementation (Already Complete)
 
-Create `backend/functions/autocomplete-topics/`:
+**No new Cloud Function needed** - Per R001 decision, autocomplete is integrated into the existing `list-debates` function via the `?q=` query parameter.
+
+**Verify existing implementation** in `backend/functions/list-debates/`:
+- `handler.go`: Checks for `q` parameter and calls `AutocompleteDebates()`
+- `firestore.go`: Contains `AutocompleteDebates()` function that fetches recent debates and filters in code
+
+### Step 3: Frontend Implementation (1.5 hours)
 
 **handler.go**:
 ```go
@@ -259,7 +265,8 @@ docker-compose up --build
 - Type topic containing substring from previous debates
 - Verify dropdown appears with suggestions
 - Test keyboard navigation (↑↓, Enter, Escape)
-- Select debate, verify navigation to PanelistSelection with pre-filled panelists
+- Select debate from dropdown
+- Verify navigation to /d/{debate.id} and complete debate displays
 
 4. **Test cache detection**:
 - Select debate from autocomplete

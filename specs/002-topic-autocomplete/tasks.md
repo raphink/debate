@@ -103,7 +103,7 @@ description: "Task list for Topic Discovery via History Integration (US6)"
 - [X] T021 Update DEPLOYMENT.md with list-debates function autocomplete enhancement
 - [X] T022 Add error logging for autocomplete API failures in backend/functions/list-debates/handler.go with context about query and Firestore errors
 - [X] T023 [P] Add performance monitoring for autocomplete API response times (consider Cloud Function metrics)
-- [X] T024 Run quickstart.md validation: generate debates, test autocomplete flow, verify direct navigation to debate viewer, test graceful degradation
+- [X] T024 Run quickstart.md validation: generate debates, test autocomplete flow, verify direct navigation to /d/{debate.id}, test graceful degradation
 
 ---
 

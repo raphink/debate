@@ -17,11 +17,19 @@ const TopicInput = ({ onSubmit, isLoading, onAutocompleteSelect }) => {
   // Autocomplete hook
   const { suggestions, isLoading: autocompleteLoading } = useTopicAutocomplete(topic, true);
 
+  // Update showDropdown when topic or suggestions change
+  React.useEffect(() => {
+    if (topic.length >= 3 && suggestions && suggestions.length > 0) {
+      setShowDropdown(true);
+    } else {
+      setShowDropdown(false);
+    }
+  }, [topic, suggestions]);
+
   const handleInputChange = (e) => {
     const value = e.target.value;
     setTopic(value);
     setClientError(null);
-    setShowDropdown(value.length >= 3); // Show dropdown when query is long enough
     setSelectedIndex(-1); // Reset selection on input change
   };
 
@@ -120,11 +128,15 @@ const TopicInput = ({ onSubmit, isLoading, onAutocompleteSelect }) => {
         setSelectedIndex(prev => (prev > 0 ? prev - 1 : -1));
         break;
       case 'Enter':
+        e.preventDefault();
         if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
-          e.preventDefault();
           handleAutocompleteSelect(suggestions[selectedIndex]);
+        } else {
+          // Explicitly trigger form submit if no suggestion is selected
+          if (typeof onSubmit === 'function') {
+            onSubmit(topic);
+          }
         }
-        // If no selection, allow normal form submit
         break;
       case 'Escape':
         e.preventDefault();
