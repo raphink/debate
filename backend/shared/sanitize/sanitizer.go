@@ -2,9 +2,9 @@
 package sanitize
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
-	"fmt"
 )
 
 var (
@@ -29,7 +29,7 @@ func StripHTML(input string) string {
 func ValidateTopicText(topic string, minLength, maxLength int) (string, error) {
 	// Strip HTML and trim
 	cleaned := StripHTML(topic)
-	
+
 	// Validate length
 	if len(cleaned) < minLength {
 		return "", &ValidationError{
@@ -38,7 +38,7 @@ func ValidateTopicText(topic string, minLength, maxLength int) (string, error) {
 			Code:    "INVALID_TOPIC_LENGTH",
 		}
 	}
-	
+
 	if len(cleaned) > maxLength {
 		return "", &ValidationError{
 			Field:   "topic",
@@ -46,7 +46,7 @@ func ValidateTopicText(topic string, minLength, maxLength int) (string, error) {
 			Code:    "INVALID_TOPIC_LENGTH",
 		}
 	}
-	
+
 	return cleaned, nil
 }
 

@@ -115,6 +115,7 @@ func getTopicText(data map[string]interface{}) string {
 	}
 	return ""
 }
+
 // autocompleteDebates fetches recent debates and filters by topic substring (case-insensitive)
 // Returns up to 10 matching debates ordered by createdAt DESC
 func autocompleteDebates(ctx context.Context, client *firestore.Client, query string) ([]DebateSummary, error) {
