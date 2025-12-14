@@ -132,10 +132,8 @@ const TopicInput = ({ onSubmit, isLoading, onAutocompleteSelect }) => {
         if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
           handleAutocompleteSelect(suggestions[selectedIndex]);
         } else {
-          // Explicitly trigger form submit if no suggestion is selected
-          if (typeof onSubmit === 'function') {
-            onSubmit(topic, suggestedNames);
-          }
+          // Trigger form submit with validation
+          handleSubmit(e);
         }
         break;
       case 'Escape':
@@ -154,7 +152,7 @@ const TopicInput = ({ onSubmit, isLoading, onAutocompleteSelect }) => {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <div className={styles.inputGroup} style={{ position: 'relative' }}>
+      <div className={`${styles.inputGroup} ${styles.relativeContainer}`}>
         <label htmlFor="topic-input" className={styles.label}>
           Enter your debate topic
         </label>

@@ -213,9 +213,9 @@
   
   "performanceConsiderations": {
     "firestoreIndex": "No Firestore index required. Filtering is performed in code as per architectural decision R001.",
-    "rationale": "Fetches recent debates (e.g., last 100) and filters by substring in Go code. Avoids complex Firestore range queries and provides true substring matching (not just prefix)."
-  },
+    "rationale": "Fetches recent debates (e.g., last 100) and filters by substring in Go code. Avoids complex Firestore range queries and provides true substring matching (not just prefix).",
     "caching": "No server-side caching (stateless function). Client-side debouncing reduces query frequency.",
     "targetLatency": "p95 response time <500ms for queries returning <10 results"
   }
+}
 }
