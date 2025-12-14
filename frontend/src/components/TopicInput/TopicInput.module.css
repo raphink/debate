@@ -8,6 +8,10 @@
   margin-bottom: 1.5rem;
 }
 
+.relativeContainer {
+  position: relative;
+}
+
 .label {
   display: block;
   font-size: 1.125rem;

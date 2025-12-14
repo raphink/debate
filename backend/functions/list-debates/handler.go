@@ -2,14 +2,18 @@ package listdebates
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	_ "github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
 	"github.com/raphink/debate/shared/firebase"
+	"github.com/raphink/debate/shared/sanitize"
 )
 
 var allowedOrigin string
@@ -53,9 +57,72 @@ func ListDebatesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse query parameters
+	queryParam := r.URL.Query().Get("q")
 	limitStr := r.URL.Query().Get("limit")
 	offsetStr := r.URL.Query().Get("offset")
 
+	// Initialize Firestore client if needed
+	ctx := r.Context()
+	client := firebase.GetClient()
+	if client == nil {
+		if err := firebase.InitFirestore(ctx); err != nil {
+			log.Printf("Failed to initialize Firestore: %v", err)
+			sendError(w, "Failed to initialize database connection", http.StatusInternalServerError)
+			return
+		}
+		client = firebase.GetClient()
+	}
+
+	// Autocomplete mode: if q parameter is provided
+	if queryParam != "" {
+		// Validate query length
+		queryParam = strings.TrimSpace(queryParam)
+		if len(queryParam) < 3 {
+			sendError(w, "Query must be at least 3 characters", http.StatusBadRequest)
+			return
+		}
+
+		if len(queryParam) > 500 {
+			sendError(w, "Query must be less than 500 characters", http.StatusBadRequest)
+			return
+		}
+
+		// Sanitize query input
+		sanitizedQuery := sanitize.StripHTML(queryParam)
+		sanitizedQuery = strings.ToLower(sanitizedQuery)
+
+		// Validate sanitized query length (after HTML stripping)
+		if len(sanitizedQuery) < 3 {
+			sendError(w, "Query must be at least 3 characters after sanitization", http.StatusBadRequest)
+			return
+		}
+
+		// Query autocomplete debates
+		debates, err := autocompleteDebates(ctx, client, sanitizedQuery)
+		if err != nil {
+			// Log only sanitized query and a hash of the original query for correlation
+			queryHash := sha256.Sum256([]byte(queryParam))
+			log.Printf("Autocomplete query failed: sanitized=%q, queryHash=%s, error=%v", sanitizedQuery, hex.EncodeToString(queryHash[:]), err)
+			sendError(w, "Failed to query autocomplete results", http.StatusInternalServerError)
+			return
+		}
+
+		log.Printf("Autocomplete query successful: query=%q, results=%d", sanitizedQuery, len(debates))
+
+		// Send autocomplete response (no pagination for autocomplete)
+		response := ListDebatesResponse{
+			Debates: debates,
+			Total:   len(debates),
+			HasMore: false,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// Normal list mode: pagination
 	limit := 20 // default
 	offset := 0 // default
 
@@ -75,18 +142,6 @@ func ListDebatesHandler(w http.ResponseWriter, r *http.Request) {
 			sendError(w, "Invalid offset: must be >= 0", http.StatusBadRequest)
 			return
 		}
-	}
-
-	// Initialize Firestore client if needed
-	ctx := r.Context()
-	client := firebase.GetClient()
-	if client == nil {
-		if err := firebase.InitFirestore(ctx); err != nil {
-			log.Printf("Failed to initialize Firestore: %v", err)
-			sendError(w, "Failed to initialize database connection", http.StatusInternalServerError)
-			return
-		}
-		client = firebase.GetClient()
 	}
 
 	// Query debates

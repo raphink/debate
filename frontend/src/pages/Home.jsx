@@ -35,6 +35,11 @@ const Home = () => {
     clearSelection();
   };
 
+  // Handle autocomplete selection - navigate directly to view the existing debate
+  const handleAutocompleteSelect = (debate) => {
+    navigate(`/d/${debate.id}`);
+  };
+
   const handleProceedToDebate = () => {
     if (isValidSelection() && validationResult) {
       navigate('/debate', {
@@ -59,7 +64,11 @@ const Home = () => {
         {/* Show input section only if not validating and no results yet */}
         {!isValidating && !validationResult && (
           <div className={styles.inputSection}>
-            <TopicInput onSubmit={handleSubmit} isLoading={isValidating} />
+            <TopicInput 
+              onSubmit={handleSubmit} 
+              isLoading={isValidating}
+              onAutocompleteSelect={handleAutocompleteSelect}
+            />
             
             <div className={styles.historyLinkContainer}>
               <Link to="/debates" className={styles.historyLink}>

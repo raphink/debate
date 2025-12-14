@@ -3,6 +3,7 @@ package listdebates
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -113,4 +114,75 @@ func getTopicText(data map[string]interface{}) string {
 		}
 	}
 	return ""
+}
+
+// autocompleteDebates fetches recent debates and filters by topic substring (case-insensitive)
+// Returns up to 10 matching debates ordered by startedAt DESC
+func autocompleteDebates(ctx context.Context, client *firestore.Client, query string) ([]DebateSummary, error) {
+	// Fetch last 50 debates ordered by startedAt DESC
+	dbQuery := client.Collection("debates").
+		OrderBy("startedAt", firestore.Desc).
+		Limit(50)
+
+	iter := dbQuery.Documents(ctx)
+	defer iter.Stop()
+
+	var matches []DebateSummary
+	queryLower := strings.ToLower(query)
+
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to iterate debates: %w", err)
+		}
+
+		// Parse document data
+		var data map[string]interface{}
+		if err := doc.DataTo(&data); err != nil {
+			return nil, fmt.Errorf("failed to parse debate data: %w", err)
+		}
+
+		// Extract topic text and check for substring match
+		topicText := getTopicText(data)
+		if strings.Contains(strings.ToLower(topicText), queryLower) {
+			// Build debate summary
+			debate := DebateSummary{
+				ID:    doc.Ref.ID,
+				Topic: topicText,
+			}
+
+			// Extract panelists
+			if panelists, ok := data["panelists"].([]interface{}); ok {
+				debate.PanelistCount = len(panelists)
+
+				for _, p := range panelists {
+					if panelistMap, ok := p.(map[string]interface{}); ok {
+						debate.Panelists = append(debate.Panelists, PanelistInfo{
+							ID:        getString(panelistMap, "id"),
+							Name:      getString(panelistMap, "name"),
+							AvatarURL: getString(panelistMap, "avatarUrl"),
+							Tagline:   getString(panelistMap, "tagline"),
+							Bio:       getString(panelistMap, "biography"),
+						})
+					}
+				}
+			}
+
+			// Extract timestamp
+			if startedAt, ok := data["startedAt"].(time.Time); ok {
+				debate.StartedAt = startedAt
+			}
+
+			matches = append(matches, debate)
+
+			if len(matches) >= 10 {
+				break
+			}
+		}
+	}
+
+	return matches, nil
 }

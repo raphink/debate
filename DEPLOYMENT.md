@@ -95,6 +95,19 @@ gcloud functions deploy generate-debate \
   --set-secrets=ANTHROPIC_API_KEY=anthropic-api-key:latest \
   --memory=512MB \
   --timeout=300s
+
+# Deploy list-debates (supports autocomplete via ?q= parameter)
+gcloud functions deploy list-debates \
+  --gen2 \
+  --runtime=go124 \
+  --region=europe-west1 \
+  --source=./backend/functions/list-debates \
+  --entry-point=main \
+  --trigger-http \
+  --allow-unauthenticated \
+  --set-env-vars=GCP_PROJECT_ID=debate-480911 \
+  --memory=256MB \
+  --timeout=30s
 ```
 
 ### Frontend (GitHub Pages)

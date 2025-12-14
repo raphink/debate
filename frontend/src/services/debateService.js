@@ -104,15 +104,35 @@ export const generateDebateStream = (topic, selectedPanelists, onMessage, onErro
 };
 
 /**
- * Fetch debate history with pagination
+ * Fetch debate history with pagination or autocomplete
  * 
- * @param {number} limit - Maximum number of debates to fetch (default 20)
- * @param {number} offset - Number of debates to skip (default 0)
+ * @param {Object} options - Query options
+ * @param {number} [options.limit=20] - Maximum number of debates to fetch
+ * @param {number} [options.offset=0] - Number of debates to skip (pagination mode only)
+ * @param {string} [options.query] - Search query for autocomplete (min 3 chars, returns max 10 results)
  * @returns {Promise<{debates: Array, total: number, hasMore: boolean}>}
  */
-export const fetchDebateHistory = async (limit = 20, offset = 0) => {
+export const fetchDebateHistory = async ({ limit = 20, offset = 0, query } = {}) => {
   const baseURL = process.env.REACT_APP_LIST_DEBATES_URL || 'http://localhost:8086';
-  const url = `${baseURL}/list-debates?limit=${limit}&offset=${offset}`;
+  
+  // Build query parameters
+  const params = new URLSearchParams();
+  
+  let finalLimit;
+  if (query) {
+    // Autocomplete mode - query parameter takes precedence
+    params.append('q', query);
+    // In autocomplete mode, limit is capped between 1-10 for UX/performance reasons
+    finalLimit = Math.max(1, Math.min(Number(limit) || 10, 10));
+    params.append('limit', finalLimit.toString());
+  } else {
+    // Pagination mode - use user-provided limit (default 20)
+    finalLimit = Number(limit) || 20;
+    params.append('limit', finalLimit.toString());
+    params.append('offset', offset.toString());
+  }
+  
+  const url = `${baseURL}/list-debates?${params.toString()}`;
 
   const response = await fetch(url);
 

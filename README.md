@@ -10,6 +10,7 @@ Generate engaging debates between historical theological and philosophical figur
 📱 **Mobile PWA** - Install as a standalone app on iOS and Android devices  
 📄 **PDF Export** - Export debates with portraits and chat bubble formatting  
 ✍️ **Markdown Formatting** - Supports inline formatting (*italic*, **bold**, ***bold italic***) in messages  
+🔍 **Topic Autocomplete** - Discover and view previous debates as you type with smart suggestions  
 🎨 **Beautiful UI** - Modern, responsive design with gradient effects and animations  
 🔒 **Secure** - CORS protection, input sanitization, and rate limiting
 

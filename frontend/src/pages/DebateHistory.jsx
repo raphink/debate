@@ -18,7 +18,7 @@ const DebateHistory = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await fetchDebateHistory(100, 0); // Fetch first 100 debates
+        const data = await fetchDebateHistory({ limit: 100, offset: 0 }); // Fetch first 100 debates
         setDebates(data.debates || []);
       } catch (err) {
         console.error('Failed to fetch debates:', err);

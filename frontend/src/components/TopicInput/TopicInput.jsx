@@ -2,18 +2,35 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { MIN_TOPIC_LENGTH, MAX_TOPIC_LENGTH } from '../../utils/constants';
 import { validateTopicLength, isTopicSafe } from '../../utils/validation';
+import { useTopicAutocomplete } from '../../hooks/useTopicAutocomplete';
+import TopicAutocompleteDropdown from '../TopicAutocompleteDropdown/TopicAutocompleteDropdown';
 import styles from './TopicInput.module.css';
 
-const TopicInput = ({ onSubmit, isLoading }) => {
+const TopicInput = ({ onSubmit, isLoading, onAutocompleteSelect }) => {
   const [topic, setTopic] = useState('');
   const [suggestedNames, setSuggestedNames] = useState([]);
   const [nameInput, setNameInput] = useState('');
   const [clientError, setClientError] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+
+  // Autocomplete hook
+  const { suggestions, isLoading: autocompleteLoading } = useTopicAutocomplete(topic, true);
+
+  // Update showDropdown when topic or suggestions change
+  React.useEffect(() => {
+    if (topic.length >= 3 && suggestions && suggestions.length > 0) {
+      setShowDropdown(true);
+    } else {
+      setShowDropdown(false);
+    }
+  }, [topic, suggestions]);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
     setTopic(value);
     setClientError(null);
+    setSelectedIndex(-1); // Reset selection on input change
   };
 
   const handleNameInputChange = (e) => {
@@ -79,7 +96,54 @@ const TopicInput = ({ onSubmit, isLoading }) => {
 
     // Clear error and submit
     setClientError(null);
+    setShowDropdown(false); // Hide dropdown on submit
     onSubmit(topic, suggestedNames);
+  };
+
+  // Handle autocomplete selection
+  const handleAutocompleteSelect = (debate) => {
+    setTopic(debate.topic);
+    setShowDropdown(false);
+    setSelectedIndex(-1);
+    
+    // Notify parent component if callback provided
+    if (onAutocompleteSelect) {
+      onAutocompleteSelect(debate);
+    }
+  };
+
+  // Handle keyboard navigation in topic input
+  const handleTopicKeyDown = (e) => {
+    if (!showDropdown || suggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => (prev > 0 ? prev - 1 : -1));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+          handleAutocompleteSelect(suggestions[selectedIndex]);
+        } else {
+          // Trigger form submit with validation
+          handleSubmit(e);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setShowDropdown(false);
+        setSelectedIndex(-1);
+        break;
+      default:
+        break;
+    }
   };
 
   const charactersRemaining = MAX_TOPIC_LENGTH - topic.length;
@@ -88,7 +152,7 @@ const TopicInput = ({ onSubmit, isLoading }) => {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <div className={styles.inputGroup}>
+      <div className={`${styles.inputGroup} ${styles.relativeContainer}`}>
         <label htmlFor="topic-input" className={styles.label}>
           Enter your debate topic
         </label>
@@ -96,13 +160,31 @@ const TopicInput = ({ onSubmit, isLoading }) => {
           id="topic-input"
           value={topic}
           onChange={handleInputChange}
+          onKeyDown={handleTopicKeyDown}
           placeholder="E.g., Should Christians defy authorities when the law is unfair?"
           className={styles.textarea}
           disabled={isLoading}
           rows={4}
           aria-describedby="character-count topic-help"
           aria-invalid={clientError ? 'true' : 'false'}
+          aria-autocomplete="list"
+          aria-controls="topic-autocomplete"
         />
+        
+        {/* Autocomplete Dropdown */}
+        {showDropdown && (
+          <TopicAutocompleteDropdown
+            suggestions={suggestions}
+            isLoading={autocompleteLoading}
+            onSelect={handleAutocompleteSelect}
+            selectedIndex={selectedIndex}
+            onClose={() => {
+              setShowDropdown(false);
+              setSelectedIndex(-1);
+            }}
+          />
+        )}
+        
         <div className={styles.meta}>
           <span id="topic-help" className={styles.help}>
             Topics related to theology, philosophy, ethics, or morality
