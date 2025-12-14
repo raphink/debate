@@ -335,10 +335,10 @@
 
 ### Backend: Topic Autocomplete Endpoint
 
-- [ ] T144 [P] [US6] Create autocomplete-topics function in backend/shared/firebase/debates.go (query Firestore by topic substring, case-insensitive, order by createdAt desc)
+- [ ] T144 [P] [US6] Create autocomplete-topics function in backend/shared/firebase/debates.go (query Firestore by topic substring, case-insensitive, order by startedAt desc)
 - [ ] T145 [P] [US6] Create new Cloud Function backend/functions/autocomplete-topics/ (HTTP GET handler)
 - [ ] T146 [P] [US6] Implement autocomplete-topics handler (parse q and limit from query params, default limit=10)
-- [ ] T147 [P] [US6] Return full debate metadata: {id, topic, panelists: [{id, name, slug}], panelistCount, createdAt}
+- [ ] T147 [P] [US6] Return full debate metadata: {id, topic, panelists: [{id, name, slug}], panelistCount, startedAt}
 - [ ] T148 [P] [US6] Add CORS headers and error handling to autocomplete-topics response
 - [ ] T149 [P] [US6] Create Dockerfile for autocomplete-topics function (or reuse shared approach)
 - [ ] T150 [P] [US6] Add autocomplete-topics deployment to deploy.sh script
@@ -365,7 +365,7 @@
 
 ### Testing
 
-- [ ] T165 [US6] Backend test: Call autocomplete-topics with q="ethics" → verify returns matching debates ordered by createdAt DESC
+- [ ] T165 [US6] Backend test: Call autocomplete-topics with q="ethics" → verify returns matching debates ordered by startedAt DESC
 - [ ] T166 [US6] Backend test: Call with limit=5 → verify returns max 5 results
 - [ ] T167 [US6] Frontend test: Type 3+ chars in topic input → verify autocomplete dropdown appears with topic suggestions
 - [ ] T168 [US6] Frontend test: Select topic from dropdown → verify navigation to PanelistSelection with pre-filled panelists

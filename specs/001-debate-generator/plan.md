@@ -449,10 +449,10 @@ Response: 200 OK with debate JSON, 404 Not Found, or 500 Error
 ```
 Endpoint: GET /api/autocomplete-topics?q={query}&limit=10
 Purpose: Search historical debate topics for autocomplete in topic input field
-Response: 200 OK with array of matching debates (id, topic, panelistCount, panelists[], createdAt)
+Response: 200 OK with array of matching debates (id, topic, panelistCount, panelists[], startedAt)
 Implementation:
   1. Query Firestore debates collection where topic contains query substring (case-insensitive)
-  2. Order by createdAt DESC (newest first)
+  2. Order by startedAt DESC (newest first)
   3. Return up to 'limit' results (default 10)
   4. Include full debate metadata: id, topic text, panelist IDs/names/slugs, created timestamp
   5. Frontend uses this to pre-fill panelists and detect cache hits
