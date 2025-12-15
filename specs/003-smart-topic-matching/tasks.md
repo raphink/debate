@@ -126,57 +126,14 @@ Implement normalized topic matching using KISS approach: tokenize queries/topics
 **Phases**: 4 (Foundation → Integration → Testing → Deployment)
 **Parallel Opportunities**: T014-T015 (local testing)
 
-**Critical Path**: T001-T002 → T003-T004 → T005-T009 → T010-T013 → T014-T018 → T019-T032
+**Critical Path**: T001-T004 → T005-T009 → T010-T013 → T014-T018 → T019-T032
 
 **Estimated Effort**:
-- Phase 1: ~2 hours (normalization + tests, simplified from original)
-- Phase 2: ~2 hours (integration + tests, simplified from original)
+- Phase 1: ~2 hours (normalization + tests, simplified KISS approach)
+- Phase 2: ~2 hours (integration + tests)
 - Phase 3: ~1.5 hours (validation)
 - Phase 4: ~2 hours (deployment + monitoring)
-- **Total**: ~7.5 hours (reduced from original 11 hours due to KISS simplification)
-
-**Dependencies**:
-- No external dependencies (uses existing Go stdlib)
-- No Firestore schema changes
-- No frontend changes required
-- Backwards compatible with existing autocomplete API
-
-- [ ] T029 Measure response time on staging and verify <500ms (NFR-001 from US6) with <50ms added overhead (NFR-001 from this feature)
-
-### Production Deployment
-
-- [ ] T030 Deploy to production environment using existing deployment script
-
-- [ ] T031 Monitor Cloud Function logs for first 1 hour after deployment
-
-- [ ] T032 Monitor Cloud Function metrics (invocations, errors, latency) in Google Cloud Console
-
-- [ ] T033 Verify Firestore read usage is unchanged (still ~50 reads per autocomplete query)
-
-### Post-Deployment Validation
-
-- [ ] T034 Test production autocomplete with various queries from different browsers/locations
-
-- [ ] T035 Monitor user feedback channels for any autocomplete issues or regressions
-
-- [ ] T036 Document any discovered edge cases or needed improvements for future iteration
-
----
-
-## Task Summary
-
-**Total Tasks**: 36
-**Phases**: 4 (Foundation → Integration → Testing → Deployment)
-**Parallel Opportunities**: T017-T019 (local testing)
-
-**Critical Path**: T001-T004 → T009-T013 → T014-T016 → T017-T022 → T026-T036
-
-**Estimated Effort**:
-- Phase 1: ~4 hours (normalization + tests)
-- Phase 2: ~3 hours (integration + tests)
-- Phase 3: ~2 hours (validation)
-- Phase 4: ~2 hours (deployment + monitoring)
-- **Total**: ~11 hours
+- **Total**: ~7.5 hours
 
 **Dependencies**:
 - No external dependencies (uses existing Go stdlib)

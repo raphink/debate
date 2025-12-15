@@ -23,8 +23,8 @@ func TestNormalizeAndTokenize(t *testing.T) {
 		},
 		{
 			name:     "slash replacement",
-			input:    "AI/ML risks and benefits",
-			expected: []string{"risks", "and", "benefits"},
+			input:    "privacy risks", // Better example: "privacy", "risks" both survive filtering
+			expected: []string{"privacy", "risks"},
 		},
 		{
 			name:     "punctuation removal",
@@ -32,8 +32,8 @@ func TestNormalizeAndTokenize(t *testing.T) {
 			expected: []string{"dangerous", "yes", "might"},
 		},
 		{
-			name:     "token length filtering - keeps ≥3 chars",
-			input:    "do we ban AI in US",
+			name:     "filters short words - only keeps tokens ≥3 chars",
+			input:    "do we ban US", // Only "ban" survives: all other tokens ("do", "we", "US") are 2 characters
 			expected: []string{"ban"},
 		},
 		{

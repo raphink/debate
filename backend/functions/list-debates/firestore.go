@@ -165,7 +165,7 @@ func autocompleteDebates(ctx context.Context, client *firestore.Client, query st
 		// Count matching tokens (bag-of-words)
 		weight := CountMatchingTokens(queryTokens, topicTokens)
 		
-		// Skip if not all query tokens found
+		// Skip if no query tokens found
 		if weight == 0 {
 			continue
 		}

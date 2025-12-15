@@ -109,7 +109,7 @@ Currently, the autocomplete feature (US6) uses exact substring matching:
    
 3. **Add matching helper function**
    - `CountMatchingTokens(queryTokens, topicTokens []string) int` - returns count of query tokens found in topic
-   - Returns 0 if not all query tokens are present (failed match)
+   - Returns count as weight (supports partial matches; 0 if no tokens match)
 
 ### Example Transformations
 
@@ -154,10 +154,10 @@ Currently, the autocomplete feature (US6) uses exact substring matching:
    - Test edge cases (empty strings, all short words, special chars only)
 
 2. `firestore_test.go` (extend existing):
-   - Test bag-of-words matching (all query tokens must appear in topic)
+   - Test bag-of-words matching (topics match if any query tokens are present; partial matching supported)
    - Test match weight calculation (count of matching tokens)
    - Test result ordering (weight DESC, then startedAt DESC)
-   - Test partial matches rejected (not all query tokens present)
+   - Test partial matches included (topics with at least one matching token are returned, with correct weight)
 
 ### Integration Tests
 
