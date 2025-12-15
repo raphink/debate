@@ -4,7 +4,7 @@
 
 ## Summary
 
-Improve topic autocomplete matching to find semantically similar topics even when exact wording differs. Uses simplified KISS approach: tokenize queries/topics (≥3 char words), match all query tokens against topics (bag-of-words), sort by match count then recency. No stop word lists, no complex scoring algorithms.
+Improve topic autocomplete matching to find semantically similar topics even when exact wording differs. Uses simplified KISS approach: tokenize queries/topics (≥3 char words), match query tokens against topics (bag-of-words with partial match support), sort by match count then recency. No stop word lists, no complex scoring algorithms.
 
 ## Technical Context
 
@@ -91,8 +91,8 @@ const minTokenLength = 3
 //        split on whitespace → filter ≥3 chars
 func NormalizeAndTokenize(text string) []string
 
-// CountMatchingTokens returns number of query tokens found in topic tokens
-// Returns 0 if not all query tokens are present (failed match)
+// CountMatchingTokens returns count of query tokens found in topic tokens
+// Returns weight based on number of matches (0 if no matches, partial matches supported)
 func CountMatchingTokens(queryTokens, topicTokens []string) int
 ```
 

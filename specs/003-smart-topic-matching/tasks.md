@@ -26,13 +26,13 @@ Implement normalized topic matching using KISS approach: tokenize queries/topics
 
 - [X] T001 Create `backend/functions/list-debates/normalize.go` with constant `minTokenLength = 3` and function `NormalizeAndTokenize(text string) []string` that: converts to lowercase, replaces hyphens/slashes with spaces, removes punctuation using regex `[^a-z0-9\s]+`, splits on whitespace, filters tokens to keep only len(token) ≥ 3
 
-- [X] T002 Add `CountMatchingTokens(queryTokens, topicTokens []string) int` function to normalize.go that counts how many query tokens appear in topic tokens (bag-of-words), returning 0 if not ALL query tokens are found (failed match)
+- [X] T002 Add `CountMatchingTokens(queryTokens, topicTokens []string) int` function to normalize.go that counts how many query tokens appear in topic tokens (bag-of-words), returning the count as weight (partial matches supported)
 
 ### Unit Tests
 
 - [X] T003 Create `backend/functions/list-debates/normalize_test.go` with `TestNormalizeAndTokenize` covering: lowercase conversion, hyphen replacement ("climate-change" → ["climate", "change"]), slash replacement ("AI/ML" → ["ai", "ml"]), punctuation removal, token filtering (≥3 chars), edge cases (empty string, all short words like "is it ok", special chars only)
 
-- [X] T004 Add `TestCountMatchingTokens` to normalize_test.go verifying: all query tokens found = count > 0, missing query token = 0, bag-of-words matching (order-independent), empty inputs
+- [X] T004 Add `TestCountMatchingTokens` to normalize_test.go verifying: all query tokens found = full count, partial matches return partial count, bag-of-words matching (order-independent), empty inputs
 
 ---
 

@@ -6,7 +6,7 @@
 
 - Q: Should we use complex relevance scoring with weights for position, length ratio, and consecutive matches? → A: No - use simple matching token count as weight, sort by count DESC then recency DESC (KISS principle)
 - Q: Should we maintain stop word lists (question starters, fillers) for normalization? → A: No - use length-based filtering (≥3 characters) instead of maintaining stop word lists
-- Q: Should matching require consecutive words (substring) or support any order? → A: Bag-of-words matching - all query tokens must appear in topic, any order (more flexible)
+- Q: Should matching require consecutive words (substring) or support any order? → A: Bag-of-words matching with partial match support - query tokens can match in any order, weight based on count of matching tokens (more flexible)
 - Q: What minimum character length for tokens? → A: Always use ≥3 char threshold (simpler code, catches important short words like "ban", "war", "AI")
 - Q: How to handle hyphenated/compound words (e.g., "climate-change", "AI/ML")? → A: Replace hyphens and slashes with spaces before tokenizing (treats compounds as separate words for better matching)
 
@@ -70,9 +70,9 @@ Currently, the autocomplete feature (US6) uses exact substring matching:
 
 ### Matching Algorithm (Bag-of-Words)
 
-- **FR-008**: System MUST use bag-of-words matching: ALL query tokens must appear somewhere in topic tokens (order-independent)
-- **FR-009**: System MUST calculate match weight as: number of matching tokens between query and topic
-- **FR-010**: System MUST skip debates where not all query tokens are found in topic tokens
+- **FR-008**: System MUST use bag-of-words matching: query tokens can match topic tokens in any order (order-independent)
+- **FR-009**: System MUST calculate match weight as: count of query tokens that appear in topic tokens
+- **FR-010**: System MUST skip debates where weight is 0 (no matching tokens found)
 
 ### Ranking & Results
 
