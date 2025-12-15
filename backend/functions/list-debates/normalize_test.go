@@ -102,10 +102,10 @@ func TestCountMatchingTokens(t *testing.T) {
 			expected:    2,
 		},
 		{
-			name:        "missing query token - returns 0",
+			name:        "partial match - returns count",
 			queryTokens: []string{"animals", "extinction"},
 			topicTokens: []string{"should", "animals", "have", "rights"},
-			expected:    0,
+			expected:    1,
 		},
 		{
 			name:        "single token match",
@@ -144,10 +144,10 @@ func TestCountMatchingTokens(t *testing.T) {
 			expected:    1,
 		},
 		{
-			name:        "partial match not enough",
+			name:        "partial match - multiple tokens",
 			queryTokens: []string{"climate", "change", "policy"},
 			topicTokens: []string{"climate", "change"},
-			expected:    0,
+			expected:    2,
 		},
 	}
 

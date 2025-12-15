@@ -40,8 +40,7 @@ func NormalizeAndTokenize(text string) []string {
 }
 
 // CountMatchingTokens counts how many query tokens appear in topic tokens (bag-of-words).
-// Returns 0 if not ALL query tokens are found (failed match), otherwise returns the count
-// of matching tokens.
+// Returns the count of matching tokens as the weight (higher weight = better match).
 func CountMatchingTokens(queryTokens, topicTokens []string) int {
 	if len(queryTokens) == 0 {
 		return 0
@@ -61,11 +60,6 @@ func CountMatchingTokens(queryTokens, topicTokens []string) int {
 		}
 	}
 
-	// Return 0 if not all query tokens were found (failed match)
-	if matchCount < len(queryTokens) {
-		return 0
-	}
-
-	// Return the count of matching tokens
+	// Return the count of matching tokens as weight
 	return matchCount
 }
